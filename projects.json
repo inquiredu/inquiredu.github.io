@@ -3,6 +3,16 @@
   "updated": "2026-10-14",
   "projects": [
     {
+      "id": "project-mv8ovem4",
+      "visible": false,
+      "call": "000 NEW",
+      "title": "New project",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "",
+      "note": ""
+    },
+    {
       "id": "what-we-talk-about",
       "repo": "what-we-talk-about",
       "visible": true,
@@ -14,18 +24,6 @@
       "subject": "AI · School leadership · Trust",
       "note": "Trust, tech and learning. A workshop for school leaders, with a mini-kit and five AI leadership kits.",
       "url": "https://inquiredu.org/what-we-talk-about/"
-    },
-    {
-      "id": "claude-code-field-guide",
-      "repo": "claude-code-field-guide",
-      "visible": true,
-      "call": "006.3 CLA",
-      "title": "Claude Field Guide",
-      "status": "Live",
-      "group": "live",
-      "subject": "Claude · AI tools · Learning paths",
-      "note": "A free, hands-on learning site for using Claude well, built from viral Claude cheat sheets and checked against Anthropic's own documentation.",
-      "url": "https://inquiredu.org/claude-code-field-guide/"
     },
     {
       "id": "ai-edu-kits",
@@ -40,6 +38,18 @@
       "url": "https://github.com/inquiredu/ai-edu-kits"
     },
     {
+      "id": "a-mn-hackathon",
+      "repo": "a-mn-hackathon",
+      "visible": true,
+      "call": "006.3 HAN",
+      "title": "Hands On",
+      "status": "Live",
+      "group": "live",
+      "subject": "AI · Hackathon · MNGAIA / AI4MN",
+      "note": "A Friday hackathon to play, build, and break things with AI, together. October 9, 2026.",
+      "url": "https://inquiredu.org/a-mn-hackathon/"
+    },
+    {
       "id": "git-guide",
       "repo": "git-guide",
       "visible": true,
@@ -52,16 +62,16 @@
       "url": "https://inquiredu.org/git-guide/"
     },
     {
-      "id": "a-mn-hackathon",
-      "repo": "a-mn-hackathon",
+      "id": "claude-code-field-guide",
+      "repo": "claude-code-field-guide",
       "visible": true,
-      "call": "006.3 HAN",
-      "title": "Hands On",
+      "call": "006.3 CLA",
+      "title": "Claude Field Guide",
       "status": "Live",
       "group": "live",
-      "subject": "AI · Hackathon · MNGAIA / AI4MN",
-      "note": "A Friday hackathon to play, build, and break things with AI, together. October 9, 2026.",
-      "url": "https://inquiredu.org/a-mn-hackathon/"
+      "subject": "Claude · AI tools · Learning paths",
+      "note": "A free, hands-on learning site for using Claude well, built from viral Claude cheat sheets and checked against Anthropic's own documentation.",
+      "url": "https://inquiredu.org/claude-code-field-guide/"
     },
     {
       "id": "hype-explorer",
@@ -76,18 +86,6 @@
       "url": "https://inquiredu.org/hype-explorer/"
     },
     {
-      "id": "revisor",
-      "repo": "ReVisor",
-      "visible": true,
-      "call": "808.042 REV",
-      "title": "ReVisor",
-      "status": "Open source",
-      "group": "source",
-      "subject": "Writing · Revision history · Google Workspace",
-      "note": "A Google Apps Script tool that plays back a Google Doc's revision history, so teachers can see how a piece of student writing actually developed.",
-      "url": "https://github.com/inquiredu/ReVisor"
-    },
-    {
       "id": "learninglibrarypal",
       "repo": "LearningLibraryPal",
       "visible": true,
@@ -100,9 +98,21 @@
       "url": "https://github.com/inquiredu/LearningLibraryPal"
     },
     {
+      "id": "revisor",
+      "repo": "ReVisor",
+      "visible": false,
+      "call": "808.042 REV",
+      "title": "ReVisor",
+      "status": "Open source",
+      "group": "source",
+      "subject": "Writing · Revision history · Google Workspace",
+      "note": "A Google Apps Script tool that plays back a Google Doc's revision history, so teachers can see how a piece of student writing actually developed.",
+      "url": "https://github.com/inquiredu/ReVisor"
+    },
+    {
       "id": "hi-fi-cassette-physics",
       "repo": "hi-fi-cassette-physics",
-      "visible": true,
+      "visible": false,
       "call": "621.389 HIF",
       "title": "Hi-Fi Cassette Physics",
       "status": "Live",
@@ -114,7 +124,7 @@
     {
       "id": "privacypal",
       "repo": "privacypal",
-      "visible": true,
+      "visible": false,
       "call": "323.448 PRI",
       "title": "PrivacyPal",
       "status": "Operational",
@@ -125,7 +135,7 @@
     {
       "id": "gather",
       "repo": "gather",
-      "visible": true,
+      "visible": false,
       "call": "658.456 GAT",
       "title": "Gather",
       "status": "Alpha",
@@ -136,7 +146,7 @@
     {
       "id": "better",
       "repo": "better",
-      "visible": true,
+      "visible": false,
       "call": "613.7 BET",
       "title": "better · >0",
       "status": "Built",
@@ -147,7 +157,7 @@
     {
       "id": "constellation",
       "repo": "constellation",
-      "visible": true,
+      "visible": false,
       "call": "658.4012 CON",
       "title": "Constellation",
       "status": "In progress",
@@ -158,7 +168,7 @@
     {
       "id": "loom",
       "repo": "loom",
-      "visible": true,
+      "visible": false,
       "call": "370.1 LOO",
       "title": "LOOM",
       "status": "In progress",
@@ -169,7 +179,7 @@
     {
       "id": "budgetpal",
       "repo": "mn-school-it-budget-assistant",
-      "visible": true,
+      "visible": false,
       "call": "379.11 BUD",
       "title": "BudgetPal",
       "status": "In progress",
@@ -179,7 +189,7 @@
     },
     {
       "id": "zenith",
-      "visible": true,
+      "visible": false,
       "call": "794.8 ZEN",
       "title": "ZENITH",
       "status": "Finished",
