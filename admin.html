@@ -175,6 +175,9 @@ a:hover{color:var(--accent-text)}
 .field.wide{grid-column:1 / -1}
 textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line); border-radius:8px; resize:vertical}
 .row-actions{display:flex; gap:10px; flex-wrap:wrap}
+.token-check{font:500 14.5px/1.5 var(--font-sans) !important; color:var(--fg-2)}
+.token-check:empty{display:none}
+.token-check.ok{color:var(--ok)} .token-check.bad{color:var(--bad)}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 </style>
@@ -224,7 +227,7 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
       <ol>
         <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>.</li>
         <li>Under Repository access, choose <em>Only select repositories</em> and pick <code>inquiredu.github.io</code>. GitHub's default, <em>Public repositories</em>, is read-only and can't publish.</li>
-        <li>Under Permissions, find <em>Contents</em> and set it to <em>Read and write</em>. Leave everything else as it is.</li>
+        <li>Under Permissions, click <em>Add permissions</em>, choose <em>Contents</em>, then change its access from <em>Read-only</em> to <em>Read and write</em>. On older versions of the page, find <em>Contents</em> in the list and pick <em>Read and write</em>. Leave everything else as it is.</li>
         <li>Generate the token and paste it below.</li>
       </ol>
       <p>Already made a token that can't publish? Open <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">your fine-grained tokens</a>, choose it, click <em>Edit</em>, fix steps 2 and 3, and save. The token itself doesn't change, so you don't need to paste it again.</p>
@@ -237,6 +240,8 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
         <div class="field wide"><label for="ghToken">Token</label><input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
       </div>
       <label class="check"><input type="checkbox" id="ghRemember"> Remember the token on this device</label>
+      <div class="row-actions" style="align-items:center"><button class="btn small" id="checkTokenBtn" type="button">Check this token</button></div>
+      <p class="token-check" id="tokenCheck" role="status" aria-live="polite"></p>
       <p>Without that box checked, the token stays in this tab only and is gone when you reload. Every project page under inquiredu.org shares this browser storage, so only remember it on a device you trust.</p>
     </div>
   </details>
@@ -518,6 +523,37 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
   function cfg(){
     var c = {}; Object.keys(cfgFields).forEach(function(k){ c[k] = $(cfgFields[k]).value.trim() || defaults[k]; }); return c;
   }
+
+  /* ---------- check the token: who owns it and what kind it is ---------- */
+  $('checkTokenBtn').addEventListener('click', function(){
+    var c = cfg(), out = $('tokenCheck'), b = $('checkTokenBtn');
+    var show = function(msg, kind){ out.className = 'token-check' + (kind ? ' ' + kind : ''); out.textContent = msg; };
+    if (!memToken){ show('Paste a token first.', 'bad'); $('ghToken').focus(); return; }
+    var kind = /^github_pat_/.test(memToken) ? 'fine' : /^gh[pousr]_/.test(memToken) ? 'classic' : 'unknown';
+    b.disabled = true; show('Checking with GitHub…');
+    fetch('https://api.github.com/user', { headers: { 'Authorization': 'Bearer ' + memToken, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }, cache: 'no-store' })
+      .then(function(r){
+        if (r.status === 401) throw { status: 401 };
+        if (!r.ok) throw { status: r.status };
+        return r.json();
+      })
+      .then(function(u){
+        var who = u.login || 'an unknown account';
+        if (who.toLowerCase() !== c.owner.toLowerCase())
+          return show('This token belongs to @' + who + ', not @' + c.owner + '. It can read your public repo but can’t write to it. Sign in to GitHub as @' + c.owner + ' and make the token there.', 'bad');
+        if (kind === 'classic')
+          return show('This is a classic token for @' + who + '. Classic tokens need the “repo” scope to publish. A fine-grained token limited to ' + c.repo + ' is safer: follow the steps above.', 'bad');
+        if (kind === 'unknown')
+          return show('GitHub knows this token as @' + who + ', but it doesn’t look like a fine-grained token (those start with github_pat_). Check that you pasted the whole token.', 'bad');
+        show('This is a fine-grained token for @' + who + ', so the account is right. GitHub doesn’t let a web page read a token’s permissions. If Publish still fails, open the token on GitHub and check that ' + c.repo + ' is listed under Repository access and that Contents says Read and write, not Read-only.', 'ok');
+      })
+      .catch(function(err){
+        if (err && err.status === 401) show('GitHub doesn’t recognize this token. It may have expired, been deleted or regenerated, or been pasted incompletely.', 'bad');
+        else if (err && err.status) show('GitHub returned an error (' + err.status + ') while checking the token. Try again in a minute.', 'bad');
+        else show('Couldn’t reach GitHub. Check your connection and try again.', 'bad');
+      })
+      .then(function(){ b.disabled = false; });
+  });
 
   /* ---------- check GitHub for new projects ---------- */
   var prettify = function(name){
