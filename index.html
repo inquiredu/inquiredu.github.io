@@ -414,6 +414,7 @@ noscript ul{font-family:var(--font-sans)}
     if (!isDraft) return all;
     var d = null;
     try { d = JSON.parse(localStorage.getItem('catalog-draft') || 'null'); } catch (e) {}
+    if (d && Array.isArray(d.projects)) return d.projects;   /* full draft: order, visibility and card edits */
     if (!d || !Array.isArray(d.order)) return all;
     var byId = {}; all.forEach(function(p){ byId[p.id] = p; });
     var out = [];

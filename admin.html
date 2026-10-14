@@ -23,7 +23,7 @@
   --ease-out:cubic-bezier(.2,.7,.2,1);
   --bg:#F4F1EB; --raised:#FAF8F4; --sunken:#EAE5DB;
   --fg-1:#20384F; --fg-2:#45627D; --fg-3:#6E8599;
-  --accent-text:#8A522C; --sun:#C47D4D; --sun-soft:#F7EBE0; --water:#608C9B;
+  --accent-text:#8A522C; --sun:#C47D4D; --sun-soft:#F7EBE0; --water:#608C9B; --water-soft:#E3EDF0; --water-text:#3E6573;
   --line:#DCD5C7; --line-strong:#20384F;
   --btn-bg:#20384F; --btn-fg:#F4F1EB;
   --ok:#3F6650; --ok-bg:#E2ECE4; --bad:#9E3F35; --bad-bg:#F4E1DD;
@@ -35,7 +35,7 @@
     color-scheme:dark;
     --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
     --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
-    --accent-text:#DCAD88; --sun-soft:#3A2A1E;
+    --accent-text:#DCAD88; --sun-soft:#3A2A1E; --water-soft:#1D3A46; --water-text:#C5D8DE;
     --line:#2E4B66; --line-strong:#9DAEBC;
     --btn-bg:#F4F1EB; --btn-fg:#142434;
     --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
@@ -47,7 +47,7 @@
   color-scheme:dark;
   --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
   --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
-  --accent-text:#DCAD88; --sun-soft:#3A2A1E;
+  --accent-text:#DCAD88; --sun-soft:#3A2A1E; --water-soft:#1D3A46; --water-text:#C5D8DE;
   --line:#2E4B66; --line-strong:#9DAEBC;
   --btn-bg:#F4F1EB; --btn-fg:#142434;
   --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
@@ -85,19 +85,37 @@ a:hover{color:var(--accent-text)}
 .btn.primary{background:var(--sun); border-color:var(--sun); color:#142434}
 .btn.primary:hover{background:#D09466; border-color:#D09466; color:#142434}
 .btn.solid{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
+.btn.small{height:32px; padding:0 12px; font-size:13.5px}
 .btn:disabled{opacity:.45; cursor:default; pointer-events:none}
 .btn.warn{border-color:var(--bad); color:var(--bad)}
+.link-btn{background:none; border:0; padding:4px 2px; font:600 13.5px/1 var(--font-sans); color:var(--fg-2); cursor:pointer; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px}
+.link-btn:hover{color:var(--accent-text); text-decoration-color:var(--sun)}
 
 .status{min-height:24px; padding-top:12px; font:500 14.5px/1.5 var(--font-sans); color:var(--fg-2)}
 .status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
-.hint{font:400 13px/1.5 var(--font-mono); color:var(--fg-3); padding-top:4px}
+.hint{font:400 13px/1.5 var(--font-mono); color:var(--fg-3)}
+
+/* finding new projects */
+.finder{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-top:14px}
+.found{margin-top:14px; padding:16px; border:1.5px dashed var(--water); border-radius:8px; background:var(--water-soft); display:flex; flex-direction:column; gap:12px}
+.found-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap}
+.found-head h2{font:600 15px/1.3 var(--font-sans); color:var(--water-text)}
+.found p{font:400 15px/1.5 var(--font-serif); color:var(--fg-2)}
+.cand{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 16px; align-items:center; padding:12px 14px; background:var(--raised); border:1px solid var(--line); border-radius:8px}
+.cand .name{font:600 16px/1.3 var(--font-sans)}
+.cand .desc{font:400 15px/1.45 var(--font-serif); color:var(--fg-2)}
+.cand .where{font:400 12.5px/1.4 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere}
+.cand-actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+.dismissed{font:400 14px/1.5 var(--font-sans); color:var(--fg-2); display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center}
+@media (max-width:560px){ .cand{grid-template-columns:minmax(0,1fr)} .cand-actions{justify-content:flex-start} }
 
 /* project cards, like index cards in a drawer */
-.rows{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
-.row{display:grid; grid-template-columns:auto 3ch minmax(0,1fr) auto; align-items:center; gap:14px; padding:12px 14px 12px 6px; background:var(--raised); border:1px solid var(--line); border-radius:8px; transition:opacity 150ms var(--ease-out), background 150ms var(--ease-out)}
+.rows{list-style:none; margin:18px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+.row{display:grid; grid-template-columns:auto 3ch minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:12px 14px 12px 6px; background:var(--raised); border:1px solid var(--line); border-radius:8px; transition:opacity 150ms var(--ease-out), background 150ms var(--ease-out)}
 .row.dragging{box-shadow:var(--shadow-lift); border-color:var(--sun); position:relative; z-index:2}
 .row.off{background:var(--sunken)}
 .row.off .info{opacity:.55}
+.row.fresh{border-color:var(--water); box-shadow:0 0 0 2px var(--water-soft)}
 .grip{width:32px; height:40px; display:grid; place-items:center; border:0; background:transparent; color:var(--fg-3); cursor:grab; border-radius:4px; touch-action:none}
 .grip:hover{color:var(--fg-1); background:var(--sunken)}
 .row.dragging .grip{cursor:grabbing; color:var(--accent-text)}
@@ -107,6 +125,9 @@ a:hover{color:var(--accent-text)}
 .title{font:600 16.5px/1.3 var(--font-sans)}
 .title .star{color:var(--sun); margin-left:6px}
 .sub{font:400 12.5px/1.45 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere}
+.edit-btn{height:32px; padding:0 10px; border:1px solid var(--line); border-radius:4px; background:transparent; font:600 13px/1 var(--font-sans); color:var(--fg-2); cursor:pointer}
+.edit-btn:hover{color:var(--accent-text); border-color:var(--accent-text)}
+.edit-btn[aria-expanded="true"]{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
 
 /* rocker switch with a pilot light, like the lamp on the public page */
 .switch{display:inline-flex; align-items:center; gap:10px; cursor:pointer; font:600 11px/1 var(--font-sans); letter-spacing:.14em; text-transform:uppercase; color:var(--fg-2); user-select:none}
@@ -120,10 +141,24 @@ a:hover{color:var(--accent-text)}
 .state{min-width:6ch}
 .switch input:checked ~ .state{color:var(--fg-1)}
 
+/* inline editor */
+.editor{grid-column:1 / -1; margin:6px 0 4px 40px; padding-top:14px; border-top:1px dashed var(--line); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px}
+.editor .field.wide{grid-column:1 / -1}
+.editor-foot{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding-top:4px}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font:600 13px/1.2 var(--font-sans)}
+.field small{font:400 12.5px/1.45 var(--font-sans); color:var(--fg-3)}
+.field input,.field select,.field textarea{min-height:40px; padding:8px 12px; font:400 14.5px/1.4 var(--font-mono); color:var(--fg-1); background:var(--bg); border:1px solid var(--line-strong); border-radius:4px; width:100%}
+.field textarea{min-height:84px; resize:vertical; font-family:var(--font-serif); font-size:16px; line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none; box-shadow:0 0 0 3px var(--sun-soft); border-color:var(--sun)}
+.check{display:flex; align-items:center; gap:10px; font:500 14.5px/1.4 var(--font-sans)}
+.check input{width:18px; height:18px; accent-color:var(--sun)}
+
 @media (max-width:560px){
-  .row{grid-template-columns:auto minmax(0,1fr) auto; gap:10px}
+  .row{grid-template-columns:auto minmax(0,1fr) auto auto; gap:10px}
   .pos{display:none}
   .switch .state{display:none}
+  .editor{margin-left:0; grid-template-columns:minmax(0,1fr)}
 }
 
 /* settings + manual publish */
@@ -137,14 +172,8 @@ a:hover{color:var(--accent-text)}
 .panel-body ol{margin:0; padding-left:1.3em; font:400 16px/1.6 var(--font-serif); color:var(--fg-2); max-width:62ch}
 .fields{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px}
 @media (max-width:560px){.fields{grid-template-columns:minmax(0,1fr)}}
-.field{display:flex; flex-direction:column; gap:6px}
 .field.wide{grid-column:1 / -1}
-.field label{font:600 13px/1.2 var(--font-sans)}
-.field input{height:40px; padding:0 12px; font:400 14.5px/1 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line-strong); border-radius:4px}
-.field input:focus{outline:none; box-shadow:0 0 0 3px var(--sun-soft); border-color:var(--sun)}
-.check{display:flex; align-items:center; gap:10px; font:500 14.5px/1.4 var(--font-sans)}
-.check input{width:18px; height:18px; accent-color:var(--sun)}
-textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line); border-radius:8px; resize:vertical}
+textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line); border-radius:8px; resize:vertical}
 .row-actions{display:flex; gap:10px; flex-wrap:wrap}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
@@ -159,7 +188,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     <div class="head-text">
       <p class="eyebrow">inquiredu.org</p>
       <h1>Catalog admin</h1>
-      <p>Choose which projects appear in the library and drag them into order. Nothing changes on the live site until you publish.</p>
+      <p>Choose which projects appear in the library, drag them into order, and edit their catalog cards. Nothing changes on the live site until you publish.</p>
     </div>
   </header>
 
@@ -172,9 +201,21 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     <button class="btn primary" id="publishBtn" type="button" disabled>Publish</button>
   </div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
-  <p class="hint">Drag the handle to reorder, or focus it and use the arrow keys. Changes save in this browser as you go.</p>
 
+  <div class="finder">
+    <button class="btn solid small" id="checkBtn" type="button">Check GitHub for new projects</button>
+    <button class="btn small" id="addBtn" type="button">Add a project by hand</button>
+  </div>
+  <div class="found" id="found" hidden></div>
+
+  <p class="hint" style="margin-top:18px">Drag the handle to reorder, or focus it and use the arrow keys. Changes save in this browser as you go.</p>
   <ol class="rows" id="rows" aria-label="Projects in shelf order"></ol>
+
+  <datalist id="statuses">
+    <option value="Live"></option><option value="Open source"></option><option value="Pilot"></option>
+    <option value="Operational"></option><option value="Alpha"></option><option value="Built"></option>
+    <option value="In progress"></option><option value="Finished"></option>
+  </datalist>
 
   <details class="panel" id="settings">
     <summary>GitHub connection</summary>
@@ -191,6 +232,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
         <div class="field"><label for="ghRepo">Repository</label><input id="ghRepo" autocomplete="off" spellcheck="false"></div>
         <div class="field"><label for="ghBranch">Branch</label><input id="ghBranch" autocomplete="off" spellcheck="false"></div>
         <div class="field"><label for="ghPath">File</label><input id="ghPath" autocomplete="off" spellcheck="false"></div>
+        <div class="field wide"><label for="ghSite">Site address</label><input id="ghSite" autocomplete="off" spellcheck="false"><small>Used to build links for new projects that have a GitHub Pages site.</small></div>
         <div class="field wide"><label for="ghToken">Token</label><input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
       </div>
       <label class="check"><input type="checkbox" id="ghRemember"> Remember the token on this device</label>
@@ -204,7 +246,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
       <p>Copy this file and replace <code>projects.json</code> in the repository yourself. It always matches the list above.</p>
       <div class="row-actions"><button class="btn solid" id="copyBtn" type="button">Copy projects.json</button></div>
       <label class="sr" for="jsonOut">projects.json</label>
-      <textarea id="jsonOut" readonly></textarea>
+      <textarea class="json" id="jsonOut" readonly></textarea>
     </div>
   </details>
 
@@ -213,25 +255,31 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var esc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
   var get = function(k){ try { return localStorage.getItem(k); } catch (e) { return null; } };
   var set = function(k, v){ try { localStorage.setItem(k, v); } catch (e) {} };
   var del = function(k){ try { localStorage.removeItem(k); } catch (e) {} };
   var DRAFT = 'catalog-draft';
+  var GROUPS = { live: 'Live', source: 'Open source', workshop: 'Workshop' };
 
-  var published = [];   // projects as loaded from projects.json
-  var items = [];       // working copy, in shelf order
+  var published = { projects: [], ignored: [] };  // as loaded from projects.json
+  var items = [];      // working copy, in shelf order
+  var ignored = [];    // repo names dismissed from "new on GitHub"
   var fileMeta = { version: 1 };
   var memToken = '';
+  var openEditors = {};
+  var lastFound = null;
 
-  var rowsEl = $('rows'), statusEl = $('status');
+  var rowsEl = $('rows'), statusEl = $('status'), foundEl = $('found');
   var GRIP = '<svg viewBox="0 0 14 20" aria-hidden="true"><circle cx="4" cy="4" r="1.6"/><circle cx="10" cy="4" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="4" cy="16" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>';
 
   var clone = function(a){ return a.map(function(p){ return Object.assign({}, p); }); };
-  var signature = function(a){ return JSON.stringify(a.map(function(p){ return [p.id, p.visible !== false]; })); };
-  var isDirty = function(){ return signature(items) !== signature(published); };
+  var signature = function(list, ign){ return JSON.stringify({ p: list, i: ign }); };
+  var isDirty = function(){ return signature(items, ignored) !== signature(published.projects, published.ignored); };
   var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
   var locOf = function(u){ return u ? u.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'Closed stacks'; };
+  var byId = function(id){ return items.filter(function(p){ return p.id === id; })[0]; };
+  var domId = function(id){ return 'p-' + String(id).replace(/[^a-zA-Z0-9_-]/g, '-'); };
 
   function say(msg, kind, html){
     statusEl.className = 'status' + (kind ? ' ' + kind : '');
@@ -239,27 +287,48 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
   }
 
   /* ---------- rendering ---------- */
+  function subLine(p){ return esc(p.call) + ' · ' + esc(p.status) + ' · ' + esc(locOf(p.url)); }
+  function titleHTML(p){ return esc(p.title || 'Untitled project') + (p.featured ? '<span class="star" aria-label="featured">✦</span>' : ''); }
+  function gripLabel(p, i){ return 'Move ' + (p.title || 'Untitled project') + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.'; }
+  function editorHTML(p){
+    var f = domId(p.id);
+    var opt = function(v){ return '<option value="' + v + '"' + (p.group === v ? ' selected' : '') + '>' + GROUPS[v] + '</option>'; };
+    return '<div class="editor" id="' + f + '-editor">' +
+      '<div class="field"><label for="' + f + '-title">Title</label><input id="' + f + '-title" data-field="title" value="' + esc(p.title) + '"></div>' +
+      '<div class="field"><label for="' + f + '-call">Call number</label><input id="' + f + '-call" data-field="call" value="' + esc(p.call) + '" spellcheck="false"><small>Dewey-style. 000 is general works.</small></div>' +
+      '<div class="field"><label for="' + f + '-status">Status</label><input id="' + f + '-status" data-field="status" list="statuses" value="' + esc(p.status) + '"></div>' +
+      '<div class="field"><label for="' + f + '-group">Shelf</label><select id="' + f + '-group" data-field="group">' + opt('live') + opt('source') + opt('workshop') + '</select><small>Which tab it appears under on the terminal.</small></div>' +
+      '<div class="field wide"><label for="' + f + '-subject">Subject</label><input id="' + f + '-subject" data-field="subject" value="' + esc(p.subject) + '"><small>Short topics separated by “ · ”.</small></div>' +
+      '<div class="field wide"><label for="' + f + '-note">Note</label><textarea id="' + f + '-note" data-field="note">' + esc(p.note) + '</textarea></div>' +
+      '<div class="field wide"><label for="' + f + '-url">Link</label><input id="' + f + '-url" data-field="url" type="url" value="' + esc(p.url) + '" spellcheck="false" placeholder="https://"><small>Leave empty for a private project. Its card will say “Closed stacks.”</small></div>' +
+      '<div class="editor-foot">' +
+        '<label class="check"><input type="checkbox" data-field="featured"' + (p.featured ? ' checked' : '') + '> Feature it with a ✦</label>' +
+        '<span class="row-actions"><button class="btn small" type="button" data-act="remove">Remove from catalog</button><button class="btn solid small" type="button" data-act="done">Done</button></span>' +
+      '</div>' +
+    '</div>';
+  }
   function rowHTML(p, i){
-    var on = p.visible !== false;
+    var on = p.visible !== false, open = !!openEditors[p.id];
     return '<li class="row' + (on ? '' : ' off') + '" data-id="' + esc(p.id) + '">' +
-      '<button class="grip" type="button" aria-label="Move ' + esc(p.title) + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.">' + GRIP + '</button>' +
+      '<button class="grip" type="button" aria-label="' + esc(gripLabel(p, i)) + '">' + GRIP + '</button>' +
       '<span class="pos">' + pad(i + 1) + '</span>' +
-      '<div class="info"><span class="title">' + esc(p.title) + (p.featured ? '<span class="star" aria-label="featured">✦</span>' : '') + '</span>' +
-      '<span class="sub">' + esc(p.call) + ' · ' + esc(p.status) + ' · ' + esc(locOf(p.url)) + '</span></div>' +
+      '<div class="info"><span class="title">' + titleHTML(p) + '</span><span class="sub">' + subLine(p) + '</span></div>' +
+      '<button class="edit-btn" type="button" data-act="edit" aria-expanded="' + open + '" aria-controls="' + domId(p.id) + '-editor">Edit</button>' +
       '<label class="switch"><input type="checkbox" role="switch"' + (on ? ' checked' : '') + ' aria-label="Show ' + esc(p.title) + ' on the site">' +
       '<span class="rocker" aria-hidden="true"><span class="lever"></span></span><span class="pilot" aria-hidden="true"></span>' +
       '<span class="state">' + (on ? 'Shown' : 'Hidden') + '</span></label>' +
+      (open ? editorHTML(p) : '') +
     '</li>';
   }
   function render(){
     rowsEl.innerHTML = items.map(rowHTML).join('');
     refresh();
   }
+  function rowEl(id){ return Array.prototype.filter.call(rowsEl.children, function(li){ return li.dataset.id === id; })[0]; }
   function renumber(){
     Array.prototype.forEach.call(rowsEl.children, function(li, i){
       li.querySelector('.pos').textContent = pad(i + 1);
-      var p = items[i];
-      li.querySelector('.grip').setAttribute('aria-label', 'Move ' + p.title + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.');
+      li.querySelector('.grip').setAttribute('aria-label', gripLabel(items[i], i));
     });
   }
   function refresh(){
@@ -272,24 +341,69 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     $('discardBtn').disabled = !dirty;
     $('previewBtn').href = dirty ? 'index.html#draft' : 'index.html';
     $('jsonOut').value = fileText();
-    if (dirty) set(DRAFT, JSON.stringify({ saved: new Date().toISOString(), order: items.map(function(p){ return { id: p.id, visible: p.visible !== false }; }) }));
+    if (dirty) set(DRAFT, JSON.stringify({ saved: new Date().toISOString(), projects: items, ignored: ignored }));
     else del(DRAFT);
   }
   function fileText(){
-    var out = Object.assign({}, fileMeta, { updated: new Date().toISOString().slice(0, 10), projects: items });
+    var out = Object.assign({}, fileMeta, { updated: new Date().toISOString().slice(0, 10), projects: items, ignored: ignored });
     return JSON.stringify(out, null, 2) + '\n';
   }
 
   /* ---------- toggles ---------- */
   rowsEl.addEventListener('change', function(e){
-    if (!e.target.matches('input[type=checkbox]')) return;
-    var li = e.target.closest('.row');
-    var p = items.filter(function(x){ return x.id === li.dataset.id; })[0];
-    p.visible = e.target.checked;
-    li.classList.toggle('off', !p.visible);
-    li.querySelector('.state').textContent = p.visible ? 'Shown' : 'Hidden';
-    say('');
+    var li = e.target.closest('.row'); if (!li) return;
+    var p = byId(li.dataset.id);
+    if (e.target.matches('.switch input')){
+      p.visible = e.target.checked;
+      li.classList.toggle('off', !p.visible);
+      li.querySelector('.state').textContent = p.visible ? 'Shown' : 'Hidden';
+      say(''); refresh();
+    } else if (e.target.dataset.field === 'featured'){
+      p.featured = e.target.checked;
+      if (!p.featured) delete p.featured;
+      li.querySelector('.title').innerHTML = titleHTML(p);
+      refresh();
+    } else if (e.target.dataset.field === 'group'){
+      p.group = e.target.value; refresh();
+    }
+  });
+
+  /* ---------- inline editing ---------- */
+  rowsEl.addEventListener('input', function(e){
+    var field = e.target.dataset.field; if (!field || field === 'featured' || field === 'group') return;
+    var li = e.target.closest('.row'), p = byId(li.dataset.id);
+    var v = e.target.value;
+    if (field === 'url'){ v = v.trim(); if (v) p.url = v; else delete p.url; }
+    else p[field] = v;
+    li.querySelector('.title').innerHTML = titleHTML(p);
+    li.querySelector('.sub').innerHTML = subLine(p);
     refresh();
+  });
+  var removeArmed = {};
+  rowsEl.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var li = b.closest('.row'), id = li.dataset.id, p = byId(id);
+    if (b.dataset.act === 'edit' || b.dataset.act === 'done'){
+      openEditors[id] = b.dataset.act === 'edit' ? !openEditors[id] : false;
+      var i = items.indexOf(p);
+      var tmp = document.createElement('ol'); tmp.innerHTML = rowHTML(p, i);
+      var fresh = tmp.firstChild; if (li.classList.contains('fresh')) fresh.classList.add('fresh');
+      li.replaceWith(fresh);
+      if (openEditors[id]) fresh.querySelector('[data-field="title"]').focus();
+      else fresh.querySelector('.edit-btn').focus();
+    }
+    if (b.dataset.act === 'remove'){
+      if (!removeArmed[id]){
+        b.textContent = 'Click again to remove'; b.classList.add('warn');
+        removeArmed[id] = setTimeout(function(){ b.textContent = 'Remove from catalog'; b.classList.remove('warn'); delete removeArmed[id]; }, 4000);
+        return;
+      }
+      clearTimeout(removeArmed[id]); delete removeArmed[id];
+      items.splice(items.indexOf(p), 1);
+      delete openEditors[id];
+      render();
+      say((p.title || 'The project') + ' was removed. Publish to take it off the site, or discard changes to bring it back.');
+    }
   });
 
   /* ---------- drag to reorder (pointer events: mouse, pen and touch) ---------- */
@@ -305,8 +419,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     });
   }
   function syncFromDom(){
-    var byId = {}; items.forEach(function(p){ byId[p.id] = p; });
-    items = Array.prototype.map.call(rowsEl.children, function(li){ return byId[li.dataset.id]; });
+    items = Array.prototype.map.call(rowsEl.children, function(li){ return byId(li.dataset.id); });
   }
   rowsEl.addEventListener('pointerdown', function(e){
     var grip = e.target.closest('.grip');
@@ -314,7 +427,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     e.preventDefault();
     var row = grip.closest('.row');
     grip.setPointerCapture(e.pointerId);
-    drag = { row: row, grip: grip, pid: e.pointerId, from: Array.prototype.indexOf.call(rowsEl.children, row) };
+    drag = { row: row, pid: e.pointerId, from: Array.prototype.indexOf.call(rowsEl.children, row) };
     row.classList.add('dragging');
   });
   rowsEl.addEventListener('pointermove', function(e){
@@ -338,7 +451,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     var to = Array.prototype.indexOf.call(rowsEl.children, row);
     if (to !== from){
       syncFromDom(); renumber(); refresh();
-      say(items[to].title + ' moved to position ' + (to + 1) + '.');
+      say((items[to].title || 'The project') + ' moved to position ' + (to + 1) + '.');
     }
   }
   rowsEl.addEventListener('pointerup', endDrag);
@@ -364,7 +477,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     flip(function(){ rowsEl.insertBefore(li, ref); });
     renumber(); refresh();
     li.querySelector('.grip').focus();
-    say(moved.title + ' moved to position ' + (to + 1) + '.');
+    say((moved.title || 'The project') + ' moved to position ' + (to + 1) + '.');
   });
 
   /* ---------- discard (two-step, in the page) ---------- */
@@ -378,13 +491,15 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     }
     clearTimeout(discardArmed); discardArmed = null;
     b.textContent = 'Discard changes'; b.classList.remove('warn');
-    items = clone(published); del(DRAFT); render();
+    items = clone(published.projects); ignored = published.ignored.slice(); openEditors = {};
+    del(DRAFT); render();
+    if (lastFound) renderFound();
     say('Changes discarded. The list matches the published version.');
   });
 
   /* ---------- GitHub connection ---------- */
-  var cfgFields = { owner: 'ghOwner', repo: 'ghRepo', branch: 'ghBranch', path: 'ghPath' };
-  var defaults = { owner: 'inquiredu', repo: 'inquiredu.github.io', branch: 'main', path: 'projects.json' };
+  var cfgFields = { owner: 'ghOwner', repo: 'ghRepo', branch: 'ghBranch', path: 'ghPath', site: 'ghSite' };
+  var defaults = { owner: 'inquiredu', repo: 'inquiredu.github.io', branch: 'main', path: 'projects.json', site: 'https://inquiredu.org' };
   Object.keys(cfgFields).forEach(function(k){
     var el = $(cfgFields[k]);
     el.value = get('gh-' + k) || defaults[k];
@@ -402,6 +517,98 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
   function cfg(){
     var c = {}; Object.keys(cfgFields).forEach(function(k){ c[k] = $(cfgFields[k]).value.trim() || defaults[k]; }); return c;
   }
+
+  /* ---------- check GitHub for new projects ---------- */
+  var prettify = function(name){
+    return name.replace(/[-_]+/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).replace(/\bAi\b/g, 'AI').replace(/\bMn\b/g, 'MN');
+  };
+  function inCatalog(name){
+    var n = name.toLowerCase();
+    return items.some(function(p){ return (p.repo || '').toLowerCase() === n; });
+  }
+  function isIgnored(name){ return ignored.some(function(x){ return x.toLowerCase() === name.toLowerCase(); }); }
+  function liveUrl(r, c){
+    if (r.homepage) return r.homepage;
+    if (r.has_pages) return c.site.replace(/\/$/, '') + '/' + r.name + '/';
+    return '';
+  }
+  function renderFound(){
+    var c = cfg();
+    var fresh = lastFound.filter(function(r){ return !inCatalog(r.name) && !isIgnored(r.name); });
+    var dismissed = lastFound.filter(function(r){ return isIgnored(r.name); });
+    var html = '<div class="found-head"><h2>' + (fresh.length ? 'New on GitHub (' + fresh.length + ')' : 'Nothing new on GitHub') + '</h2>' +
+      '<button class="link-btn" type="button" data-found="close">Close</button></div>';
+    if (!fresh.length) html += '<p>Every public repo is already in the catalog or dismissed.</p>';
+    fresh.forEach(function(r){
+      var u = liveUrl(r, c);
+      html += '<div class="cand"><div><p class="name">' + esc(r.name) + '</p>' +
+        (r.description ? '<p class="desc">' + esc(r.description) + '</p>' : '') +
+        '<p class="where">' + (u ? 'Live at ' + esc(locOf(u)) : 'Repository only · ' + esc(locOf(r.html_url))) + '</p></div>' +
+        '<div class="cand-actions"><button class="btn small" type="button" data-ignore="' + esc(r.name) + '">Not a project</button>' +
+        '<button class="btn primary small" type="button" data-add="' + esc(r.name) + '">Add to catalog</button></div></div>';
+    });
+    html += '<p class="hint">Private repos don’t show up here. Use “Add a project by hand” for those.</p>';
+    if (dismissed.length){
+      html += '<div class="dismissed"><span>Dismissed:</span>' + dismissed.map(function(r){
+        return '<span>' + esc(r.name) + ' <button class="link-btn" type="button" data-restore="' + esc(r.name) + '">Restore</button></span>';
+      }).join('') + '</div>';
+    }
+    foundEl.innerHTML = html;
+    foundEl.hidden = false;
+  }
+  $('checkBtn').addEventListener('click', function(){
+    var c = cfg(), b = $('checkBtn');
+    b.disabled = true; b.textContent = 'Checking GitHub…';
+    fetch('https://api.github.com/users/' + encodeURIComponent(c.owner) + '/repos?per_page=100&sort=created&type=owner', { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' })
+      .then(function(r){ if (!r.ok) throw { status: r.status }; return r.json(); })
+      .then(function(list){
+        lastFound = list.filter(function(r){
+          return !r.fork && !r.archived && r.name.toLowerCase() !== (c.owner + '.github.io').toLowerCase() && r.name.toLowerCase() !== c.repo.toLowerCase();
+        });
+        renderFound();
+        say('');
+      })
+      .catch(function(err){
+        if (err && err.status === 403) say('GitHub allows 60 checks an hour without signing in, and that limit is used up. Try again later.', 'bad');
+        else if (err && err.status === 404) say('GitHub couldn’t find the account “' + c.owner + '”. Check the owner under GitHub connection.', 'bad');
+        else say('Couldn’t reach GitHub. Check your connection and try again.', 'bad');
+      })
+      .then(function(){ b.disabled = false; b.textContent = 'Check GitHub for new projects'; });
+  });
+  foundEl.addEventListener('click', function(e){
+    var t = e.target;
+    if (t.dataset.found === 'close'){ foundEl.hidden = true; return; }
+    if (t.dataset.ignore){ ignored.push(t.dataset.ignore); renderFound(); refresh(); say(t.dataset.ignore + ' won’t be suggested again once you publish.'); return; }
+    if (t.dataset.restore){ var n = t.dataset.restore.toLowerCase(); ignored = ignored.filter(function(x){ return x.toLowerCase() !== n; }); renderFound(); refresh(); return; }
+    if (t.dataset.add){
+      var r = lastFound.filter(function(x){ return x.name === t.dataset.add; })[0]; if (!r) return;
+      var u = liveUrl(r, cfg()), title = prettify(r.name);
+      var id = r.name.toLowerCase(); while (byId(id)) id += '-2';
+      var p = { id: id, repo: r.name, visible: true, call: '000 ' + title.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase(), title: title,
+                status: u ? 'Live' : 'Open source', group: u ? 'live' : 'source', subject: '', note: r.description || '' };
+      if (u) p.url = u; else p.url = r.html_url;
+      items.unshift(p);
+      openEditors[id] = true;
+      render();
+      var li = rowEl(id); li.classList.add('fresh');
+      li.querySelector('[data-field="title"]').focus();
+      renderFound();
+      say(title + ' was added at the top and switched on. Check its card, then publish.');
+    }
+  });
+
+  /* ---------- add by hand ---------- */
+  $('addBtn').addEventListener('click', function(){
+    var id = 'project-' + Date.now().toString(36);
+    items.unshift({ id: id, visible: false, call: '000 NEW', title: 'New project', status: 'In progress', group: 'workshop', subject: '', note: '' });
+    openEditors[id] = true;
+    render();
+    var li = rowEl(id); li.classList.add('fresh');
+    var t = li.querySelector('[data-field="title"]'); t.focus(); t.select();
+    say('New project added at the top. It stays hidden until you switch it on.');
+  });
+
+  /* ---------- publish ---------- */
   function b64(str){
     var bytes = new TextEncoder().encode(str), bin = '';
     for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
@@ -415,7 +622,6 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     if (status === 409 || status === 422) return 'GitHub reported a newer version of the file. Publish again to retry.';
     return 'GitHub returned an error (' + status + '). Try again in a minute.';
   }
-
   $('publishBtn').addEventListener('click', function(){
     var c = cfg();
     if (!memToken){
@@ -423,6 +629,8 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
       say('Add a GitHub token to publish. The steps are under GitHub connection.', 'bad');
       return;
     }
+    var untitled = items.filter(function(p){ return p.visible !== false && !String(p.title || '').trim(); });
+    if (untitled.length){ say('A project that’s switched on has no title. Give it one, or switch it off, then publish.', 'bad'); return; }
     var btn = $('publishBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
     say('Saving to GitHub…');
     var api = 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) + '/contents/' + c.path.split('/').map(encodeURIComponent).join('/');
@@ -432,7 +640,7 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
 
     fetch(api + '?ref=' + encodeURIComponent(c.branch), { headers: headers, cache: 'no-store' })
       .then(function(r){
-        if (r.status === 404) return null;            // first publish creates the file
+        if (r.status === 404) return null;
         if (!r.ok) throw { status: r.status };
         return r.json();
       })
@@ -446,8 +654,10 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
         return r.json();
       })
       .then(function(res){
-        published = clone(items); del(DRAFT);
+        published = { projects: clone(items), ignored: ignored.slice() };
+        del(DRAFT);
         btn.textContent = 'Publish'; refresh();
+        Array.prototype.forEach.call(rowsEl.querySelectorAll('.fresh'), function(li){ li.classList.remove('fresh'); });
         var link = res && res.commit && res.commit.html_url ? ' <a href="' + esc(res.commit.html_url) + '" target="_blank" rel="noopener">View the commit ↗</a>' : '';
         say('Published. The live site updates in a minute or two.' + link, 'ok', true);
       })
@@ -471,16 +681,23 @@ textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--f
     .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(data){
       fileMeta = { version: data.version || 1 };
-      published = (data.projects || []).map(function(p){ return Object.assign({}, p, { visible: p.visible !== false }); });
-      items = clone(published);
+      published = {
+        projects: (data.projects || []).map(function(p){ return Object.assign({}, p, { visible: p.visible !== false }); }),
+        ignored: Array.isArray(data.ignored) ? data.ignored.slice() : []
+      };
+      items = clone(published.projects); ignored = published.ignored.slice();
       var d = null; try { d = JSON.parse(get(DRAFT) || 'null'); } catch (e) {}
-      if (d && Array.isArray(d.order)){
-        var byId = {}; items.forEach(function(p){ byId[p.id] = p; });
+      if (d && Array.isArray(d.projects)){
+        items = clone(d.projects); ignored = Array.isArray(d.ignored) ? d.ignored.slice() : ignored;
+        if (isDirty()) say('Restored your unpublished changes from ' + new Date(d.saved).toLocaleString() + '. Discard them to start from the published version.');
+      } else if (d && Array.isArray(d.order)){
+        /* older draft format: order and visibility only */
+        var map = {}; items.forEach(function(p){ map[p.id] = p; });
         var merged = [];
-        d.order.forEach(function(o){ var p = byId[o.id]; if (p){ p.visible = !!o.visible; merged.push(p); delete byId[o.id]; } });
-        items.forEach(function(p){ if (byId[p.id]) merged.push(p); });
+        d.order.forEach(function(o){ var p = map[o.id]; if (p){ p.visible = !!o.visible; merged.push(p); delete map[o.id]; } });
+        items.forEach(function(p){ if (map[p.id]) merged.push(p); });
         items = merged;
-        if (isDirty()) say('Restored your unpublished changes from ' + new Date(d.saved).toLocaleString() + '.');
+        if (isDirty()) say('Restored your unpublished changes.');
       }
       render();
     })

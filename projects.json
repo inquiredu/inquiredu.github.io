@@ -4,6 +4,7 @@
   "projects": [
     {
       "id": "what-we-talk-about",
+      "repo": "what-we-talk-about",
       "visible": true,
       "featured": true,
       "call": "371.33 WHA",
@@ -15,7 +16,20 @@
       "url": "https://inquiredu.org/what-we-talk-about/"
     },
     {
+      "id": "claude-code-field-guide",
+      "repo": "claude-code-field-guide",
+      "visible": true,
+      "call": "006.3 CLA",
+      "title": "Claude Field Guide",
+      "status": "Live",
+      "group": "live",
+      "subject": "Claude · AI tools · Learning paths",
+      "note": "A free, hands-on learning site for using Claude well, built from viral Claude cheat sheets and checked against Anthropic's own documentation.",
+      "url": "https://inquiredu.org/claude-code-field-guide/"
+    },
+    {
       "id": "ai-edu-kits",
+      "repo": "ai-edu-kits",
       "visible": true,
       "call": "371.2 AIL",
       "title": "AI Leadership Kits",
@@ -27,6 +41,7 @@
     },
     {
       "id": "git-guide",
+      "repo": "git-guide",
       "visible": true,
       "call": "371.334 YOU",
       "title": "Your own GitHub",
@@ -38,6 +53,7 @@
     },
     {
       "id": "a-mn-hackathon",
+      "repo": "a-mn-hackathon",
       "visible": true,
       "call": "006.3 HAN",
       "title": "Hands On",
@@ -49,6 +65,7 @@
     },
     {
       "id": "hype-explorer",
+      "repo": "hype-explorer",
       "visible": true,
       "call": "303.483 HYP",
       "title": "Hype Explorer",
@@ -60,6 +77,7 @@
     },
     {
       "id": "revisor",
+      "repo": "ReVisor",
       "visible": true,
       "call": "808.042 REV",
       "title": "ReVisor",
@@ -71,6 +89,7 @@
     },
     {
       "id": "learninglibrarypal",
+      "repo": "LearningLibraryPal",
       "visible": true,
       "call": "025.04 LEA",
       "title": "LearningLibraryPal",
@@ -82,6 +101,7 @@
     },
     {
       "id": "hi-fi-cassette-physics",
+      "repo": "hi-fi-cassette-physics",
       "visible": true,
       "call": "621.389 HIF",
       "title": "Hi-Fi Cassette Physics",
@@ -93,6 +113,7 @@
     },
     {
       "id": "privacypal",
+      "repo": "privacypal",
       "visible": true,
       "call": "323.448 PRI",
       "title": "PrivacyPal",
@@ -103,6 +124,7 @@
     },
     {
       "id": "gather",
+      "repo": "gather",
       "visible": true,
       "call": "658.456 GAT",
       "title": "Gather",
@@ -113,6 +135,7 @@
     },
     {
       "id": "better",
+      "repo": "better",
       "visible": true,
       "call": "613.7 BET",
       "title": "better · >0",
@@ -123,6 +146,7 @@
     },
     {
       "id": "constellation",
+      "repo": "constellation",
       "visible": true,
       "call": "658.4012 CON",
       "title": "Constellation",
@@ -133,6 +157,7 @@
     },
     {
       "id": "loom",
+      "repo": "loom",
       "visible": true,
       "call": "370.1 LOO",
       "title": "LOOM",
@@ -143,6 +168,7 @@
     },
     {
       "id": "budgetpal",
+      "repo": "mn-school-it-budget-assistant",
       "visible": true,
       "call": "379.11 BUD",
       "title": "BudgetPal",
@@ -161,5 +187,6 @@
       "subject": "Games · Pinball · Easter eggs",
       "note": "A personal HTML5 pinball game, full of easter eggs."
     }
-  ]
+  ],
+  "ignored": []
 }
