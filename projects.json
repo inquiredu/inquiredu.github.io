@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "updated": "2026-10-14",
+  "projects": [
+    {
+      "id": "what-we-talk-about",
+      "visible": true,
+      "featured": true,
+      "call": "371.33 WHA",
+      "title": "What We Talk About",
+      "status": "Live",
+      "group": "live",
+      "subject": "AI · School leadership · Trust",
+      "note": "Trust, tech and learning. A workshop for school leaders, with a mini-kit and five AI leadership kits.",
+      "url": "https://inquiredu.org/what-we-talk-about/"
+    },
+    {
+      "id": "ai-edu-kits",
+      "visible": true,
+      "call": "371.2 AIL",
+      "title": "AI Leadership Kits",
+      "status": "Open source",
+      "group": "source",
+      "subject": "AI · School administration",
+      "note": "Five small AI systems for work school leaders already do, from translating policy to reviewing vendor contracts. A reviewer checks every output, and people make the decisions.",
+      "url": "https://github.com/inquiredu/ai-edu-kits"
+    },
+    {
+      "id": "git-guide",
+      "visible": true,
+      "call": "371.334 YOU",
+      "title": "Your own GitHub",
+      "status": "Live",
+      "group": "live",
+      "subject": "Guides · Educators · Web publishing",
+      "note": "An evergreen guide that takes K-12 educators from no GitHub account to a live site in an afternoon, knowing which risks are real.",
+      "url": "https://inquiredu.org/git-guide/"
+    },
+    {
+      "id": "a-mn-hackathon",
+      "visible": true,
+      "call": "006.3 HAN",
+      "title": "Hands On",
+      "status": "Live",
+      "group": "live",
+      "subject": "AI · Hackathon · MNGAIA / AI4MN",
+      "note": "A Friday hackathon to play, build, and break things with AI, together. October 9, 2026.",
+      "url": "https://inquiredu.org/a-mn-hackathon/"
+    },
+    {
+      "id": "hype-explorer",
+      "visible": true,
+      "call": "303.483 HYP",
+      "title": "Hype Explorer",
+      "status": "Live",
+      "group": "live",
+      "subject": "Technology change · Data visualization",
+      "note": "An interactive 3D field of overlapping technology waves that compares how different roles in education experience them. Uses illustrative sample data.",
+      "url": "https://inquiredu.org/hype-explorer/"
+    },
+    {
+      "id": "revisor",
+      "visible": true,
+      "call": "808.042 REV",
+      "title": "ReVisor",
+      "status": "Open source",
+      "group": "source",
+      "subject": "Writing · Revision history · Google Workspace",
+      "note": "A Google Apps Script tool that plays back a Google Doc's revision history, so teachers can see how a piece of student writing actually developed.",
+      "url": "https://github.com/inquiredu/ReVisor"
+    },
+    {
+      "id": "learninglibrarypal",
+      "visible": true,
+      "call": "025.04 LEA",
+      "title": "LearningLibraryPal",
+      "status": "Pilot",
+      "group": "source",
+      "subject": "Learning libraries · Facilitation",
+      "note": "Turns a facilitator's materials into a shareable learning library with resources, an agenda, inquiry questions, and optional AI learning companions.",
+      "url": "https://github.com/inquiredu/LearningLibraryPal"
+    },
+    {
+      "id": "hi-fi-cassette-physics",
+      "visible": true,
+      "call": "621.389 HIF",
+      "title": "Hi-Fi Cassette Physics",
+      "status": "Live",
+      "group": "live",
+      "subject": "Music · Nostalgia · Play",
+      "note": "A nostalgic mixtape toy. Make, customize, and share cassette tapes with friends.",
+      "url": "https://inquiredu.org/hi-fi-cassette-physics/"
+    },
+    {
+      "id": "privacypal",
+      "visible": true,
+      "call": "323.448 PRI",
+      "title": "PrivacyPal",
+      "status": "Operational",
+      "group": "workshop",
+      "subject": "Student data privacy · Ed-tech review",
+      "note": "Privacy evaluation for the ed-tech tools schools adopt. Being rebuilt as an open-source public good."
+    },
+    {
+      "id": "gather",
+      "visible": true,
+      "call": "658.456 GAT",
+      "title": "Gather",
+      "status": "Alpha",
+      "group": "workshop",
+      "subject": "Conferences · Event apps",
+      "note": "A mobile-first companion app for the MN GAIA Thought Leaders Summit. AI suggests, humans decide."
+    },
+    {
+      "id": "better",
+      "visible": true,
+      "call": "613.7 BET",
+      "title": "better · >0",
+      "status": "Built",
+      "group": "workshop",
+      "subject": "Health · Habits · Two people",
+      "note": "A phone-first app for two people to grow healthier and closer, together. Anything greater than zero counts."
+    },
+    {
+      "id": "constellation",
+      "visible": true,
+      "call": "658.4012 CON",
+      "title": "Constellation",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "Planning · Groups · Claude plugin",
+      "note": "Planning skills for groups that would rather act in the meeting than after it. Built first for the Minnesota AI Readiness Project."
+    },
+    {
+      "id": "loom",
+      "visible": true,
+      "call": "370.1 LOO",
+      "title": "LOOM",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "Education futures · Simulation",
+      "note": "A scenario simulator that stress-tests a proposed education structure for an age of capable AI, and shows where it breaks."
+    },
+    {
+      "id": "budgetpal",
+      "visible": true,
+      "call": "379.11 BUD",
+      "title": "BudgetPal",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "School finance · IT budgets",
+      "note": "IT budget planning for Minnesota school districts, written for directors who aren't accountants."
+    },
+    {
+      "id": "zenith",
+      "visible": true,
+      "call": "794.8 ZEN",
+      "title": "ZENITH",
+      "status": "Finished",
+      "group": "workshop",
+      "subject": "Games · Pinball · Easter eggs",
+      "note": "A personal HTML5 pinball game, full of easter eggs."
+    }
+  ]
+}

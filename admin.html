@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catalog Admin</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<script>
+  try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+/* North Shore tokens, same as the public page. */
+:root{
+  color-scheme:light;
+  --font-sans:"Montserrat","Gotham","Proxima Nova",system-ui,sans-serif;
+  --font-serif:"Newsreader","Iowan Old Style",Georgia,serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --ease-out:cubic-bezier(.2,.7,.2,1);
+  --bg:#F4F1EB; --raised:#FAF8F4; --sunken:#EAE5DB;
+  --fg-1:#20384F; --fg-2:#45627D; --fg-3:#6E8599;
+  --accent-text:#8A522C; --sun:#C47D4D; --sun-soft:#F7EBE0; --water:#608C9B;
+  --line:#DCD5C7; --line-strong:#20384F;
+  --btn-bg:#20384F; --btn-fg:#F4F1EB;
+  --ok:#3F6650; --ok-bg:#E2ECE4; --bad:#9E3F35; --bad-bg:#F4E1DD;
+  --shadow-lift:0 2px 6px rgba(20,36,52,.10), 0 14px 32px rgba(20,36,52,.16);
+  --logo-light:block; --logo-dark:none;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
+    --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
+    --accent-text:#DCAD88; --sun-soft:#3A2A1E;
+    --line:#2E4B66; --line-strong:#9DAEBC;
+    --btn-bg:#F4F1EB; --btn-fg:#142434;
+    --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
+    --shadow-lift:0 2px 6px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.5);
+    --logo-light:none; --logo-dark:block;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
+  --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
+  --accent-text:#DCAD88; --sun-soft:#3A2A1E;
+  --line:#2E4B66; --line-strong:#9DAEBC;
+  --btn-bg:#F4F1EB; --btn-fg:#142434;
+  --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
+  --shadow-lift:0 2px 6px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.5);
+  --logo-light:none; --logo-dark:block;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0; background:var(--bg); color:var(--fg-1); font:400 16px/1.55 var(--font-sans); -webkit-font-smoothing:antialiased; padding-inline:max(16px, env(safe-area-inset-left, 0px))}
+.page{max-width:860px; margin-inline:auto; padding-block:40px 80px}
+h1,h2{margin:0; font-weight:600; letter-spacing:-0.01em; text-wrap:balance}
+p{margin:0; text-wrap:pretty}
+a{color:var(--fg-1); text-decoration-color:var(--sun); text-decoration-thickness:1.5px; text-underline-offset:3px}
+a:hover{color:var(--accent-text)}
+:focus-visible{outline:none; box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun); border-radius:4px}
+.logo-light{display:var(--logo-light)} .logo-dark{display:var(--logo-dark)}
+.eyebrow{font:600 12px/1.2 var(--font-sans); letter-spacing:.18em; text-transform:uppercase; color:var(--accent-text)}
+
+/* header */
+.head{display:flex; gap:18px; align-items:flex-start; padding-bottom:24px}
+.head img{width:52px; height:auto; flex:none}
+.head-text{display:flex; flex-direction:column; gap:6px}
+.head h1{font-size:clamp(26px,4vw,32px); line-height:1.15}
+.head p:not(.eyebrow){font:400 17px/1.55 var(--font-serif); color:var(--fg-2); max-width:58ch}
+
+/* sticky toolbar */
+.toolbar{position:sticky; top:env(safe-area-inset-top, 0px); z-index:5; display:flex; align-items:center; flex-wrap:wrap; gap:10px 14px; padding-block:14px; background:var(--bg); border-bottom:1.5px solid var(--line-strong)}
+.summary{font:500 14.5px/1.3 var(--font-sans); color:var(--fg-2); font-variant-numeric:tabular-nums}
+.summary b{color:var(--fg-1); font-weight:600}
+.pill{height:22px; padding:0 8px; display:inline-flex; align-items:center; font:600 11px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; border-radius:2px; background:var(--ok-bg); color:var(--ok)}
+.pill.dirty{background:var(--sun-soft); color:var(--accent-text)}
+.spacer{flex:1}
+.btn{height:40px; padding:0 16px; display:inline-flex; align-items:center; gap:8px; font:600 14.5px/1 var(--font-sans); border-radius:4px; cursor:pointer; text-decoration:none; border:1.5px solid var(--line-strong); background:transparent; color:var(--fg-1); white-space:nowrap}
+.btn:hover{color:var(--accent-text); border-color:var(--accent-text)}
+.btn.primary{background:var(--sun); border-color:var(--sun); color:#142434}
+.btn.primary:hover{background:#D09466; border-color:#D09466; color:#142434}
+.btn.solid{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
+.btn:disabled{opacity:.45; cursor:default; pointer-events:none}
+.btn.warn{border-color:var(--bad); color:var(--bad)}
+
+.status{min-height:24px; padding-top:12px; font:500 14.5px/1.5 var(--font-sans); color:var(--fg-2)}
+.status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+.hint{font:400 13px/1.5 var(--font-mono); color:var(--fg-3); padding-top:4px}
+
+/* project cards, like index cards in a drawer */
+.rows{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+.row{display:grid; grid-template-columns:auto 3ch minmax(0,1fr) auto; align-items:center; gap:14px; padding:12px 14px 12px 6px; background:var(--raised); border:1px solid var(--line); border-radius:8px; transition:opacity 150ms var(--ease-out), background 150ms var(--ease-out)}
+.row.dragging{box-shadow:var(--shadow-lift); border-color:var(--sun); position:relative; z-index:2}
+.row.off{background:var(--sunken)}
+.row.off .info{opacity:.55}
+.grip{width:32px; height:40px; display:grid; place-items:center; border:0; background:transparent; color:var(--fg-3); cursor:grab; border-radius:4px; touch-action:none}
+.grip:hover{color:var(--fg-1); background:var(--sunken)}
+.row.dragging .grip{cursor:grabbing; color:var(--accent-text)}
+.grip svg{width:14px; height:20px; fill:currentColor}
+.pos{font:500 13px/1 var(--font-mono); color:var(--fg-3); font-variant-numeric:tabular-nums; text-align:right}
+.info{display:flex; flex-direction:column; gap:3px; min-width:0}
+.title{font:600 16.5px/1.3 var(--font-sans)}
+.title .star{color:var(--sun); margin-left:6px}
+.sub{font:400 12.5px/1.45 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere}
+
+/* rocker switch with a pilot light, like the lamp on the public page */
+.switch{display:inline-flex; align-items:center; gap:10px; cursor:pointer; font:600 11px/1 var(--font-sans); letter-spacing:.14em; text-transform:uppercase; color:var(--fg-2); user-select:none}
+.switch input{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none}
+.rocker{position:relative; width:48px; height:26px; border-radius:7px; background:linear-gradient(#2c3035,#141719); box-shadow:inset 0 2px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.3)}
+.lever{position:absolute; top:3px; left:3px; width:21px; height:20px; border-radius:5px; background:linear-gradient(#9DAEBC,#6E8599); box-shadow:0 2px 2px rgba(0,0,0,.45); transition:transform 160ms var(--ease-out)}
+.switch input:checked + .rocker .lever{transform:translateX(21px); background:linear-gradient(#FAF8F4,#C9C1B1)}
+.pilot{width:7px; height:7px; border-radius:50%; background:#5a5048; box-shadow:inset 0 1px 1px rgba(0,0,0,.5)}
+.switch input:checked ~ .pilot{background:#F4AE72; box-shadow:0 0 8px rgba(244,174,114,.9)}
+.switch input:focus-visible + .rocker{box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun)}
+.state{min-width:6ch}
+.switch input:checked ~ .state{color:var(--fg-1)}
+
+@media (max-width:560px){
+  .row{grid-template-columns:auto minmax(0,1fr) auto; gap:10px}
+  .pos{display:none}
+  .switch .state{display:none}
+}
+
+/* settings + manual publish */
+.panel{margin-top:40px; border-top:1px solid var(--line)}
+.panel summary{cursor:pointer; padding-block:16px; font:600 15px/1.3 var(--font-sans); list-style:none; display:flex; align-items:center; gap:10px}
+.panel summary::-webkit-details-marker{display:none}
+.panel summary::before{content:"+"; font:500 16px/1 var(--font-mono); color:var(--accent-text); width:14px}
+.panel[open] summary::before{content:"\2212"}
+.panel-body{display:flex; flex-direction:column; gap:16px; padding-bottom:24px}
+.panel-body p{font:400 16px/1.55 var(--font-serif); color:var(--fg-2); max-width:62ch}
+.panel-body ol{margin:0; padding-left:1.3em; font:400 16px/1.6 var(--font-serif); color:var(--fg-2); max-width:62ch}
+.fields{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px}
+@media (max-width:560px){.fields{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex; flex-direction:column; gap:6px}
+.field.wide{grid-column:1 / -1}
+.field label{font:600 13px/1.2 var(--font-sans)}
+.field input{height:40px; padding:0 12px; font:400 14.5px/1 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line-strong); border-radius:4px}
+.field input:focus{outline:none; box-shadow:0 0 0 3px var(--sun-soft); border-color:var(--sun)}
+.check{display:flex; align-items:center; gap:10px; font:500 14.5px/1.4 var(--font-sans)}
+.check input{width:18px; height:18px; accent-color:var(--sun)}
+textarea{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line); border-radius:8px; resize:vertical}
+.row-actions{display:flex; gap:10px; flex-wrap:wrap}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="head">
+    <img class="logo-light" src="assets/mark.png" alt="" width="52" height="50">
+    <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="52" height="50">
+    <div class="head-text">
+      <p class="eyebrow">inquiredu.org</p>
+      <h1>Catalog admin</h1>
+      <p>Choose which projects appear in the library and drag them into order. Nothing changes on the live site until you publish.</p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <span class="summary" id="summary">Loading projects</span>
+    <span class="pill" id="pill">Published</span>
+    <span class="spacer"></span>
+    <a class="btn" id="previewBtn" href="index.html" target="_blank" rel="noopener">Preview ↗</a>
+    <button class="btn" id="discardBtn" type="button" disabled>Discard changes</button>
+    <button class="btn primary" id="publishBtn" type="button" disabled>Publish</button>
+  </div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="hint">Drag the handle to reorder, or focus it and use the arrow keys. Changes save in this browser as you go.</p>
+
+  <ol class="rows" id="rows" aria-label="Projects in shelf order"></ol>
+
+  <details class="panel" id="settings">
+    <summary>GitHub connection</summary>
+    <div class="panel-body">
+      <p>Publishing saves <code>projects.json</code> to your Pages repository. GitHub needs a token that can write to that one repository.</p>
+      <ol>
+        <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>.</li>
+        <li>Under Repository access, choose <em>Only select repositories</em> and pick <code>inquiredu.github.io</code>.</li>
+        <li>Under Repository permissions, set <em>Contents</em> to <em>Read and write</em>.</li>
+        <li>Generate the token and paste it below.</li>
+      </ol>
+      <div class="fields">
+        <div class="field"><label for="ghOwner">Owner</label><input id="ghOwner" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="ghRepo">Repository</label><input id="ghRepo" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="ghBranch">Branch</label><input id="ghBranch" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="ghPath">File</label><input id="ghPath" autocomplete="off" spellcheck="false"></div>
+        <div class="field wide"><label for="ghToken">Token</label><input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="ghRemember"> Remember the token on this device</label>
+      <p>Without that box checked, the token stays in this tab only and is gone when you reload. Every project page under inquiredu.org shares this browser storage, so only remember it on a device you trust.</p>
+    </div>
+  </details>
+
+  <details class="panel" id="manual">
+    <summary>Publish by hand instead</summary>
+    <div class="panel-body">
+      <p>Copy this file and replace <code>projects.json</code> in the repository yourself. It always matches the list above.</p>
+      <div class="row-actions"><button class="btn solid" id="copyBtn" type="button">Copy projects.json</button></div>
+      <label class="sr" for="jsonOut">projects.json</label>
+      <textarea id="jsonOut" readonly></textarea>
+    </div>
+  </details>
+
+</div>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var get = function(k){ try { return localStorage.getItem(k); } catch (e) { return null; } };
+  var set = function(k, v){ try { localStorage.setItem(k, v); } catch (e) {} };
+  var del = function(k){ try { localStorage.removeItem(k); } catch (e) {} };
+  var DRAFT = 'catalog-draft';
+
+  var published = [];   // projects as loaded from projects.json
+  var items = [];       // working copy, in shelf order
+  var fileMeta = { version: 1 };
+  var memToken = '';
+
+  var rowsEl = $('rows'), statusEl = $('status');
+  var GRIP = '<svg viewBox="0 0 14 20" aria-hidden="true"><circle cx="4" cy="4" r="1.6"/><circle cx="10" cy="4" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="4" cy="16" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>';
+
+  var clone = function(a){ return a.map(function(p){ return Object.assign({}, p); }); };
+  var signature = function(a){ return JSON.stringify(a.map(function(p){ return [p.id, p.visible !== false]; })); };
+  var isDirty = function(){ return signature(items) !== signature(published); };
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  var locOf = function(u){ return u ? u.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'Closed stacks'; };
+
+  function say(msg, kind, html){
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+    if (html) statusEl.innerHTML = msg; else statusEl.textContent = msg;
+  }
+
+  /* ---------- rendering ---------- */
+  function rowHTML(p, i){
+    var on = p.visible !== false;
+    return '<li class="row' + (on ? '' : ' off') + '" data-id="' + esc(p.id) + '">' +
+      '<button class="grip" type="button" aria-label="Move ' + esc(p.title) + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.">' + GRIP + '</button>' +
+      '<span class="pos">' + pad(i + 1) + '</span>' +
+      '<div class="info"><span class="title">' + esc(p.title) + (p.featured ? '<span class="star" aria-label="featured">✦</span>' : '') + '</span>' +
+      '<span class="sub">' + esc(p.call) + ' · ' + esc(p.status) + ' · ' + esc(locOf(p.url)) + '</span></div>' +
+      '<label class="switch"><input type="checkbox" role="switch"' + (on ? ' checked' : '') + ' aria-label="Show ' + esc(p.title) + ' on the site">' +
+      '<span class="rocker" aria-hidden="true"><span class="lever"></span></span><span class="pilot" aria-hidden="true"></span>' +
+      '<span class="state">' + (on ? 'Shown' : 'Hidden') + '</span></label>' +
+    '</li>';
+  }
+  function render(){
+    rowsEl.innerHTML = items.map(rowHTML).join('');
+    refresh();
+  }
+  function renumber(){
+    Array.prototype.forEach.call(rowsEl.children, function(li, i){
+      li.querySelector('.pos').textContent = pad(i + 1);
+      var p = items[i];
+      li.querySelector('.grip').setAttribute('aria-label', 'Move ' + p.title + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.');
+    });
+  }
+  function refresh(){
+    var shown = items.filter(function(p){ return p.visible !== false; }).length;
+    $('summary').innerHTML = '<b>' + shown + '</b> shown · ' + (items.length - shown) + ' hidden';
+    var dirty = isDirty();
+    $('pill').textContent = dirty ? 'Unpublished changes' : 'Published';
+    $('pill').classList.toggle('dirty', dirty);
+    $('publishBtn').disabled = !dirty;
+    $('discardBtn').disabled = !dirty;
+    $('previewBtn').href = dirty ? 'index.html#draft' : 'index.html';
+    $('jsonOut').value = fileText();
+    if (dirty) set(DRAFT, JSON.stringify({ saved: new Date().toISOString(), order: items.map(function(p){ return { id: p.id, visible: p.visible !== false }; }) }));
+    else del(DRAFT);
+  }
+  function fileText(){
+    var out = Object.assign({}, fileMeta, { updated: new Date().toISOString().slice(0, 10), projects: items });
+    return JSON.stringify(out, null, 2) + '\n';
+  }
+
+  /* ---------- toggles ---------- */
+  rowsEl.addEventListener('change', function(e){
+    if (!e.target.matches('input[type=checkbox]')) return;
+    var li = e.target.closest('.row');
+    var p = items.filter(function(x){ return x.id === li.dataset.id; })[0];
+    p.visible = e.target.checked;
+    li.classList.toggle('off', !p.visible);
+    li.querySelector('.state').textContent = p.visible ? 'Shown' : 'Hidden';
+    say('');
+    refresh();
+  });
+
+  /* ---------- drag to reorder (pointer events: mouse, pen and touch) ---------- */
+  var drag = null;
+  function flip(mutate){
+    var kids = Array.prototype.slice.call(rowsEl.children);
+    var before = kids.map(function(k){ return k.getBoundingClientRect().top; });
+    mutate();
+    if (reduce || !Element.prototype.animate) return;
+    kids.forEach(function(k, i){
+      var dy = before[i] - k.getBoundingClientRect().top;
+      if (dy) k.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 160, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    });
+  }
+  function syncFromDom(){
+    var byId = {}; items.forEach(function(p){ byId[p.id] = p; });
+    items = Array.prototype.map.call(rowsEl.children, function(li){ return byId[li.dataset.id]; });
+  }
+  rowsEl.addEventListener('pointerdown', function(e){
+    var grip = e.target.closest('.grip');
+    if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    var row = grip.closest('.row');
+    grip.setPointerCapture(e.pointerId);
+    drag = { row: row, grip: grip, pid: e.pointerId, from: Array.prototype.indexOf.call(rowsEl.children, row) };
+    row.classList.add('dragging');
+  });
+  rowsEl.addEventListener('pointermove', function(e){
+    if (!drag || e.pointerId !== drag.pid) return;
+    var y = e.clientY, target = null;
+    var sibs = Array.prototype.filter.call(rowsEl.children, function(r){ return r !== drag.row; });
+    for (var i = 0; i < sibs.length; i++){
+      var r = sibs[i].getBoundingClientRect();
+      if (y < r.top + r.height / 2){ target = sibs[i]; break; }
+    }
+    var needsMove = target ? drag.row.nextElementSibling !== target : rowsEl.lastElementChild !== drag.row;
+    if (needsMove) flip(function(){ rowsEl.insertBefore(drag.row, target); });
+    if (y < 90) window.scrollBy(0, -14);
+    else if (y > window.innerHeight - 70) window.scrollBy(0, 14);
+  });
+  function endDrag(e){
+    if (!drag || e.pointerId !== drag.pid) return;
+    var row = drag.row, from = drag.from;
+    row.classList.remove('dragging');
+    drag = null;
+    var to = Array.prototype.indexOf.call(rowsEl.children, row);
+    if (to !== from){
+      syncFromDom(); renumber(); refresh();
+      say(items[to].title + ' moved to position ' + (to + 1) + '.');
+    }
+  }
+  rowsEl.addEventListener('pointerup', endDrag);
+  rowsEl.addEventListener('pointercancel', endDrag);
+  rowsEl.addEventListener('lostpointercapture', endDrag);
+
+  /* keyboard reordering on the handle */
+  rowsEl.addEventListener('keydown', function(e){
+    var grip = e.target.closest('.grip'); if (!grip) return;
+    var from = Array.prototype.indexOf.call(rowsEl.children, grip.closest('.row'));
+    var to = null;
+    if (e.key === 'ArrowUp') to = from - 1;
+    if (e.key === 'ArrowDown') to = from + 1;
+    if (e.key === 'Home') to = 0;
+    if (e.key === 'End') to = items.length - 1;
+    if (to === null) return;
+    e.preventDefault();
+    to = Math.max(0, Math.min(items.length - 1, to));
+    if (to === from) return;
+    var moved = items.splice(from, 1)[0];
+    items.splice(to, 0, moved);
+    var li = rowsEl.children[from], ref = to > from ? rowsEl.children[to].nextElementSibling : rowsEl.children[to];
+    flip(function(){ rowsEl.insertBefore(li, ref); });
+    renumber(); refresh();
+    li.querySelector('.grip').focus();
+    say(moved.title + ' moved to position ' + (to + 1) + '.');
+  });
+
+  /* ---------- discard (two-step, in the page) ---------- */
+  var discardArmed = null;
+  $('discardBtn').addEventListener('click', function(){
+    var b = $('discardBtn');
+    if (!discardArmed){
+      b.textContent = 'Click again to discard'; b.classList.add('warn');
+      discardArmed = setTimeout(function(){ b.textContent = 'Discard changes'; b.classList.remove('warn'); discardArmed = null; }, 4000);
+      return;
+    }
+    clearTimeout(discardArmed); discardArmed = null;
+    b.textContent = 'Discard changes'; b.classList.remove('warn');
+    items = clone(published); del(DRAFT); render();
+    say('Changes discarded. The list matches the published version.');
+  });
+
+  /* ---------- GitHub connection ---------- */
+  var cfgFields = { owner: 'ghOwner', repo: 'ghRepo', branch: 'ghBranch', path: 'ghPath' };
+  var defaults = { owner: 'inquiredu', repo: 'inquiredu.github.io', branch: 'main', path: 'projects.json' };
+  Object.keys(cfgFields).forEach(function(k){
+    var el = $(cfgFields[k]);
+    el.value = get('gh-' + k) || defaults[k];
+    el.addEventListener('change', function(){ set('gh-' + k, el.value.trim()); });
+  });
+  var remembered = get('gh-token');
+  if (remembered){ $('ghToken').value = remembered; $('ghRemember').checked = true; memToken = remembered; }
+  $('ghToken').addEventListener('input', function(){
+    memToken = $('ghToken').value.trim();
+    if ($('ghRemember').checked) set('gh-token', memToken);
+  });
+  $('ghRemember').addEventListener('change', function(){
+    if ($('ghRemember').checked && memToken) set('gh-token', memToken); else del('gh-token');
+  });
+  function cfg(){
+    var c = {}; Object.keys(cfgFields).forEach(function(k){ c[k] = $(cfgFields[k]).value.trim() || defaults[k]; }); return c;
+  }
+  function b64(str){
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function explain(status, c){
+    var where = c.owner + '/' + c.repo;
+    if (status === 401) return 'GitHub didn’t accept the token. It may have expired or been pasted incompletely.';
+    if (status === 403) return 'The token can’t write to ' + where + '. Give it Contents: Read and write on that repository.';
+    if (status === 404) return 'GitHub couldn’t find ' + where + ' on branch ' + c.branch + '. Check the connection settings, and that the token has access to that repository.';
+    if (status === 409 || status === 422) return 'GitHub reported a newer version of the file. Publish again to retry.';
+    return 'GitHub returned an error (' + status + '). Try again in a minute.';
+  }
+
+  $('publishBtn').addEventListener('click', function(){
+    var c = cfg();
+    if (!memToken){
+      $('settings').open = true; $('ghToken').focus();
+      say('Add a GitHub token to publish. The steps are under GitHub connection.', 'bad');
+      return;
+    }
+    var btn = $('publishBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
+    say('Saving to GitHub…');
+    var api = 'https://api.github.com/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.repo) + '/contents/' + c.path.split('/').map(encodeURIComponent).join('/');
+    var headers = { 'Authorization': 'Bearer ' + memToken, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+    var shown = items.filter(function(p){ return p.visible !== false; }).length;
+    var text = fileText();
+
+    fetch(api + '?ref=' + encodeURIComponent(c.branch), { headers: headers, cache: 'no-store' })
+      .then(function(r){
+        if (r.status === 404) return null;            // first publish creates the file
+        if (!r.ok) throw { status: r.status };
+        return r.json();
+      })
+      .then(function(current){
+        var body = { message: 'Update project catalog (' + shown + ' shown, ' + (items.length - shown) + ' hidden)', content: b64(text), branch: c.branch };
+        if (current && current.sha) body.sha = current.sha;
+        return fetch(api, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
+      })
+      .then(function(r){
+        if (!r.ok) throw { status: r.status };
+        return r.json();
+      })
+      .then(function(res){
+        published = clone(items); del(DRAFT);
+        btn.textContent = 'Publish'; refresh();
+        var link = res && res.commit && res.commit.html_url ? ' <a href="' + esc(res.commit.html_url) + '" target="_blank" rel="noopener">View the commit ↗</a>' : '';
+        say('Published. The live site updates in a minute or two.' + link, 'ok', true);
+      })
+      .catch(function(err){
+        btn.textContent = 'Publish'; btn.disabled = !isDirty();
+        if (err && err.status) say(explain(err.status, c), 'bad');
+        else say('Couldn’t reach GitHub. Check your connection and try again.', 'bad');
+      });
+  });
+
+  /* ---------- copy fallback ---------- */
+  $('copyBtn').addEventListener('click', function(){
+    var ta = $('jsonOut'), b = $('copyBtn');
+    var done = function(){ b.textContent = 'Copied'; setTimeout(function(){ b.textContent = 'Copy projects.json'; }, 2000); };
+    var fallback = function(){ ta.focus(); ta.select(); b.textContent = 'Selected. Press Ctrl+C or ⌘C'; };
+    try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
+  });
+
+  /* ---------- load ---------- */
+  fetch('projects.json', { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(data){
+      fileMeta = { version: data.version || 1 };
+      published = (data.projects || []).map(function(p){ return Object.assign({}, p, { visible: p.visible !== false }); });
+      items = clone(published);
+      var d = null; try { d = JSON.parse(get(DRAFT) || 'null'); } catch (e) {}
+      if (d && Array.isArray(d.order)){
+        var byId = {}; items.forEach(function(p){ byId[p.id] = p; });
+        var merged = [];
+        d.order.forEach(function(o){ var p = byId[o.id]; if (p){ p.visible = !!o.visible; merged.push(p); delete byId[o.id]; } });
+        items.forEach(function(p){ if (byId[p.id]) merged.push(p); });
+        items = merged;
+        if (isDirty()) say('Restored your unpublished changes from ' + new Date(d.saved).toLocaleString() + '.');
+      }
+      render();
+    })
+    .catch(function(){
+      $('summary').textContent = 'Couldn’t load projects.json';
+      say('The project list didn’t load. Open this page from the site folder or from inquiredu.org, then reload.', 'bad');
+    });
+})();
+</script>
+</body>
+</html>
