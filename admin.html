@@ -223,10 +223,11 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
       <p>Publishing saves <code>projects.json</code> to your Pages repository. GitHub needs a token that can write to that one repository.</p>
       <ol>
         <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>.</li>
-        <li>Under Repository access, choose <em>Only select repositories</em> and pick <code>inquiredu.github.io</code>.</li>
-        <li>Under Repository permissions, set <em>Contents</em> to <em>Read and write</em>.</li>
+        <li>Under Repository access, choose <em>Only select repositories</em> and pick <code>inquiredu.github.io</code>. GitHub's default, <em>Public repositories</em>, is read-only and can't publish.</li>
+        <li>Under Permissions, find <em>Contents</em> and set it to <em>Read and write</em>. Leave everything else as it is.</li>
         <li>Generate the token and paste it below.</li>
       </ol>
+      <p>Already made a token that can't publish? Open <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">your fine-grained tokens</a>, choose it, click <em>Edit</em>, fix steps 2 and 3, and save. The token itself doesn't change, so you don't need to paste it again.</p>
       <div class="fields">
         <div class="field"><label for="ghOwner">Owner</label><input id="ghOwner" autocomplete="off" spellcheck="false"></div>
         <div class="field"><label for="ghRepo">Repository</label><input id="ghRepo" autocomplete="off" spellcheck="false"></div>
@@ -614,13 +615,24 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
     for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
     return btoa(bin);
   }
-  function explain(status, c){
-    var where = c.owner + '/' + c.repo;
-    if (status === 401) return 'GitHub didn’t accept the token. It may have expired or been pasted incompletely.';
-    if (status === 403) return 'The token can’t write to ' + where + '. Give it Contents: Read and write on that repository.';
-    if (status === 404) return 'GitHub couldn’t find ' + where + ' on branch ' + c.branch + '. Check the connection settings, and that the token has access to that repository.';
-    if (status === 409 || status === 422) return 'GitHub reported a newer version of the file. Publish again to retry.';
-    return 'GitHub returned an error (' + status + '). Try again in a minute.';
+  /* Read GitHub's error body so the message can say what actually went wrong. */
+  function fail(r, step){
+    return r.text().then(function(body){
+      var msg = ''; try { msg = JSON.parse(body).message || ''; } catch (e) {}
+      throw { status: r.status, message: msg, scopes: r.headers.get('X-OAuth-Scopes'), step: step };
+    });
+  }
+  function explain(err, c){
+    var where = c.owner + '/' + c.repo, s = err.status, m = err.message || '';
+    var said = m ? ' GitHub said: “' + m + '.”' : '';
+    if (s === 401) return 'GitHub didn’t accept the token. It may have expired or been pasted incompletely. Paste it again under GitHub connection.' + said;
+    if (s === 403 && /rate limit/i.test(m)) return 'GitHub is limiting requests right now. Wait a minute and publish again.' + said;
+    if (s === 403 && err.scopes !== null && err.scopes !== undefined)
+      return 'This is a classic token (it starts with ghp_), and it doesn’t have permission to write to ' + where + '. Make a fine-grained token instead. The steps are under GitHub connection.' + said;
+    if (s === 403) return 'The token can read ' + where + ' but can’t write to it. On GitHub, edit the token: set Repository access to Only select repositories with ' + c.repo + ' chosen, and set Contents to Read and write. Saving the change keeps the same token, so publish again right after.' + said;
+    if (s === 404) return 'GitHub couldn’t find ' + where + ' on branch ' + c.branch + '. Check the connection settings, and that the token has access to that repository.' + said;
+    if (s === 409 || s === 422) return 'GitHub reported a newer version of the file. Publish again to retry.' + said;
+    return 'GitHub returned an error (' + s + '). Try again in a minute.' + said;
   }
   $('publishBtn').addEventListener('click', function(){
     var c = cfg();
@@ -641,7 +653,7 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
     fetch(api + '?ref=' + encodeURIComponent(c.branch), { headers: headers, cache: 'no-store' })
       .then(function(r){
         if (r.status === 404) return null;
-        if (!r.ok) throw { status: r.status };
+        if (!r.ok) return fail(r, 'read');
         return r.json();
       })
       .then(function(current){
@@ -650,7 +662,7 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
         return fetch(api, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
       })
       .then(function(r){
-        if (!r.ok) throw { status: r.status };
+        if (!r.ok) return fail(r, 'write');
         return r.json();
       })
       .then(function(res){
@@ -663,7 +675,7 @@ textarea.json{width:100%; min-height:220px; padding:12px; font:400 12.5px/1.5 va
       })
       .catch(function(err){
         btn.textContent = 'Publish'; btn.disabled = !isDirty();
-        if (err && err.status) say(explain(err.status, c), 'bad');
+        if (err && err.status) { say(explain(err, c), 'bad'); if (err.status === 401 || err.status === 403) $('settings').open = true; }
         else say('Couldn’t reach GitHub. Check your connection and try again.', 'bad');
       });
   });
