@@ -43,9 +43,10 @@ const SKIP_SUBJECTS = new Set([TOPIC, 'github-pages']);
 const PUBLIC_LOG = !!process.env.GITHUB_ACTIONS;
 
 if (!READ_KEY || !WRITE_KEY) {
-  const missing = [!READ_KEY && 'REPO_LIST_KEY', !WRITE_KEY && 'PUBLISHING_KEY'].filter(Boolean).join(' and ');
+  const names = [!READ_KEY && 'REPO_LIST_KEY', !WRITE_KEY && 'PUBLISHING_KEY'].filter(Boolean);
+  const missing = names.join(' and ');
   if (process.env.GITHUB_ACTIONS) {
-    console.log('::warning::The ' + missing + ' secret is not set, so the catalog was not synced. See README.md.');
+    console.log('::warning::' + (names.length > 1 ? 'The ' + missing + ' secrets aren’t set' : 'The ' + missing + ' secret isn’t set') + ', so the catalog was not synced. See README.md.');
     process.exit(0);
   }
   console.error('Set ' + missing + '. See the top of this file.');
