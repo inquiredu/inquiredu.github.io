@@ -1,17 +1,7 @@
 {
   "version": 1,
-  "updated": "2026-10-14",
+  "updated": "2026-11-12",
   "projects": [
-    {
-      "id": "project-mv8ovem4",
-      "visible": false,
-      "call": "000 NEW",
-      "title": "New project",
-      "status": "In progress",
-      "group": "workshop",
-      "subject": "",
-      "note": ""
-    },
     {
       "id": "what-we-talk-about",
       "repo": "what-we-talk-about",
@@ -36,6 +26,18 @@
       "subject": "AI · School administration",
       "note": "Five small AI systems for work school leaders already do, from translating policy to reviewing vendor contracts. A reviewer checks every output, and people make the decisions.",
       "url": "https://github.com/inquiredu/ai-edu-kits"
+    },
+    {
+      "id": "considering-ai-code",
+      "repo": "considering-ai-code",
+      "visible": true,
+      "call": "371.334 BUI",
+      "title": "Building with AI",
+      "status": "Draft",
+      "group": "live",
+      "subject": "AI · Minnesota schools · Student data privacy",
+      "note": "The essential questions a Minnesota school organization should answer before its people build and share their own tools with AI. Written against Minnesota and federal student privacy law. A draft for review.",
+      "url": "https://inquiredu.org/considering-ai-code/"
     },
     {
       "id": "a-mn-hackathon",
