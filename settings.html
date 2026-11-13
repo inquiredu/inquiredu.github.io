@@ -190,6 +190,7 @@ code{font:400 .92em var(--font-mono)}
 .tag.private{background:var(--sunken); color:var(--fg-2)}
 .tag.public{background:var(--water-soft); color:var(--water-text)}
 .tag.new{background:var(--sun-soft); color:var(--accent-text)}
+.tag.shelf{background:var(--ok-bg); color:var(--ok)}
 .tag.dim{box-shadow:inset 0 0 0 1px var(--line); color:var(--fg-3)}
 .seg{grid-column:2; grid-row:1 / span 3; display:inline-flex; border:1.5px solid var(--line-strong); border-radius:6px; overflow:hidden; margin:0; padding:0; min-width:0}
 .seg legend{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
@@ -273,7 +274,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     <div class="section-head">
       <h2 id="repoHead">All your repositories</h2>
       <div class="section-actions"><button class="btn small" id="reloadReposBtn" type="button" hidden>Reload list</button></div>
-      <p>Every repository you own. Not listed means it stays off the site and out of every public file. Choosing Hidden saves a card privately. Choosing Shown puts it on the page.</p>
+      <p>Every repository you own. Not listed means it stays off the site and out of every public file. Choosing Hidden saves a card privately. Choosing Shown puts it on the page. Shortcut: give a repo the GitHub topic <code>shelf</code> and the hourly sync shows it for you.</p>
     </div>
     <div id="repoBody"><p class="empty">Connect your repo list key to see every repository, private ones included. <button class="link-btn" type="button" data-open-keys>Set up keys</button></p></div>
   </section>
@@ -366,9 +367,12 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   var ignored = [];        // kept from older catalogs; not used by this page
   var fileMeta = { version: 1 };
   var pubKey = '', readKey = '';
+  var privSha = '';         // version of catalog.json we loaded; GitHub refuses a save if it changed since
+  var TAG = 'shelf';        // the GitHub topic the hourly sync reads
   var repos = null;        // every repository the repo list key can see
   var repoFilter = 'all', showExtras = false;
   var openEditors = {};
+  var staleDraft = '';      // when an unpublished draft was set aside because the catalog changed under it
 
   var rowsEl = $('rows'), statusEl = $('status');
   var GRIP = '<svg viewBox="0 0 14 20" aria-hidden="true"><circle cx="4" cy="4" r="1.6"/><circle cx="10" cy="4" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="4" cy="16" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>';
@@ -453,7 +457,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   function today(){ return new Date().toISOString().slice(0, 10); }
   /* Public: shown cards only. No hidden cards, no dismissed names. */
   function publicText(){
-    var out = Object.assign({}, fileMeta, { updated: today(), projects: shownOf(items).map(function(p){ return Object.assign({}, p, { visible: true }); }) });
+    var out = Object.assign({}, fileMeta, { updated: today(), projects: shownOf(items).map(function(p){ var c = Object.assign({}, p, { visible: true }); delete c.tagged; return c; }) });
     return JSON.stringify(out, null, 2) + '\n';
   }
   /* Private: everything, plus when it was saved. */
@@ -622,6 +626,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     if (r.has_pages) return cfg().site.replace(/\/$/, '') + '/' + r.name + '/';
     return '';
   }
+  function isShelved(r){ return (r.topics || []).indexOf(TAG) !== -1; }
   function repoState(r){ var p = byRepo(r.name); return !p ? 'none' : p.visible !== false ? 'shown' : 'hidden'; }
   function isNew(r){ var since = published.updated || ''; return !!since && r.created_at.slice(0, 10) > since && repoState(r) === 'none'; }
   function eligible(){
@@ -680,10 +685,12 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
         var s = repoState(r), u = liveUrl(r), n = 'r-' + r.name.replace(/[^a-zA-Z0-9_-]/g, '-');
         var tags = '<span class="tag ' + (r.private ? 'private">Private' : 'public">Public') + '</span>' +
           (isNew(r) ? '<span class="tag new">New</span>' : '') +
+          (isShelved(r) ? '<span class="tag shelf">Tagged ' + TAG + '</span>' : '') +
           (r.archived ? '<span class="tag dim">Archived</span>' : '') + (r.fork ? '<span class="tag dim">Fork</span>' : '');
         var meta = (u ? 'Live at <a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(locOf(u)) + ' ↗</a>' : 'No live page') +
           ' · created ' + esc(r.created_at.slice(0, 10)) + ' · updated ' + esc((r.pushed_at || r.updated_at || '').slice(0, 10));
         var warn = (r.private && !u && s === 'shown') ? '<p class="repo-warn">This repository is private and has no live page. Showing it publishes its card, so check the note says only what you want public.</p>' : '';
+        if (isShelved(r) && s === 'none') warn += '<p class="repo-warn">It’s tagged ' + TAG + ', so the hourly sync will put it back. Remove the tag on GitHub to keep it off.</p>';
         var radio = function(v, label){ return '<label><input type="radio" name="' + n + '" value="' + v + '" data-repo="' + esc(r.name) + '"' + (s === v ? ' checked' : '') + '>' + label + '</label>'; };
         return '<li class="repo">' +
           '<div class="repo-name">' + esc(r.name) + tags + '</div>' +
@@ -730,10 +737,12 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   }
   function contentsUrl(repo, path){ return API + '/repos/' + encodeURIComponent(cfg().owner) + '/' + encodeURIComponent(repo) + '/contents/' + path.split('/').map(encodeURIComponent).join('/'); }
   /* Write one file: read its current version (if any), then save over it. */
-  function putFile(repo, path, text, message){
+  function putFile(repo, path, text, message, knownSha){
     var url = contentsUrl(repo, path);
-    return fetch(url + '?ref=' + BRANCH, { headers: headers(pubKey), cache: 'no-store' })
-      .then(function(r){ if (r.status === 404) return null; return r.ok ? r.json() : fail(r, 'read ' + repo); })
+    var current = knownSha !== undefined ? Promise.resolve(knownSha ? { sha: knownSha } : null)
+      : fetch(url + '?ref=' + BRANCH, { headers: headers(pubKey), cache: 'no-store' })
+          .then(function(r){ if (r.status === 404) return null; return r.ok ? r.json() : fail(r, 'read ' + repo); });
+    return current
       .then(function(cur){
         var body = { message: message, content: b64(text), branch: BRANCH };
         if (cur && cur.sha) body.sha = cur.sha;
@@ -767,7 +776,11 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   function draftFor(base){
     var d = null; try { d = JSON.parse(get(DRAFT) || 'null'); } catch (e) {}
     if (!d || !Array.isArray(d.projects)){ if (d) del(DRAFT); return null; }   /* old or broken draft format */
-    if (published.saved && (!d.base || d.base !== published.saved)){ del(DRAFT); return null; }   /* made before the last publish */
+    if (published.saved && (!d.base || d.base !== published.saved)){   /* made before the catalog last changed */
+      del(DRAFT);
+      if (d.base) staleDraft = d.saved;
+      return null;
+    }
     return d;
   }
   function enterPrivate(data, fresh){
@@ -784,6 +797,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     render();
     if (fresh) say('There’s no private catalog yet. Publishing creates ' + cfg().priv + '/' + PRIV_PATH + ' from the cards below.', 'ok');
     else if (d && isDirty()) say('Restored your unpublished changes from ' + new Date(d.saved).toLocaleString() + '. Discard them to start from the published version.');
+    else if (staleDraft) say('The catalog changed since your unpublished changes from ' + new Date(staleDraft).toLocaleString() + ', so they were set aside. The list shows the latest version.', 'bad');
     else say('');
   }
   function connectPub(){
@@ -794,16 +808,22 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
       .then(function(u){
         if ((u.login || '').toLowerCase() !== c.owner.toLowerCase()) throw { owner: u.login };
         if (keyKind(pubKey) === 'classic') throw { classic: true };
-        return fetch(contentsUrl(c.priv, PRIV_PATH) + '?ref=' + BRANCH, { headers: headers(pubKey, true), cache: 'no-store' });
+        return fetch(contentsUrl(c.priv, PRIV_PATH) + '?ref=' + BRANCH, { headers: headers(pubKey), cache: 'no-store' });
       })
       .then(function(r){
-        if (r.ok) return r.text().then(function(t){ return { data: JSON.parse(t) }; });
+        if (r.ok) return r.json().then(function(f){
+          var bin = atob(String(f.content || '').replace(/\s/g, '')), bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          privSha = f.sha || '';
+          return { data: JSON.parse(new TextDecoder().decode(bytes)) };
+        });
         if (r.status !== 404) return fail(r, 'load');
         /* 404: either the file doesn't exist yet, or the key can't see the repository. */
         return fetch(API + '/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.priv), { headers: headers(pubKey), cache: 'no-store' })
           .then(function(r2){ if (r2.ok) return { fresh: true }; throw { status: 404, step: 'load' }; });
       })
       .then(function(res){
+        if (res.fresh){ privSha = ''; }
         if (res.fresh) enterPrivate({ version: 1, projects: items, ignored: [] }, true);
         else enterPrivate(res.data, false);
         keyState('pub', 'on', 'Connected as @' + c.owner + '. Hidden cards loaded; publishing works.');
@@ -907,8 +927,9 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     var privText = privateText(savedAt), pubText = publicText();
     var step = c.priv, privDone = false;
     say('Saving the private catalog…');
-    putFile(c.priv, PRIV_PATH, privText, 'Update catalog (' + shown + ' shown, ' + (items.length - shown) + ' hidden)')
-      .then(function(){
+    putFile(c.priv, PRIV_PATH, privText, 'Update catalog (' + shown + ' shown, ' + (items.length - shown) + ' hidden)', privSha)
+      .then(function(res){
+        privSha = (res && res.content && res.content.sha) || privSha;
         privDone = true; step = c.repo;
         say('Saving the public list…');
         return putFile(c.repo, PUB_PATH, pubText, 'Update project list (' + shown + ' projects)');
@@ -923,6 +944,8 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
       .catch(function(err){
         btn.textContent = 'Publish'; btn.disabled = !isDirty();
         var msg = err && err.status ? explain(err, step) : 'Couldn’t reach GitHub. Check your connection and try again.';
+        if (!privDone && err && (err.status === 409 || err.status === 422))
+          msg = 'The catalog changed on GitHub since this page loaded, probably from the hourly ' + TAG + ' tag sync or another device. Nothing was saved. Reload the page to get the latest, then make your change again.';
         if (privDone) msg = 'The private catalog saved, but the public list didn’t. ' + msg + ' Publish again to finish.';
         say(msg, 'bad');
         if (err && (err.status === 401 || err.status === 403 || err.status === 404)) $('keysPanel').open = true;

@@ -1,6 +1,8 @@
-# Keeps projects.json in step with GitHub topics.
-# Tag a repo `catalog` and it appears on the site; remove the tag and it's hidden.
-# Runs every hour, and right away when `gh catalog` / `gh uncatalog` asks it to.
+# Keeps the catalog in step with GitHub topics.
+# Tag a repo `shelf` and it appears on the site; remove the tag and it's hidden.
+# Runs every hour, and right away when `gh shelve` / `gh unshelve` asks it to.
+# The script writes both files itself (private catalog first, then the public list)
+# with the same two keys settings.html uses, so this workflow only needs to read.
 name: Sync catalog
 
 on:
@@ -9,8 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
+  contents: read
 
 concurrency:
   group: catalog-sync
@@ -26,22 +27,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Read topics and update projects.json
-        id: sync
+      - name: Read topics and update the catalog
         env:
-          CATALOG_TOKEN: ${{ secrets.CATALOG_TOKEN }}
+          REPO_LIST_KEY: ${{ secrets.REPO_LIST_KEY }}
+          PUBLISHING_KEY: ${{ secrets.PUBLISHING_KEY }}
         run: node scripts/sync-catalog.mjs
-
-      - name: Commit and publish
-        if: steps.sync.outputs.message != ''
-        env:
-          MESSAGE: ${{ steps.sync.outputs.message }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898181+github-actions[bot]@users.noreply.github.com"
-          git add projects.json
-          git commit -m "$MESSAGE"
-          git push
-          # Ask Pages to rebuild in case a push from a workflow token doesn't trigger one.
-          gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent || true
