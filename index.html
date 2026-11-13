@@ -451,8 +451,8 @@ noscript ul{font-family:var(--font-sans)}
       '<div class="card-top"><span>' + esc(r.call) + '</span><span>' + (r.featured ? '✦ ' : '') + esc(r.status) + '</span></div>' +
       '<h3 class="card-title">' + esc(r.title) + '</h3>' +
       '<dl class="fields">' +
-        '<div><dt>Subject</dt><dd>' + esc(r.subject) + '</dd></div>' +
-        '<div><dt>Note</dt><dd>' + esc(r.note) + '</dd></div>' +
+        (String(r.subject || '').trim() ? '<div><dt>Subject</dt><dd>' + esc(r.subject) + '</dd></div>' : '') +
+        (String(r.note || '').trim() ? '<div><dt>Note</dt><dd>' + esc(r.note) + '</dd></div>' : '') +
         '<div><dt>Location</dt><dd>' + loc + '</dd></div>' +
       '</dl>' +
       (r.url ? '<a class="open-key" href="' + esc(r.url) + '">Open record ↗</a>' : '');

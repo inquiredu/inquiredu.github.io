@@ -67,6 +67,7 @@ code{font:400 .92em var(--font-mono)}
 .logo-light{display:var(--logo-light)} .logo-dark{display:var(--logo-dark)}
 .eyebrow{font:600 12px/1.2 var(--font-sans); letter-spacing:.18em; text-transform:uppercase; color:var(--accent-text)}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+[hidden]{display:none !important}
 
 /* header */
 .head{display:flex; gap:18px; align-items:flex-start; padding-bottom:24px}
@@ -75,16 +76,32 @@ code{font:400 .92em var(--font-mono)}
 .head h1{font-size:clamp(26px,4vw,32px); line-height:1.15}
 .head p:not(.eyebrow){font:400 17px/1.55 var(--font-serif); color:var(--fg-2); max-width:60ch}
 
-/* connection strip: one line per key */
-.keys{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:18px}
+/* unlock: the first thing you see until the publishing key connects */
+.unlock{display:flex; flex-direction:column; gap:12px; padding:22px; margin-bottom:8px; background:var(--raised); border:1.5px solid var(--line-strong); border-radius:8px}
+.unlock h2{font-size:21px}
+.unlock > p, .connect-box > p{font:400 16.5px/1.55 var(--font-serif); color:var(--fg-2); max-width:62ch}
+.connect-box > p b{font-family:var(--font-sans); font-size:15px; color:var(--fg-1)}
+.connect-box{display:flex; flex-direction:column; gap:12px; margin-top:16px; padding:18px; border:1.5px dashed var(--line-strong); border-radius:8px}
+.key-row{display:flex; gap:10px; flex-wrap:wrap}
+.key-row input{flex:1 1 240px; min-width:0; height:44px; padding:0 12px; font:400 15px/1 var(--font-mono); color:var(--fg-1); background:var(--bg); border:1px solid var(--line-strong); border-radius:4px}
+.key-row input:focus{outline:none; box-shadow:0 0 0 3px var(--sun-soft); border-color:var(--sun)}
+.key-row .btn{height:44px}
+.how summary{cursor:pointer; font:600 14px/1.3 var(--font-sans); color:var(--fg-2); width:fit-content}
+.how summary:hover{color:var(--accent-text)}
+.how[open] summary{margin-bottom:10px}
+.how ol{margin:0; padding-left:1.3em; font:400 15.5px/1.6 var(--font-serif); color:var(--fg-2); max-width:64ch; display:flex; flex-direction:column; gap:4px}
+.how p{font:400 14.5px/1.5 var(--font-serif); color:var(--fg-3); margin-top:8px; max-width:64ch}
+
+/* key strip, once connected: one line per key */
+.keys{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:6px}
 @media (max-width:640px){.keys{grid-template-columns:minmax(0,1fr)}}
-.key{display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:var(--raised); border:1px solid var(--line); border-radius:8px}
-.key .dot{flex:none; width:9px; height:9px; margin-top:6px; border-radius:50%; background:var(--fg-3)}
+.key{display:flex; gap:12px; align-items:center; padding:10px 14px; background:var(--raised); border:1px solid var(--line); border-radius:8px}
+.key-text{flex:1; min-width:0}
+.key .dot{flex:none; width:9px; height:9px; border-radius:50%; background:var(--fg-3)}
 .key.on .dot{background:var(--ok); box-shadow:0 0 0 3px var(--ok-bg)}
 .key.bad .dot{background:var(--bad); box-shadow:0 0 0 3px var(--bad-bg)}
 .key b{display:block; font:600 14px/1.3 var(--font-sans)}
 .key span{display:block; font:400 13.5px/1.45 var(--font-sans); color:var(--fg-2)}
-.key .link-btn{margin-top:4px}
 
 /* sticky toolbar */
 .toolbar{position:sticky; top:env(safe-area-inset-top, 0px); z-index:5; display:flex; align-items:center; flex-wrap:wrap; gap:10px 14px; padding-block:14px; background:var(--bg); border-bottom:1.5px solid var(--line-strong)}
@@ -108,13 +125,12 @@ code{font:400 .92em var(--font-mono)}
 .status{min-height:24px; padding-top:12px; font:500 14.5px/1.5 var(--font-sans); color:var(--fg-2)}
 .status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
 .hint{font:400 13px/1.5 var(--font-mono); color:var(--fg-3)}
-.locked-note{margin-top:16px; padding:14px 16px; border:1.5px dashed var(--line-strong); border-radius:8px; font:400 16px/1.5 var(--font-serif); color:var(--fg-2)}
-.locked-note b{font-family:var(--font-sans); font-size:15px; color:var(--fg-1)}
 
 /* sections */
 .section{margin-top:44px}
 .section-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid var(--line)}
 .section-head h2{font-size:20px}
+.section-head .count{font:500 13px/1 var(--font-mono); color:var(--fg-3); margin-left:4px; letter-spacing:0}
 .section-head p{font:400 15.5px/1.5 var(--font-serif); color:var(--fg-2); flex-basis:100%}
 .section-actions{display:flex; gap:8px; flex-wrap:wrap}
 [inert]{opacity:.6}
@@ -165,6 +181,11 @@ code{font:400 .92em var(--font-mono)}
 .check input{width:18px; height:18px; accent-color:var(--sun)}
 
 @media (max-width:560px){
+  .toolbar{gap:8px; padding-block:10px}
+  .toolbar .spacer{display:none}
+  .toolbar .summary{margin-right:auto}
+  .toolbar .btn{height:36px; padding:0 12px; font-size:13.5px}
+  .unlock{padding:18px}
   .row{grid-template-columns:auto minmax(0,1fr) auto auto; gap:10px}
   .pos{display:none}
   .switch .state{display:none}
@@ -219,7 +240,6 @@ code{font:400 .92em var(--font-mono)}
 .panel-body p{font:400 16px/1.55 var(--font-serif); color:var(--fg-2); max-width:64ch}
 .panel-body ol{margin:0; padding-left:1.3em; font:400 16px/1.6 var(--font-serif); color:var(--fg-2); max-width:64ch}
 .panel-body h3{font:600 15.5px/1.3 var(--font-sans); padding-top:8px}
-.keybox{display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid var(--line); border-radius:8px; background:var(--raised)}
 .fields{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px}
 @media (max-width:560px){.fields{grid-template-columns:minmax(0,1fr)}}
 .field.wide{grid-column:1 / -1}
@@ -244,26 +264,46 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     </div>
   </header>
 
-  <div class="keys" aria-label="GitHub keys">
-    <div class="key" id="pubKeyState"><span class="dot" aria-hidden="true"></span><div><b>Publishing key</b><span id="pubKeyText">Not connected. Needed to load hidden projects and to publish.</span><button class="link-btn" type="button" data-open-keys>Set up</button></div></div>
-    <div class="key" id="readKeyState"><span class="dot" aria-hidden="true"></span><div><b>Repo list key</b><span id="readKeyText">Not connected. Needed to list every repository, private ones included.</span><button class="link-btn" type="button" data-open-keys>Set up</button></div></div>
+  <section class="unlock" id="unlock" aria-labelledby="unlockHead">
+    <h2 id="unlockHead">Unlock settings</h2>
+    <p>Paste your publishing key. Anyone can open this page, but only that key loads your hidden cards and publishes changes. Until then, below is the public list, read only.</p>
+    <div class="key-row">
+      <label class="sr" for="pubToken">Publishing key</label>
+      <input id="pubToken" type="password" autocomplete="off" spellcheck="false" placeholder="Publishing key · github_pat_…">
+      <button class="btn primary" id="pubConnect" type="button">Connect</button>
+    </div>
+    <label class="check"><input type="checkbox" id="pubRemember"> Remember on this device</label>
+    <p class="key-check" id="pubCheck" role="status" aria-live="polite"></p>
+    <details class="how">
+      <summary>How to make this key</summary>
+      <ol>
+        <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>. Name it <em>inquiredu publishing</em>.</li>
+        <li>Under Repository access, choose <em>Only select repositories</em> and pick <code id="pubRepoA">inquiredu.github.io</code> and <code id="pubRepoB">site-catalog</code>.</li>
+        <li>Under Permissions, add <em>Contents</em> and set it to <em>Read and write</em>. Leave everything else alone.</li>
+        <li>Generate it and paste it above. Have a token from the old admin page? Edit it on GitHub and add <code>site-catalog</code> to its repositories. The token stays the same.</li>
+      </ol>
+      <p>It can write to those two repositories and nothing else. Only tick Remember on a device you trust: every page under inquiredu.org shares this browser's storage.</p>
+    </details>
+  </section>
+
+  <div class="keys" id="keyStrip" aria-label="GitHub keys" hidden>
+    <div class="key" id="pubKeyState"><span class="dot" aria-hidden="true"></span><div class="key-text"><b>Publishing key</b><span id="pubKeyText"></span></div><button class="link-btn" id="pubForget" type="button">Forget</button></div>
+    <div class="key" id="readKeyState"><span class="dot" aria-hidden="true"></span><div class="key-text"><b>Repo list key</b><span id="readKeyText">Not connected yet.</span></div><button class="link-btn" id="readForget" type="button" hidden>Forget</button><button class="link-btn" id="readGoto" type="button">Connect</button></div>
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar" id="toolbar" hidden>
     <span class="summary" id="summary">Loading projects</span>
-    <span class="pill locked" id="pill">Read only</span>
+    <span class="pill" id="pill">Published</span>
     <span class="spacer"></span>
     <a class="btn" id="previewBtn" href="index.html" target="_blank" rel="noopener">Preview ↗</a>
-    <button class="btn" id="discardBtn" type="button" disabled>Discard changes</button>
+    <button class="btn" id="discardBtn" type="button" disabled>Discard</button>
     <button class="btn primary" id="publishBtn" type="button" disabled>Publish</button>
   </div>
   <p class="status" id="status" role="status" aria-live="polite"></p>
 
-  <div class="locked-note" id="lockedNote"><b>Showing the public list only.</b> Connect your publishing key to load hidden projects and make changes. It's the lock on this page: anyone can open it, but nothing changes without your key.</div>
-
   <section class="section" id="shelfSection" aria-labelledby="shelfHead">
     <div class="section-head">
-      <h2 id="shelfHead">On your page</h2>
+      <h2 id="shelfHead">On your page <span class="count" id="shelfCount"></span></h2>
       <div class="section-actions"><button class="btn small" id="addBtn" type="button">Add a project by hand</button></div>
       <p>Shown cards appear on inquiredu.org in this order. Hidden cards are saved privately in <code id="privName">site-catalog</code> and never published. Drag the handle to reorder, or focus it and use the arrow keys.</p>
     </div>
@@ -274,9 +314,28 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     <div class="section-head">
       <h2 id="repoHead">All your repositories</h2>
       <div class="section-actions"><button class="btn small" id="reloadReposBtn" type="button" hidden>Reload list</button></div>
-      <p>Every repository you own. Not listed means it stays off the site and out of every public file. Choosing Hidden saves a card privately. Choosing Shown puts it on the page. Shortcut: give a repo the GitHub topic <code>shelf</code> and the hourly sync shows it for you.</p>
+      <p>Not listed keeps a repository off the site and out of every public file. Hidden saves a card privately. Shown puts it on the page. Shortcut: give a repo the GitHub topic <code>shelf</code> and the hourly sync shows it for you.</p>
     </div>
-    <div id="repoBody"><p class="empty">Connect your repo list key to see every repository, private ones included. <button class="link-btn" type="button" data-open-keys>Set up keys</button></p></div>
+    <div class="connect-box" id="repoConnect">
+      <p><b>See every repository, private ones included.</b> Paste your repo list key. It can list repositories and nothing else: no code, no changes.</p>
+      <div class="key-row">
+        <label class="sr" for="readToken">Repo list key</label>
+        <input id="readToken" type="password" autocomplete="off" spellcheck="false" placeholder="Repo list key · github_pat_…">
+        <button class="btn solid" id="readConnect" type="button">Connect</button>
+      </div>
+      <label class="check"><input type="checkbox" id="readRemember"> Remember on this device</label>
+      <p class="key-check" id="readCheck" role="status" aria-live="polite"></p>
+      <details class="how">
+        <summary>How to make this key</summary>
+        <ol>
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>. Name it <em>inquiredu repo list</em>.</li>
+          <li>Under Repository access, choose <em>All repositories</em>.</li>
+          <li>Don't add any permissions. GitHub includes read-only <em>Metadata</em> on its own, and that's all this needs.</li>
+          <li>Generate it and paste it above. The hourly <code>shelf</code> sync uses this same key, saved as the <code>REPO_LIST_KEY</code> secret.</li>
+        </ol>
+      </details>
+    </div>
+    <div id="repoBody"></div>
   </section>
 
   <datalist id="statuses">
@@ -285,43 +344,9 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     <option value="In progress"></option><option value="Finished"></option>
   </datalist>
 
-  <details class="panel" id="keysPanel">
-    <summary>GitHub keys</summary>
+  <details class="panel" id="advanced">
+    <summary>Advanced</summary>
     <div class="panel-body">
-      <p>This page talks to GitHub with two fine-grained tokens. GitHub gives a token the same permissions on every repository it can reach, so splitting the work keeps either one from doing much harm if it leaks.</p>
-
-      <div class="keybox">
-        <h3>1 · Publishing key</h3>
-        <p>Reads your private catalog and saves both files. It can write to exactly two repositories.</p>
-        <ol>
-          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>. Name it <em>inquiredu publishing</em>.</li>
-          <li>Under Repository access, choose <em>Only select repositories</em> and pick <code id="pubRepoA">inquiredu.github.io</code> and <code id="pubRepoB">site-catalog</code>.</li>
-          <li>Under Permissions, add <em>Contents</em> and set it to <em>Read and write</em>. Leave everything else alone.</li>
-          <li>Generate it and paste it here. Already have a publishing token from the old admin page? Edit it on GitHub and add <code>site-catalog</code> to its repositories instead. The token itself stays the same.</li>
-        </ol>
-        <div class="field"><label for="pubToken">Publishing key</label><input id="pubToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
-        <label class="check"><input type="checkbox" id="pubRemember"> Remember on this device</label>
-        <div class="row-actions"><button class="btn solid small" id="pubConnect" type="button">Connect</button><button class="link-btn" id="pubForget" type="button">Forget this key</button></div>
-        <p class="key-check" id="pubCheck" role="status" aria-live="polite"></p>
-      </div>
-
-      <div class="keybox">
-        <h3>2 · Repo list key</h3>
-        <p>Lists every repository you own. It can't read code or change anything.</p>
-        <ol>
-          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">the new token page</a> again. Name it <em>inquiredu repo list</em>.</li>
-          <li>Under Repository access, choose <em>All repositories</em>.</li>
-          <li>Don't add any permissions. GitHub includes read-only <em>Metadata</em> on its own, and that's all this needs.</li>
-          <li>Generate it and paste it here.</li>
-        </ol>
-        <div class="field"><label for="readToken">Repo list key</label><input id="readToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
-        <label class="check"><input type="checkbox" id="readRemember"> Remember on this device</label>
-        <div class="row-actions"><button class="btn solid small" id="readConnect" type="button">Connect</button><button class="link-btn" id="readForget" type="button">Forget this key</button></div>
-        <p class="key-check" id="readCheck" role="status" aria-live="polite"></p>
-      </div>
-
-      <p>Without “Remember,” a key lasts until you reload this tab. Every page under inquiredu.org shares this browser's storage, so only remember keys on a device you trust.</p>
-
       <h3>Where things are saved</h3>
       <div class="fields">
         <div class="field"><label for="cfgOwner">Account</label><input id="cfgOwner" autocomplete="off" spellcheck="false"></div>
@@ -329,12 +354,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
         <div class="field"><label for="cfgRepo">Public repository</label><input id="cfgRepo" autocomplete="off" spellcheck="false"><small>Holds <code>projects.json</code>: shown cards only.</small></div>
         <div class="field"><label for="cfgPrivate">Private repository</label><input id="cfgPrivate" autocomplete="off" spellcheck="false"><small>Holds <code>catalog.json</code>: every card, hidden ones included.</small></div>
       </div>
-    </div>
-  </details>
-
-  <details class="panel" id="manual">
-    <summary>Publish by hand instead</summary>
-    <div class="panel-body">
+      <h3>Publish by hand</h3>
       <p>Copy these files and replace them in each repository yourself. They always match the lists above.</p>
       <div class="row-actions"><button class="btn solid small" type="button" data-copy="pubOut">Copy projects.json</button><span class="hint">public repository</span></div>
       <label class="sr" for="pubOut">projects.json</label>
@@ -475,7 +495,10 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     $('publishBtn').disabled = !dirty;
     $('discardBtn').disabled = !dirty;
     $('previewBtn').href = dirty ? 'index.html#draft' : 'index.html';
-    $('lockedNote').hidden = mode === 'private';
+    $('unlock').hidden = mode === 'private';
+    $('keyStrip').hidden = mode !== 'private';
+    $('toolbar').hidden = mode !== 'private';
+    $('shelfCount').textContent = items.length ? String(items.length) : '';
     $('shelfSection').inert = mode !== 'private';
     $('pubOut').value = publicText();
     $('privOut').value = mode === 'private' ? privateText(published.saved) : '(Connect your publishing key to build this file.)';
@@ -621,6 +644,8 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   var prettify = function(name){
     return name.replace(/[-_]+/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).replace(/\bAi\b/g, 'AI').replace(/\bMn\b/g, 'MN');
   };
+  /* Same rules as the shelf sync, so cards look alike whichever way they were added. */
+  var callFor = function(title){ return '000 ' + (title.replace(/^(the|a|an)\s+/i, '').replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'NEW'); };
   function liveUrl(r){
     if (r.homepage) return r.homepage;
     if (r.has_pages) return cfg().site.replace(/\/$/, '') + '/' + r.name + '/';
@@ -639,11 +664,39 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   function cardFromRepo(r, visible){
     var u = liveUrl(r), title = prettify(r.name);
     var id = r.name.toLowerCase(); while (byId(id)) id += '-2';
-    var p = { id: id, repo: r.name, visible: visible, call: '000 ' + title.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase(), title: title,
+    var p = { id: id, repo: r.name, visible: visible, call: callFor(title), title: title,
               status: u ? 'Live' : r.private ? 'In progress' : 'Open source', group: u ? 'live' : r.private ? 'workshop' : 'source',
               subject: '', note: r.description || '' };
     if (u) p.url = u; else if (!r.private) p.url = r.html_url;
     return p;
+  }
+  function rerenderRow(id){
+    var li = rowEl(id), p = byId(id); if (!li || !p) return;
+    var tmp = document.createElement('ol'); tmp.innerHTML = rowHTML(p, items.indexOf(p));
+    var fresh = tmp.firstChild; if (li.classList.contains('fresh')) fresh.classList.add('fresh');
+    li.replaceWith(fresh);
+  }
+  /* Fill a new card from its live page's own title and description, like a link preview.
+     Only pages on this site can be read from here; others keep the repo's name and description. */
+  function enrich(p){
+    if (!p.url || p.url.indexOf(location.origin + '/') !== 0) return;
+    var startTitle = p.title, startCall = p.call;
+    fetch(p.url, { cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(html){
+        if (!html) return;
+        var doc = new DOMParser().parseFromString(html.slice(0, 200000), 'text/html');
+        var meta = function(sel){ var m = doc.querySelector(sel); return m ? (m.getAttribute('content') || '').trim() : ''; };
+        var raw = meta('meta[property="og:title"]') || (doc.title || '').trim();
+        var title = raw.split(/\s+[·|—–-]\s+/)[0].trim();
+        var desc = meta('meta[name="description"]') || meta('meta[property="og:description"]');
+        var cur = byId(p.id); if (!cur) return;
+        var changed = false;
+        if (title && cur.title === startTitle){ cur.title = title; if (cur.call === startCall) cur.call = callFor(title); changed = true; }
+        if (desc && !String(cur.note || '').trim()){ cur.note = desc; changed = true; }
+        if (changed){ rerenderRow(cur.id); refresh(); }
+      })
+      .catch(function(){});
   }
   function setRepoState(name, state){
     var r = (repos || []).filter(function(x){ return x.name === name; })[0]; if (!r) return;
@@ -657,6 +710,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
       p = cardFromRepo(r, state === 'shown');
       items.push(p);
       render();
+      enrich(p);
       var li = rowEl(p.id); if (li) li.classList.add('fresh');
       say(p.title + ' was added at the end of the shelf' + (state === 'shown' ? ' and switched on' : ', hidden') + '. Check its card, then publish.');
       return;
@@ -766,10 +820,12 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     var el = $(which === 'pub' ? 'pubKeyState' : 'readKeyState');
     el.className = 'key' + (cls ? ' ' + cls : '');
     $(which === 'pub' ? 'pubKeyText' : 'readKeyText').textContent = text;
+    if (which === 'read'){ $('readForget').hidden = cls !== 'on'; $('readGoto').hidden = cls === 'on'; }
   }
   function checkLine(which, msg, kind){ var el = $(which === 'pub' ? 'pubCheck' : 'readCheck'); el.className = 'key-check' + (kind ? ' ' + kind : ''); el.textContent = msg; }
-  Array.prototype.forEach.call(document.querySelectorAll('[data-open-keys]'), function(b){
-    b.addEventListener('click', function(){ $('keysPanel').open = true; $('keysPanel').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+  $('readGoto').addEventListener('click', function(){
+    $('repoConnect').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    $('readToken').focus({ preventScroll: true });
   });
 
   /* ---------- publishing key: load the private catalog ---------- */
@@ -826,7 +882,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
         if (res.fresh){ privSha = ''; }
         if (res.fresh) enterPrivate({ version: 1, projects: items, ignored: [] }, true);
         else enterPrivate(res.data, false);
-        keyState('pub', 'on', 'Connected as @' + c.owner + '. Hidden cards loaded; publishing works.');
+        keyState('pub', 'on', 'Connected as @' + c.owner + '.');
         checkLine('pub', 'Connected. The full catalog is loaded.', 'ok');
       })
       .catch(function(err){
@@ -862,8 +918,9 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
         var msg = 'Found ' + repos.length + ' repositories (' + priv + ' private).';
         if (repos.length <= 3) msg += ' That’s very few. If you expected more, edit this key on GitHub and set Repository access to All repositories.';
         checkLine('read', msg, repos.length <= 3 ? 'bad' : 'ok');
-        keyState('read', 'on', 'Connected. ' + repos.length + ' repositories, ' + priv + ' private.');
+        keyState('read', 'on', repos.length + ' repositories, ' + priv + ' private.');
         $('reloadReposBtn').hidden = false;
+        $('repoConnect').hidden = true;
         if (!repoFilter || repoFilter === 'all') repoFilter = eligible().some(isNew) ? 'fresh' : 'none';
         renderRepos();
       })
@@ -892,8 +949,10 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     $(connectBtn).addEventListener('click', connect);
     $(forgetBtn).addEventListener('click', function(){
       $(input).value = ''; $(remember).checked = false; del(storeKey); setKey('');
-      checkLine(which, 'Forgotten on this device.', 'ok');
-      keyState(which, '', which === 'pub' ? 'Not connected. Reload the page to lock it again.' : 'Not connected.');
+      if (which === 'pub'){ location.reload(); return; }   /* unsaved changes stay in the browser draft */
+      repos = null; $('repoBody').innerHTML = ''; $('repoConnect').hidden = false; $('reloadReposBtn').hidden = true;
+      checkLine('read', 'Forgotten on this device.', 'ok');
+      keyState('read', '', 'Not connected.');
     });
     return !!saved;
   }
@@ -919,7 +978,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
   /* ---------- publish: private catalog first, then the public list ---------- */
   $('publishBtn').addEventListener('click', function(){
     var c = cfg();
-    if (mode !== 'private' || !pubKey){ $('keysPanel').open = true; say('Connect your publishing key first.', 'bad'); return; }
+    if (mode !== 'private' || !pubKey){ say('Connect your publishing key first.', 'bad'); return; }
     var untitled = shownOf(items).filter(function(p){ return !String(p.title || '').trim(); });
     if (untitled.length){ say('A card that’s switched on has no title. Give it one, or hide it, then publish.', 'bad'); return; }
     var btn = $('publishBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
@@ -948,7 +1007,6 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
           msg = 'The catalog changed on GitHub since this page loaded, probably from the hourly ' + TAG + ' tag sync or another device. Nothing was saved. Reload the page to get the latest, then make your change again.';
         if (privDone) msg = 'The private catalog saved, but the public list didn’t. ' + msg + ' Publish again to finish.';
         say(msg, 'bad');
-        if (err && (err.status === 401 || err.status === 403 || err.status === 404)) $('keysPanel').open = true;
       });
   });
 
@@ -978,7 +1036,7 @@ textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 va
     })
     .then(function(){
       var chain = Promise.resolve();
-      if (hadPub) chain = chain.then(connectPub); else $('keysPanel').open = true;
+      if (hadPub) chain = chain.then(connectPub);
       if (hadRead) chain = chain.then(connectRead);
       return chain;
     });
