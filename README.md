@@ -8,12 +8,15 @@ Two files hold the catalog:
 | --- | --- | --- |
 | `projects.json` | this repo, public | The cards on the site. Shown cards only. |
 | `catalog.json` | [`inquiredu/site-catalog`](https://github.com/inquiredu/site-catalog), private | Every card, in shelf order, hidden ones included. |
+| `repos.json` | `inquiredu/site-catalog`, private | Every repository you own, for Settings to list. The sync writes it. |
 
 Both are written together, private first, by either of the two ways below. Don't edit `projects.json` by hand: the next save rebuilds it from the private catalog.
 
 ## Choose projects in Site settings
 
-[inquiredu.org/settings.html](https://inquiredu.org/settings.html), or the gear at the bottom of the home page. It lists every repository you own, and each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. Anyone can open the page, but it's read-only until your publishing key connects.
+[inquiredu.org/settings.html](https://inquiredu.org/settings.html), or the gear at the bottom of the home page. Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. Anyone can open the page, but it's read-only until your publishing key connects.
+
+The repo list comes from `repos.json`, which the hourly sync keeps current. **Refresh list** in Settings runs the sync right away and reloads the list when it finishes, usually within a minute. It also picks up any card a `shelf` tag just added.
 
 ## Or tag a repo `shelf`
 
@@ -66,14 +69,14 @@ REPO_LIST_KEY=$(gh auth token) PUBLISHING_KEY=$(gh auth token) node scripts/sync
 
 ## One-time setup: the two keys
 
-Settings and the sync use the same two fine-grained tokens. Make them at <https://github.com/settings/personal-access-tokens/new> with resource owner **inquiredu**.
+Make two fine-grained tokens at <https://github.com/settings/personal-access-tokens/new> with resource owner **inquiredu**.
 
-| Key | Repository access | Permissions |
-| --- | --- | --- |
-| Repo list key | All repositories | None added. The default, Metadata: Read-only, is all it needs. |
-| Publishing key | Only `inquiredu.github.io` and `site-catalog` | Contents: Read and write |
+| Key | Repository access | Permissions | Used by |
+| --- | --- | --- | --- |
+| Publishing key | Only `inquiredu.github.io` and `site-catalog` | Contents: Read and write. Actions: Read and write | You, to log in to Settings. Also the sync. |
+| Repo list key | All repositories | None added. The default, Metadata: Read-only, is all it needs | The sync only. It never goes in a browser. |
 
-Paste them into Settings when it asks. For the sync, save them as secrets:
+Paste the publishing key into Settings. Save both as secrets, so the sync can run:
 
 ```bash
 gh secret set REPO_LIST_KEY -R inquiredu/inquiredu.github.io
@@ -83,6 +86,6 @@ gh secret set REPO_LIST_KEY -R inquiredu/inquiredu.github.io
 gh secret set PUBLISHING_KEY -R inquiredu/inquiredu.github.io
 ```
 
-Paste each token when asked. When one expires, make a new one, run the same command, and paste it into Settings again. Until both secrets are set, the action skips with a warning instead of failing.
+Paste each token when asked. When one expires, make a new one and run the same command. If it's the publishing key, paste it into Settings again too. Until both secrets are set, the action skips with a warning instead of failing.
 
 This repo is public, so its Action logs are too. The sync logs counts only, never repo names or card titles. Details go in the commit to the private catalog.

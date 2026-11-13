@@ -8,6 +8,9 @@
   Two files, same as settings.html writes them:
     site-catalog/catalog.json        private: every card, hidden ones included
     inquiredu.github.io/projects.json  public: shown cards only
+  And one it writes for settings.html to read:
+    site-catalog/repos.json          private: every repository you own, so Settings
+                                     can list them with just the publishing key
 
   The sync only acts when a tag changes, so cards edited in settings.html keep their
   edits: title, note, call number, order and visibility all stay as you left them.
@@ -33,6 +36,7 @@ const PRIVATE_REPO = process.env.PRIVATE_REPO || 'site-catalog';
 const BRANCH = 'main';
 const PUBLIC_PATH = 'projects.json';
 const PRIVATE_PATH = 'catalog.json';
+const REPOS_PATH = 'repos.json';     // the repo list settings.html shows, so the browser never needs the read-all key
 const READ_KEY = process.env.REPO_LIST_KEY || '';
 const WRITE_KEY = process.env.PUBLISHING_KEY || '';
 const args = process.argv.slice(2);
@@ -163,6 +167,20 @@ async function newCard(r, site, taken) {
   return card;
 }
 
+/* Every repository, trimmed to what settings.html shows. Dates only, so the file
+   changes when something real changes, not on every push. */
+function inventoryOf(repos) {
+  const skip = new Set([SITE_REPO.toLowerCase(), PRIVATE_REPO.toLowerCase(), (OWNER + '.github.io').toLowerCase()]);
+  return repos
+    .filter(r => !skip.has(r.name.toLowerCase()))
+    .map(r => ({
+      name: r.name, private: !!r.private, description: r.description || '', homepage: r.homepage || '',
+      has_pages: !!r.has_pages, html_url: r.html_url, created_at: (r.created_at || '').slice(0, 10),
+      pushed_at: (r.pushed_at || '').slice(0, 10), fork: !!r.fork, archived: !!r.archived, topics: r.topics || []
+    }))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at) || a.name.localeCompare(b.name));
+}
+
 /* The public file: shown cards only, without the sync's bookkeeping. Matches settings.html. */
 function publicText(catalog, today) {
   const projects = catalog.projects.filter(p => p.visible !== false).map(p => {
@@ -230,19 +248,32 @@ async function main() {
   const changedCatalog = JSON.stringify(projects) !== JSON.stringify(JSON.parse(priv.text).projects || []);
   /* Action logs on a public repo are public: there, report counts and never names. */
   const counts = tagged.length + ' tagged · ' + added.length + ' added · ' + shown.length + ' shown · ' + hidden.length + ' hidden · ' + restatused.length + ' status changes';
-  if (PUBLIC_LOG) console.log(counts + (changedCatalog ? '' : ' · no changes'));
+  const inventory = inventoryOf(repos);
+  let listFile = null; try { listFile = await readFile(PRIVATE_REPO, REPOS_PATH); } catch (e) { if (e.status !== 404) throw e; }
+  let oldList = null; try { oldList = listFile ? JSON.parse(listFile.text).repos : null; } catch {}
+  const changedList = JSON.stringify(oldList) !== JSON.stringify(inventory);
+  const listNote = ' · repo list: ' + inventory.length + (changedList ? ' (updated)' : ' (unchanged)');
+  if (PUBLIC_LOG) console.log(counts + (changedCatalog ? '' : ' · no catalog changes') + listNote);
   else {
     console.log('Tagged "' + TOPIC + '": ' + (tagged.map(r => r.name).join(', ') || 'none') + (ASSUME.size ? ' (some assumed for preview)' : ''));
-    console.log(lines.length ? lines.join('\n') : changedCatalog ? 'Recorded which cards are tagged.' : 'No changes.');
+    console.log(lines.length ? lines.join('\n') : changedCatalog ? 'Recorded which cards are tagged.' : 'No catalog changes.');
+    console.log('Repo list: ' + inventory.length + ' repositories, ' + (changedList ? 'changed since last saved.' : 'unchanged.'));
   }
   if (DRY) {
     if (added.length && !PUBLIC_LOG) console.log('\nNew cards:\n' + JSON.stringify(added, null, 2));
     console.log('\nDry run: nothing was written.');
     return;
   }
-  if (!changedCatalog) return;
-
   const now = new Date();
+  if (changedList) {
+    const listText = JSON.stringify({ version: 1, checked: now.toISOString(), repos: inventory }, null, 2) + '\n';
+    await writeFile(PRIVATE_REPO, REPOS_PATH, listText, listFile && listFile.sha, 'Update repo list (' + inventory.length + ' repositories)');
+  }
+  if (!changedCatalog) {
+    if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, '### Tag sync\n\n' + counts + listNote + '\n');
+    return;
+  }
+
   const today = now.toISOString().slice(0, 10);
   const catalog = Object.assign({}, data, { updated: today, saved: now.toISOString(), projects });
   const summary = lines.length ? lines.join('; ') : 'Recorded which cards are tagged';
@@ -257,7 +288,7 @@ async function main() {
     await writeFile(SITE_REPO, PUBLIC_PATH, pubNew, pub && pub.sha, 'Tag sync: ' + (publicLines.join('; ') || 'Update project list') + ' (' + shownCount + ' projects)');
   }
 
-  if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, '### Tag sync\n\n' + counts + '\n\nDetails are in the commit to the private catalog.\n');
+  if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, '### Tag sync\n\n' + counts + listNote + '\n\nDetails are in the commit to the private catalog.\n');
 }
 
 main().catch(err => {
