@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-12",
+  "updated": "2026-11-13",
   "projects": [
     {
       "id": "what-we-talk-about",
@@ -98,6 +98,39 @@
       "subject": "Learning libraries · Facilitation",
       "note": "Turns a facilitator's materials into a shareable learning library with resources, an agenda, inquiry questions, and optional AI learning companions.",
       "url": "https://github.com/inquiredu/LearningLibraryPal"
+    },
+    {
+      "id": "public-domain-finder",
+      "repo": "public-domain-finder",
+      "visible": true,
+      "call": "000 PUB",
+      "title": "Public Domain Finder",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "",
+      "note": ""
+    },
+    {
+      "id": "present-kit",
+      "repo": "present-kit",
+      "visible": true,
+      "call": "000 PRE",
+      "title": "Present Kit",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "",
+      "note": "The Present Standard and its starter kit: one deck file, a stage, speaker notes in a second window, and a review that prints as the backup. inquiredu, by Sean Beaverson."
+    },
+    {
+      "id": "publicprivacypal",
+      "repo": "PublicPrivacyPal",
+      "visible": true,
+      "call": "000 PUB",
+      "title": "PublicPrivacyPal",
+      "status": "In progress",
+      "group": "workshop",
+      "subject": "",
+      "note": ""
     }
   ]
 }
