@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Site Settings</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Montserrat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<script>
+  try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+/* North Shore tokens, same as the public page. */
+:root{
+  color-scheme:light;
+  --font-sans:"Montserrat","Gotham","Proxima Nova",system-ui,sans-serif;
+  --font-serif:"Newsreader","Iowan Old Style",Georgia,serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --ease-out:cubic-bezier(.2,.7,.2,1);
+  --bg:#F4F1EB; --raised:#FAF8F4; --sunken:#EAE5DB;
+  --fg-1:#20384F; --fg-2:#45627D; --fg-3:#6E8599;
+  --accent-text:#8A522C; --sun:#C47D4D; --sun-soft:#F7EBE0; --water:#608C9B; --water-soft:#E3EDF0; --water-text:#3E6573;
+  --line:#DCD5C7; --line-strong:#20384F;
+  --btn-bg:#20384F; --btn-fg:#F4F1EB;
+  --ok:#3F6650; --ok-bg:#E2ECE4; --bad:#9E3F35; --bad-bg:#F4E1DD;
+  --shadow-lift:0 2px 6px rgba(20,36,52,.10), 0 14px 32px rgba(20,36,52,.16);
+  --logo-light:block; --logo-dark:none;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
+    --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
+    --accent-text:#DCAD88; --sun-soft:#3A2A1E; --water-soft:#1D3A46; --water-text:#C5D8DE;
+    --line:#2E4B66; --line-strong:#9DAEBC;
+    --btn-bg:#F4F1EB; --btn-fg:#142434;
+    --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
+    --shadow-lift:0 2px 6px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.5);
+    --logo-light:none; --logo-dark:block;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#142434; --raised:#1A2E41; --sunken:#0F1C29;
+  --fg-1:#F4F1EB; --fg-2:#9DAEBC; --fg-3:#7F93A5;
+  --accent-text:#DCAD88; --sun-soft:#3A2A1E; --water-soft:#1D3A46; --water-text:#C5D8DE;
+  --line:#2E4B66; --line-strong:#9DAEBC;
+  --btn-bg:#F4F1EB; --btn-fg:#142434;
+  --ok:#A9CDB4; --ok-bg:#1F3A2E; --bad:#F0A99F; --bad-bg:#3E2220;
+  --shadow-lift:0 2px 6px rgba(0,0,0,.4), 0 14px 32px rgba(0,0,0,.5);
+  --logo-light:none; --logo-dark:block;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0; background:var(--bg); color:var(--fg-1); font:400 16px/1.55 var(--font-sans); -webkit-font-smoothing:antialiased; padding-inline:max(16px, env(safe-area-inset-left, 0px))}
+.page{max-width:880px; margin-inline:auto; padding-block:40px 80px}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-0.01em; text-wrap:balance}
+p{margin:0; text-wrap:pretty}
+a{color:var(--fg-1); text-decoration-color:var(--sun); text-decoration-thickness:1.5px; text-underline-offset:3px}
+a:hover{color:var(--accent-text)}
+:focus-visible{outline:none; box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun); border-radius:4px}
+code{font:400 .92em var(--font-mono)}
+.logo-light{display:var(--logo-light)} .logo-dark{display:var(--logo-dark)}
+.eyebrow{font:600 12px/1.2 var(--font-sans); letter-spacing:.18em; text-transform:uppercase; color:var(--accent-text)}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* header */
+.head{display:flex; gap:18px; align-items:flex-start; padding-bottom:24px}
+.head img{width:52px; height:auto; flex:none}
+.head-text{display:flex; flex-direction:column; gap:6px}
+.head h1{font-size:clamp(26px,4vw,32px); line-height:1.15}
+.head p:not(.eyebrow){font:400 17px/1.55 var(--font-serif); color:var(--fg-2); max-width:60ch}
+
+/* connection strip: one line per key */
+.keys{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:18px}
+@media (max-width:640px){.keys{grid-template-columns:minmax(0,1fr)}}
+.key{display:flex; gap:12px; align-items:flex-start; padding:12px 14px; background:var(--raised); border:1px solid var(--line); border-radius:8px}
+.key .dot{flex:none; width:9px; height:9px; margin-top:6px; border-radius:50%; background:var(--fg-3)}
+.key.on .dot{background:var(--ok); box-shadow:0 0 0 3px var(--ok-bg)}
+.key.bad .dot{background:var(--bad); box-shadow:0 0 0 3px var(--bad-bg)}
+.key b{display:block; font:600 14px/1.3 var(--font-sans)}
+.key span{display:block; font:400 13.5px/1.45 var(--font-sans); color:var(--fg-2)}
+.key .link-btn{margin-top:4px}
+
+/* sticky toolbar */
+.toolbar{position:sticky; top:env(safe-area-inset-top, 0px); z-index:5; display:flex; align-items:center; flex-wrap:wrap; gap:10px 14px; padding-block:14px; background:var(--bg); border-bottom:1.5px solid var(--line-strong)}
+.summary{font:500 14.5px/1.3 var(--font-sans); color:var(--fg-2); font-variant-numeric:tabular-nums}
+.summary b{color:var(--fg-1); font-weight:600}
+.pill{height:22px; padding:0 8px; display:inline-flex; align-items:center; font:600 11px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; border-radius:2px; background:var(--ok-bg); color:var(--ok)}
+.pill.dirty{background:var(--sun-soft); color:var(--accent-text)}
+.pill.locked{background:var(--sunken); color:var(--fg-2)}
+.spacer{flex:1}
+.btn{height:40px; padding:0 16px; display:inline-flex; align-items:center; gap:8px; font:600 14.5px/1 var(--font-sans); border-radius:4px; cursor:pointer; text-decoration:none; border:1.5px solid var(--line-strong); background:transparent; color:var(--fg-1); white-space:nowrap}
+.btn:hover{color:var(--accent-text); border-color:var(--accent-text)}
+.btn.primary{background:var(--sun); border-color:var(--sun); color:#142434}
+.btn.primary:hover{background:#D09466; border-color:#D09466; color:#142434}
+.btn.solid{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
+.btn.small{height:32px; padding:0 12px; font-size:13.5px}
+.btn:disabled{opacity:.45; cursor:default; pointer-events:none}
+.btn.warn{border-color:var(--bad); color:var(--bad)}
+.link-btn{background:none; border:0; padding:4px 2px; font:600 13.5px/1 var(--font-sans); color:var(--fg-2); cursor:pointer; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px}
+.link-btn:hover{color:var(--accent-text); text-decoration-color:var(--sun)}
+
+.status{min-height:24px; padding-top:12px; font:500 14.5px/1.5 var(--font-sans); color:var(--fg-2)}
+.status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+.hint{font:400 13px/1.5 var(--font-mono); color:var(--fg-3)}
+.locked-note{margin-top:16px; padding:14px 16px; border:1.5px dashed var(--line-strong); border-radius:8px; font:400 16px/1.5 var(--font-serif); color:var(--fg-2)}
+.locked-note b{font-family:var(--font-sans); font-size:15px; color:var(--fg-1)}
+
+/* sections */
+.section{margin-top:44px}
+.section-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid var(--line)}
+.section-head h2{font-size:20px}
+.section-head p{font:400 15.5px/1.5 var(--font-serif); color:var(--fg-2); flex-basis:100%}
+.section-actions{display:flex; gap:8px; flex-wrap:wrap}
+[inert]{opacity:.6}
+
+/* shelf: project cards, like index cards in a drawer */
+.rows{list-style:none; margin:16px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+.row{display:grid; grid-template-columns:auto 3ch minmax(0,1fr) auto auto; align-items:center; gap:14px; padding:12px 14px 12px 6px; background:var(--raised); border:1px solid var(--line); border-radius:8px; transition:opacity 150ms var(--ease-out), background 150ms var(--ease-out)}
+.row.dragging{box-shadow:var(--shadow-lift); border-color:var(--sun); position:relative; z-index:2}
+.row.off{background:var(--sunken)}
+.row.off .info{opacity:.6}
+.row.fresh{border-color:var(--water); box-shadow:0 0 0 2px var(--water-soft)}
+.grip{width:32px; height:40px; display:grid; place-items:center; border:0; background:transparent; color:var(--fg-3); cursor:grab; border-radius:4px; touch-action:none}
+.grip:hover{color:var(--fg-1); background:var(--sunken)}
+.row.dragging .grip{cursor:grabbing; color:var(--accent-text)}
+.grip svg{width:14px; height:20px; fill:currentColor}
+.pos{font:500 13px/1 var(--font-mono); color:var(--fg-3); font-variant-numeric:tabular-nums; text-align:right}
+.info{display:flex; flex-direction:column; gap:3px; min-width:0}
+.title{font:600 16.5px/1.3 var(--font-sans)}
+.title .star{color:var(--sun); margin-left:6px}
+.sub{font:400 12.5px/1.45 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere}
+.edit-btn{height:32px; padding:0 10px; border:1px solid var(--line); border-radius:4px; background:transparent; font:600 13px/1 var(--font-sans); color:var(--fg-2); cursor:pointer}
+.edit-btn:hover{color:var(--accent-text); border-color:var(--accent-text)}
+.edit-btn[aria-expanded="true"]{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
+
+/* rocker switch with a pilot light, like the lamp on the public page */
+.switch{display:inline-flex; align-items:center; gap:10px; cursor:pointer; font:600 11px/1 var(--font-sans); letter-spacing:.14em; text-transform:uppercase; color:var(--fg-2); user-select:none}
+.switch input{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none}
+.rocker{position:relative; width:48px; height:26px; border-radius:7px; background:linear-gradient(#2c3035,#141719); box-shadow:inset 0 2px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.3)}
+.lever{position:absolute; top:3px; left:3px; width:21px; height:20px; border-radius:5px; background:linear-gradient(#9DAEBC,#6E8599); box-shadow:0 2px 2px rgba(0,0,0,.45); transition:transform 160ms var(--ease-out)}
+.switch input:checked + .rocker .lever{transform:translateX(21px); background:linear-gradient(#FAF8F4,#C9C1B1)}
+.pilot{width:7px; height:7px; border-radius:50%; background:#5a5048; box-shadow:inset 0 1px 1px rgba(0,0,0,.5)}
+.switch input:checked ~ .pilot{background:#F4AE72; box-shadow:0 0 8px rgba(244,174,114,.9)}
+.switch input:focus-visible + .rocker{box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun)}
+.state{min-width:6ch}
+.switch input:checked ~ .state{color:var(--fg-1)}
+
+/* inline editor */
+.editor{grid-column:1 / -1; margin:6px 0 4px 40px; padding-top:14px; border-top:1px dashed var(--line); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px}
+.editor .field.wide{grid-column:1 / -1}
+.editor-foot{grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding-top:4px}
+.field{display:flex; flex-direction:column; gap:6px}
+.field label{font:600 13px/1.2 var(--font-sans)}
+.field small{font:400 12.5px/1.45 var(--font-sans); color:var(--fg-3)}
+.field input,.field select,.field textarea{min-height:40px; padding:8px 12px; font:400 14.5px/1.4 var(--font-mono); color:var(--fg-1); background:var(--bg); border:1px solid var(--line-strong); border-radius:4px; width:100%}
+.field textarea{min-height:84px; resize:vertical; font-family:var(--font-serif); font-size:16px; line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none; box-shadow:0 0 0 3px var(--sun-soft); border-color:var(--sun)}
+.check{display:flex; align-items:center; gap:10px; font:500 14.5px/1.4 var(--font-sans)}
+.check input{width:18px; height:18px; accent-color:var(--sun)}
+
+@media (max-width:560px){
+  .row{grid-template-columns:auto minmax(0,1fr) auto auto; gap:10px}
+  .pos{display:none}
+  .switch .state{display:none}
+  .editor{margin-left:0; grid-template-columns:minmax(0,1fr)}
+}
+
+/* every repository: the inventory */
+.filters{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:14px}
+.filter{height:32px; padding:0 12px; font:600 13.5px/1 var(--font-sans); color:var(--fg-2); background:transparent; border:1px solid var(--line); border-radius:999px; cursor:pointer; display:inline-flex; align-items:center; gap:6px}
+.filter .n{font:500 12px/1 var(--font-mono); color:var(--fg-3)}
+.filter:hover{color:var(--fg-1); border-color:var(--fg-2)}
+.filter[aria-pressed="true"]{background:var(--btn-bg); border-color:var(--btn-bg); color:var(--btn-fg)}
+.filter[aria-pressed="true"] .n{color:var(--btn-fg); opacity:.75}
+.filters .check{margin-left:auto; font-size:13.5px}
+.repos{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column}
+.repo{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 18px; align-items:center; padding:14px 2px; border-bottom:1px solid var(--line)}
+.repo-name{display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; font:600 15.5px/1.3 var(--font-mono)}
+.repo-desc{grid-column:1; font:400 15px/1.45 var(--font-serif); color:var(--fg-2)}
+.repo-meta{grid-column:1; font:400 12.5px/1.45 var(--font-mono); color:var(--fg-3); overflow-wrap:anywhere}
+.repo-meta a{color:var(--fg-2)}
+.repo-warn{grid-column:1 / -1; font:500 13px/1.45 var(--font-sans); color:var(--accent-text)}
+.tag{height:20px; padding:0 7px; display:inline-flex; align-items:center; font:600 10.5px/1 var(--font-sans); letter-spacing:.08em; text-transform:uppercase; border-radius:2px; white-space:nowrap}
+.tag.private{background:var(--sunken); color:var(--fg-2)}
+.tag.public{background:var(--water-soft); color:var(--water-text)}
+.tag.new{background:var(--sun-soft); color:var(--accent-text)}
+.tag.dim{box-shadow:inset 0 0 0 1px var(--line); color:var(--fg-3)}
+.seg{grid-column:2; grid-row:1 / span 3; display:inline-flex; border:1.5px solid var(--line-strong); border-radius:6px; overflow:hidden; margin:0; padding:0; min-width:0}
+.seg legend{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+.seg label{position:relative; display:inline-flex; align-items:center; height:32px; padding:0 11px; font:600 12.5px/1 var(--font-sans); color:var(--fg-2); cursor:pointer; white-space:nowrap}
+.seg label + label{border-left:1px solid var(--line)}
+.seg input{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none}
+.seg label:has(input:checked){background:var(--btn-bg); color:var(--btn-fg)}
+.seg label:has(input[value="shown"]:checked){background:var(--sun); color:#142434}
+.seg label:has(input:focus-visible){box-shadow:inset 0 0 0 2px var(--sun)}
+.seg label:hover{color:var(--fg-1)}
+.empty{padding:18px 2px; font:400 16px/1.5 var(--font-serif); color:var(--fg-2)}
+@media (max-width:640px){
+  .repo{grid-template-columns:minmax(0,1fr)}
+  .seg{grid-column:1; grid-row:auto; justify-self:start}
+  .filters .check{margin-left:0}
+}
+
+/* panels */
+.panel{margin-top:40px; border-top:1px solid var(--line)}
+.panel + .panel{margin-top:0}
+.panel summary{cursor:pointer; padding-block:16px; font:600 15px/1.3 var(--font-sans); list-style:none; display:flex; align-items:center; gap:10px}
+.panel summary::-webkit-details-marker{display:none}
+.panel summary::before{content:"+"; font:500 16px/1 var(--font-mono); color:var(--accent-text); width:14px}
+.panel[open] summary::before{content:"\2212"}
+.panel-body{display:flex; flex-direction:column; gap:16px; padding-bottom:24px}
+.panel-body p{font:400 16px/1.55 var(--font-serif); color:var(--fg-2); max-width:64ch}
+.panel-body ol{margin:0; padding-left:1.3em; font:400 16px/1.6 var(--font-serif); color:var(--fg-2); max-width:64ch}
+.panel-body h3{font:600 15.5px/1.3 var(--font-sans); padding-top:8px}
+.keybox{display:flex; flex-direction:column; gap:12px; padding:16px; border:1px solid var(--line); border-radius:8px; background:var(--raised)}
+.fields{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px}
+@media (max-width:560px){.fields{grid-template-columns:minmax(0,1fr)}}
+.field.wide{grid-column:1 / -1}
+textarea.json{width:100%; min-height:200px; padding:12px; font:400 12.5px/1.5 var(--font-mono); color:var(--fg-1); background:var(--raised); border:1px solid var(--line); border-radius:8px; resize:vertical}
+.row-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.key-check{font:500 14.5px/1.5 var(--font-sans) !important; color:var(--fg-2)}
+.key-check:empty{display:none}
+.key-check.ok{color:var(--ok)} .key-check.bad{color:var(--bad)}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="head">
+    <img class="logo-light" src="assets/mark.png" alt="" width="52" height="50">
+    <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="52" height="50">
+    <div class="head-text">
+      <p class="eyebrow">inquiredu.org · Settings</p>
+      <h1>Site settings</h1>
+      <p>Pick which of your repositories appear in the library, put them in order, and edit their catalog cards. Nothing changes on the live site until you publish.</p>
+    </div>
+  </header>
+
+  <div class="keys" aria-label="GitHub keys">
+    <div class="key" id="pubKeyState"><span class="dot" aria-hidden="true"></span><div><b>Publishing key</b><span id="pubKeyText">Not connected. Needed to load hidden projects and to publish.</span><button class="link-btn" type="button" data-open-keys>Set up</button></div></div>
+    <div class="key" id="readKeyState"><span class="dot" aria-hidden="true"></span><div><b>Repo list key</b><span id="readKeyText">Not connected. Needed to list every repository, private ones included.</span><button class="link-btn" type="button" data-open-keys>Set up</button></div></div>
+  </div>
+
+  <div class="toolbar">
+    <span class="summary" id="summary">Loading projects</span>
+    <span class="pill locked" id="pill">Read only</span>
+    <span class="spacer"></span>
+    <a class="btn" id="previewBtn" href="index.html" target="_blank" rel="noopener">Preview ↗</a>
+    <button class="btn" id="discardBtn" type="button" disabled>Discard changes</button>
+    <button class="btn primary" id="publishBtn" type="button" disabled>Publish</button>
+  </div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <div class="locked-note" id="lockedNote"><b>Showing the public list only.</b> Connect your publishing key to load hidden projects and make changes. It's the lock on this page: anyone can open it, but nothing changes without your key.</div>
+
+  <section class="section" id="shelfSection" aria-labelledby="shelfHead">
+    <div class="section-head">
+      <h2 id="shelfHead">On your page</h2>
+      <div class="section-actions"><button class="btn small" id="addBtn" type="button">Add a project by hand</button></div>
+      <p>Shown cards appear on inquiredu.org in this order. Hidden cards are saved privately in <code id="privName">site-catalog</code> and never published. Drag the handle to reorder, or focus it and use the arrow keys.</p>
+    </div>
+    <ol class="rows" id="rows" aria-label="Projects in shelf order"></ol>
+  </section>
+
+  <section class="section" id="repoSection" aria-labelledby="repoHead">
+    <div class="section-head">
+      <h2 id="repoHead">All your repositories</h2>
+      <div class="section-actions"><button class="btn small" id="reloadReposBtn" type="button" hidden>Reload list</button></div>
+      <p>Every repository you own. Not listed means it stays off the site and out of every public file. Choosing Hidden saves a card privately. Choosing Shown puts it on the page.</p>
+    </div>
+    <div id="repoBody"><p class="empty">Connect your repo list key to see every repository, private ones included. <button class="link-btn" type="button" data-open-keys>Set up keys</button></p></div>
+  </section>
+
+  <datalist id="statuses">
+    <option value="Live"></option><option value="Open source"></option><option value="Draft"></option><option value="Pilot"></option>
+    <option value="Operational"></option><option value="Alpha"></option><option value="Built"></option>
+    <option value="In progress"></option><option value="Finished"></option>
+  </datalist>
+
+  <details class="panel" id="keysPanel">
+    <summary>GitHub keys</summary>
+    <div class="panel-body">
+      <p>This page talks to GitHub with two fine-grained tokens. GitHub gives a token the same permissions on every repository it can reach, so splitting the work keeps either one from doing much harm if it leaks.</p>
+
+      <div class="keybox">
+        <h3>1 · Publishing key</h3>
+        <p>Reads your private catalog and saves both files. It can write to exactly two repositories.</p>
+        <ol>
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub's new fine-grained token page</a>. Name it <em>inquiredu publishing</em>.</li>
+          <li>Under Repository access, choose <em>Only select repositories</em> and pick <code id="pubRepoA">inquiredu.github.io</code> and <code id="pubRepoB">site-catalog</code>.</li>
+          <li>Under Permissions, add <em>Contents</em> and set it to <em>Read and write</em>. Leave everything else alone.</li>
+          <li>Generate it and paste it here. Already have a publishing token from the old admin page? Edit it on GitHub and add <code>site-catalog</code> to its repositories instead. The token itself stays the same.</li>
+        </ol>
+        <div class="field"><label for="pubToken">Publishing key</label><input id="pubToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
+        <label class="check"><input type="checkbox" id="pubRemember"> Remember on this device</label>
+        <div class="row-actions"><button class="btn solid small" id="pubConnect" type="button">Connect</button><button class="link-btn" id="pubForget" type="button">Forget this key</button></div>
+        <p class="key-check" id="pubCheck" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="keybox">
+        <h3>2 · Repo list key</h3>
+        <p>Lists every repository you own. It can't read code or change anything.</p>
+        <ol>
+          <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">the new token page</a> again. Name it <em>inquiredu repo list</em>.</li>
+          <li>Under Repository access, choose <em>All repositories</em>.</li>
+          <li>Don't add any permissions. GitHub includes read-only <em>Metadata</em> on its own, and that's all this needs.</li>
+          <li>Generate it and paste it here.</li>
+        </ol>
+        <div class="field"><label for="readToken">Repo list key</label><input id="readToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
+        <label class="check"><input type="checkbox" id="readRemember"> Remember on this device</label>
+        <div class="row-actions"><button class="btn solid small" id="readConnect" type="button">Connect</button><button class="link-btn" id="readForget" type="button">Forget this key</button></div>
+        <p class="key-check" id="readCheck" role="status" aria-live="polite"></p>
+      </div>
+
+      <p>Without “Remember,” a key lasts until you reload this tab. Every page under inquiredu.org shares this browser's storage, so only remember keys on a device you trust.</p>
+
+      <h3>Where things are saved</h3>
+      <div class="fields">
+        <div class="field"><label for="cfgOwner">Account</label><input id="cfgOwner" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="cfgSite">Site address</label><input id="cfgSite" autocomplete="off" spellcheck="false"></div>
+        <div class="field"><label for="cfgRepo">Public repository</label><input id="cfgRepo" autocomplete="off" spellcheck="false"><small>Holds <code>projects.json</code>: shown cards only.</small></div>
+        <div class="field"><label for="cfgPrivate">Private repository</label><input id="cfgPrivate" autocomplete="off" spellcheck="false"><small>Holds <code>catalog.json</code>: every card, hidden ones included.</small></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="panel" id="manual">
+    <summary>Publish by hand instead</summary>
+    <div class="panel-body">
+      <p>Copy these files and replace them in each repository yourself. They always match the lists above.</p>
+      <div class="row-actions"><button class="btn solid small" type="button" data-copy="pubOut">Copy projects.json</button><span class="hint">public repository</span></div>
+      <label class="sr" for="pubOut">projects.json</label>
+      <textarea class="json" id="pubOut" readonly></textarea>
+      <div class="row-actions"><button class="btn solid small" type="button" data-copy="privOut">Copy catalog.json</button><span class="hint">private repository</span></div>
+      <label class="sr" for="privOut">catalog.json</label>
+      <textarea class="json" id="privOut" readonly></textarea>
+    </div>
+  </details>
+
+</div>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var esc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var get = function(k){ try { return localStorage.getItem(k); } catch (e) { return null; } };
+  var set = function(k, v){ try { localStorage.setItem(k, v); } catch (e) {} };
+  var del = function(k){ try { localStorage.removeItem(k); } catch (e) {} };
+  var DRAFT = 'catalog-draft';
+  var GROUPS = { live: 'Live', source: 'Open source', workshop: 'Workshop' };
+  var API = 'https://api.github.com';
+
+  /* State.
+     mode: 'public'  = only the public list is loaded; editing is locked.
+           'private' = the private catalog is loaded (or doesn't exist yet); editing and publishing work. */
+  var mode = 'public';
+  var published = { projects: [], ignored: [], saved: '', updated: '' };  // the last published catalog
+  var items = [];          // working copy, in shelf order, hidden cards included
+  var ignored = [];        // kept from older catalogs; not used by this page
+  var fileMeta = { version: 1 };
+  var pubKey = '', readKey = '';
+  var repos = null;        // every repository the repo list key can see
+  var repoFilter = 'all', showExtras = false;
+  var openEditors = {};
+
+  var rowsEl = $('rows'), statusEl = $('status');
+  var GRIP = '<svg viewBox="0 0 14 20" aria-hidden="true"><circle cx="4" cy="4" r="1.6"/><circle cx="10" cy="4" r="1.6"/><circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="4" cy="16" r="1.6"/><circle cx="10" cy="16" r="1.6"/></svg>';
+
+  var clone = function(a){ return a.map(function(p){ return Object.assign({}, p); }); };
+  var signature = function(list, ign){ return JSON.stringify({ p: list, i: ign }); };
+  var isDirty = function(){ return mode === 'private' && signature(items, ignored) !== signature(published.projects, published.ignored); };
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+  var locOf = function(u){ return u ? u.replace(/^https?:\/\//, '').replace(/\/$/, '') : 'Closed stacks'; };
+  var byId = function(id){ return items.filter(function(p){ return p.id === id; })[0]; };
+  var byRepo = function(name){ var n = name.toLowerCase(); return items.filter(function(p){ return (p.repo || '').toLowerCase() === n; })[0]; };
+  var domId = function(id){ return 'p-' + String(id).replace(/[^a-zA-Z0-9_-]/g, '-'); };
+  var shownOf = function(list){ return list.filter(function(p){ return p.visible !== false; }); };
+
+  function say(msg, kind, html){
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+    if (html) statusEl.innerHTML = msg; else statusEl.textContent = msg;
+  }
+
+  /* ---------- config ---------- */
+  var cfgFields = { owner: 'cfgOwner', site: 'cfgSite', repo: 'cfgRepo', priv: 'cfgPrivate' };
+  var defaults = { owner: 'inquiredu', site: 'https://inquiredu.org', repo: 'inquiredu.github.io', priv: 'site-catalog' };
+  var BRANCH = 'main', PUB_PATH = 'projects.json', PRIV_PATH = 'catalog.json';
+  Object.keys(cfgFields).forEach(function(k){
+    var el = $(cfgFields[k]);
+    el.value = get('cfg-' + k) || defaults[k];
+    el.addEventListener('change', function(){ set('cfg-' + k, el.value.trim()); labelRepos(); });
+  });
+  function cfg(){ var c = {}; Object.keys(cfgFields).forEach(function(k){ c[k] = $(cfgFields[k]).value.trim() || defaults[k]; }); return c; }
+  function labelRepos(){ var c = cfg(); $('privName').textContent = c.priv; $('pubRepoA').textContent = c.repo; $('pubRepoB').textContent = c.priv; }
+  labelRepos();
+
+  /* ---------- rendering: the shelf ---------- */
+  function subLine(p){ return esc(p.call) + ' · ' + esc(p.status) + ' · ' + esc(locOf(p.url)) + (p.repo ? '' : ' · added by hand'); }
+  function titleHTML(p){ return esc(p.title || 'Untitled project') + (p.featured ? '<span class="star" aria-label="featured">✦</span>' : ''); }
+  function gripLabel(p, i){ return 'Move ' + (p.title || 'Untitled project') + ', position ' + (i + 1) + ' of ' + items.length + '. Drag, or use the arrow keys.'; }
+  function editorHTML(p){
+    var f = domId(p.id);
+    var opt = function(v){ return '<option value="' + v + '"' + (p.group === v ? ' selected' : '') + '>' + GROUPS[v] + '</option>'; };
+    return '<div class="editor" id="' + f + '-editor">' +
+      '<div class="field"><label for="' + f + '-title">Title</label><input id="' + f + '-title" data-field="title" value="' + esc(p.title) + '"></div>' +
+      '<div class="field"><label for="' + f + '-call">Call number</label><input id="' + f + '-call" data-field="call" value="' + esc(p.call) + '" spellcheck="false"><small>Dewey-style. 000 is general works.</small></div>' +
+      '<div class="field"><label for="' + f + '-status">Status</label><input id="' + f + '-status" data-field="status" list="statuses" value="' + esc(p.status) + '"></div>' +
+      '<div class="field"><label for="' + f + '-group">Shelf</label><select id="' + f + '-group" data-field="group">' + opt('live') + opt('source') + opt('workshop') + '</select><small>Which tab it appears under on the terminal.</small></div>' +
+      '<div class="field wide"><label for="' + f + '-subject">Subject</label><input id="' + f + '-subject" data-field="subject" value="' + esc(p.subject) + '"><small>Short topics separated by “ · ”.</small></div>' +
+      '<div class="field wide"><label for="' + f + '-note">Note</label><textarea id="' + f + '-note" data-field="note">' + esc(p.note) + '</textarea></div>' +
+      '<div class="field wide"><label for="' + f + '-url">Link</label><input id="' + f + '-url" data-field="url" type="url" value="' + esc(p.url) + '" spellcheck="false" placeholder="https://"><small>Leave empty for a private project. Its card will say “Closed stacks.”</small></div>' +
+      '<div class="editor-foot">' +
+        '<label class="check"><input type="checkbox" data-field="featured"' + (p.featured ? ' checked' : '') + '> Feature it with a ✦</label>' +
+        '<span class="row-actions"><button class="btn small" type="button" data-act="remove">Remove card</button><button class="btn solid small" type="button" data-act="done">Done</button></span>' +
+      '</div>' +
+    '</div>';
+  }
+  function rowHTML(p, i){
+    var on = p.visible !== false, open = !!openEditors[p.id];
+    return '<li class="row' + (on ? '' : ' off') + '" data-id="' + esc(p.id) + '">' +
+      '<button class="grip" type="button" aria-label="' + esc(gripLabel(p, i)) + '">' + GRIP + '</button>' +
+      '<span class="pos">' + pad(i + 1) + '</span>' +
+      '<div class="info"><span class="title">' + titleHTML(p) + '</span><span class="sub">' + subLine(p) + '</span></div>' +
+      '<button class="edit-btn" type="button" data-act="edit" aria-expanded="' + open + '" aria-controls="' + domId(p.id) + '-editor">Edit</button>' +
+      '<label class="switch"><input type="checkbox" role="switch"' + (on ? ' checked' : '') + ' aria-label="Show ' + esc(p.title) + ' on the site">' +
+      '<span class="rocker" aria-hidden="true"><span class="lever"></span></span><span class="pilot" aria-hidden="true"></span>' +
+      '<span class="state">' + (on ? 'Shown' : 'Hidden') + '</span></label>' +
+      (open ? editorHTML(p) : '') +
+    '</li>';
+  }
+  function render(){
+    rowsEl.innerHTML = items.length ? items.map(rowHTML).join('') : '<li class="empty">No cards yet. Choose repositories below, or add a project by hand.</li>';
+    renderRepos();
+    refresh();
+  }
+  function rowEl(id){ return Array.prototype.filter.call(rowsEl.children, function(li){ return li.dataset.id === id; })[0]; }
+  function renumber(){
+    Array.prototype.forEach.call(rowsEl.children, function(li, i){
+      if (!li.dataset.id) return;
+      li.querySelector('.pos').textContent = pad(i + 1);
+      li.querySelector('.grip').setAttribute('aria-label', gripLabel(items[i], i));
+    });
+  }
+
+  /* ---------- the two files ---------- */
+  function today(){ return new Date().toISOString().slice(0, 10); }
+  /* Public: shown cards only. No hidden cards, no dismissed names. */
+  function publicText(){
+    var out = Object.assign({}, fileMeta, { updated: today(), projects: shownOf(items).map(function(p){ return Object.assign({}, p, { visible: true }); }) });
+    return JSON.stringify(out, null, 2) + '\n';
+  }
+  /* Private: everything, plus when it was saved. */
+  function privateText(savedAt){
+    var out = Object.assign({}, fileMeta, { updated: today(), saved: savedAt || new Date().toISOString(), projects: items, ignored: ignored });
+    return JSON.stringify(out, null, 2) + '\n';
+  }
+
+  function refresh(){
+    var shown = shownOf(items).length, hidden = items.length - shown;
+    $('summary').innerHTML = '<b>' + shown + '</b> shown · ' + (mode === 'private' ? hidden + ' hidden' : 'hidden cards not loaded');
+    var dirty = isDirty(), pill = $('pill');
+    pill.className = 'pill' + (mode !== 'private' ? ' locked' : dirty ? ' dirty' : '');
+    pill.textContent = mode !== 'private' ? 'Read only' : dirty ? 'Unpublished changes' : 'Published';
+    $('publishBtn').disabled = !dirty;
+    $('discardBtn').disabled = !dirty;
+    $('previewBtn').href = dirty ? 'index.html#draft' : 'index.html';
+    $('lockedNote').hidden = mode === 'private';
+    $('shelfSection').inert = mode !== 'private';
+    $('pubOut').value = publicText();
+    $('privOut').value = mode === 'private' ? privateText(published.saved) : '(Connect your publishing key to build this file.)';
+    if (mode === 'private'){
+      if (dirty) set(DRAFT, JSON.stringify({ saved: new Date().toISOString(), base: published.saved || '', projects: items, ignored: ignored }));
+      else del(DRAFT);
+    }
+  }
+
+  /* ---------- shelf: toggles and editing ---------- */
+  rowsEl.addEventListener('change', function(e){
+    var li = e.target.closest('.row'); if (!li) return;
+    var p = byId(li.dataset.id);
+    if (e.target.matches('.switch input')){
+      p.visible = e.target.checked;
+      li.classList.toggle('off', !p.visible);
+      li.querySelector('.state').textContent = p.visible ? 'Shown' : 'Hidden';
+      say(''); renderRepos(); refresh();
+    } else if (e.target.dataset.field === 'featured'){
+      p.featured = e.target.checked;
+      if (!p.featured) delete p.featured;
+      li.querySelector('.title').innerHTML = titleHTML(p);
+      refresh();
+    } else if (e.target.dataset.field === 'group'){
+      p.group = e.target.value; refresh();
+    }
+  });
+  rowsEl.addEventListener('input', function(e){
+    var field = e.target.dataset.field; if (!field || field === 'featured' || field === 'group') return;
+    var li = e.target.closest('.row'), p = byId(li.dataset.id);
+    var v = e.target.value;
+    if (field === 'url'){ v = v.trim(); if (v) p.url = v; else delete p.url; }
+    else p[field] = v;
+    li.querySelector('.title').innerHTML = titleHTML(p);
+    li.querySelector('.sub').innerHTML = subLine(p);
+    refresh();
+  });
+  var removeArmed = {};
+  rowsEl.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var li = b.closest('.row'), id = li.dataset.id, p = byId(id);
+    if (b.dataset.act === 'edit' || b.dataset.act === 'done'){
+      openEditors[id] = b.dataset.act === 'edit' ? !openEditors[id] : false;
+      var tmp = document.createElement('ol'); tmp.innerHTML = rowHTML(p, items.indexOf(p));
+      var fresh = tmp.firstChild; if (li.classList.contains('fresh')) fresh.classList.add('fresh');
+      li.replaceWith(fresh);
+      if (openEditors[id]) fresh.querySelector('[data-field="title"]').focus();
+      else fresh.querySelector('.edit-btn').focus();
+    }
+    if (b.dataset.act === 'remove'){
+      if (!removeArmed[id]){
+        b.textContent = 'Click again to remove'; b.classList.add('warn');
+        removeArmed[id] = setTimeout(function(){ b.textContent = 'Remove card'; b.classList.remove('warn'); delete removeArmed[id]; }, 4000);
+        return;
+      }
+      clearTimeout(removeArmed[id]); delete removeArmed[id];
+      items.splice(items.indexOf(p), 1);
+      delete openEditors[id];
+      render();
+      say((p.title || 'The project') + ' is no longer listed. Publish to make it stick, or discard changes to bring it back.');
+    }
+  });
+
+  /* ---------- shelf: drag to reorder (mouse, pen and touch) ---------- */
+  var drag = null;
+  function flip(mutate){
+    var kids = Array.prototype.slice.call(rowsEl.children);
+    var before = kids.map(function(k){ return k.getBoundingClientRect().top; });
+    mutate();
+    if (reduce || !Element.prototype.animate) return;
+    kids.forEach(function(k, i){
+      var dy = before[i] - k.getBoundingClientRect().top;
+      if (dy) k.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 160, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    });
+  }
+  function syncFromDom(){ items = Array.prototype.map.call(rowsEl.children, function(li){ return byId(li.dataset.id); }); }
+  rowsEl.addEventListener('pointerdown', function(e){
+    var grip = e.target.closest('.grip');
+    if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    var row = grip.closest('.row');
+    grip.setPointerCapture(e.pointerId);
+    drag = { row: row, pid: e.pointerId, from: Array.prototype.indexOf.call(rowsEl.children, row) };
+    row.classList.add('dragging');
+  });
+  rowsEl.addEventListener('pointermove', function(e){
+    if (!drag || e.pointerId !== drag.pid) return;
+    var y = e.clientY, target = null;
+    var sibs = Array.prototype.filter.call(rowsEl.children, function(r){ return r !== drag.row; });
+    for (var i = 0; i < sibs.length; i++){
+      var r = sibs[i].getBoundingClientRect();
+      if (y < r.top + r.height / 2){ target = sibs[i]; break; }
+    }
+    var needsMove = target ? drag.row.nextElementSibling !== target : rowsEl.lastElementChild !== drag.row;
+    if (needsMove) flip(function(){ rowsEl.insertBefore(drag.row, target); });
+    if (y < 90) window.scrollBy(0, -14);
+    else if (y > window.innerHeight - 70) window.scrollBy(0, 14);
+  });
+  function endDrag(e){
+    if (!drag || e.pointerId !== drag.pid) return;
+    var row = drag.row, from = drag.from;
+    row.classList.remove('dragging');
+    drag = null;
+    var to = Array.prototype.indexOf.call(rowsEl.children, row);
+    if (to !== from){ syncFromDom(); renumber(); refresh(); say((items[to].title || 'The project') + ' moved to position ' + (to + 1) + '.'); }
+  }
+  rowsEl.addEventListener('pointerup', endDrag);
+  rowsEl.addEventListener('pointercancel', endDrag);
+  rowsEl.addEventListener('lostpointercapture', endDrag);
+  rowsEl.addEventListener('keydown', function(e){
+    var grip = e.target.closest('.grip'); if (!grip) return;
+    var from = Array.prototype.indexOf.call(rowsEl.children, grip.closest('.row'));
+    var to = null;
+    if (e.key === 'ArrowUp') to = from - 1;
+    if (e.key === 'ArrowDown') to = from + 1;
+    if (e.key === 'Home') to = 0;
+    if (e.key === 'End') to = items.length - 1;
+    if (to === null) return;
+    e.preventDefault();
+    to = Math.max(0, Math.min(items.length - 1, to));
+    if (to === from) return;
+    var moved = items.splice(from, 1)[0];
+    items.splice(to, 0, moved);
+    var li = rowsEl.children[from], ref = to > from ? rowsEl.children[to].nextElementSibling : rowsEl.children[to];
+    flip(function(){ rowsEl.insertBefore(li, ref); });
+    renumber(); refresh();
+    li.querySelector('.grip').focus();
+    say((moved.title || 'The project') + ' moved to position ' + (to + 1) + '.');
+  });
+
+  /* ---------- add by hand ---------- */
+  $('addBtn').addEventListener('click', function(){
+    var id = 'project-' + Date.now().toString(36);
+    items.unshift({ id: id, visible: false, call: '000 NEW', title: 'New project', status: 'In progress', group: 'workshop', subject: '', note: '' });
+    openEditors[id] = true;
+    render();
+    var li = rowEl(id); li.classList.add('fresh');
+    var t = li.querySelector('[data-field="title"]'); t.focus(); t.select();
+    say('New card added at the top. It stays hidden until you switch it on.');
+  });
+
+  /* ---------- every repository ---------- */
+  var prettify = function(name){
+    return name.replace(/[-_]+/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); }).replace(/\bAi\b/g, 'AI').replace(/\bMn\b/g, 'MN');
+  };
+  function liveUrl(r){
+    if (r.homepage) return r.homepage;
+    if (r.has_pages) return cfg().site.replace(/\/$/, '') + '/' + r.name + '/';
+    return '';
+  }
+  function repoState(r){ var p = byRepo(r.name); return !p ? 'none' : p.visible !== false ? 'shown' : 'hidden'; }
+  function isNew(r){ var since = published.updated || ''; return !!since && r.created_at.slice(0, 10) > since && repoState(r) === 'none'; }
+  function eligible(){
+    var c = cfg(), skip = [c.repo.toLowerCase(), c.priv.toLowerCase(), (c.owner + '.github.io').toLowerCase()];
+    return (repos || []).filter(function(r){
+      if (skip.indexOf(r.name.toLowerCase()) !== -1) return false;
+      return showExtras || (!r.fork && !r.archived);
+    });
+  }
+  function cardFromRepo(r, visible){
+    var u = liveUrl(r), title = prettify(r.name);
+    var id = r.name.toLowerCase(); while (byId(id)) id += '-2';
+    var p = { id: id, repo: r.name, visible: visible, call: '000 ' + title.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase(), title: title,
+              status: u ? 'Live' : r.private ? 'In progress' : 'Open source', group: u ? 'live' : r.private ? 'workshop' : 'source',
+              subject: '', note: r.description || '' };
+    if (u) p.url = u; else if (!r.private) p.url = r.html_url;
+    return p;
+  }
+  function setRepoState(name, state){
+    var r = (repos || []).filter(function(x){ return x.name === name; })[0]; if (!r) return;
+    var p = byRepo(name), title;
+    if (state === 'none'){
+      if (p){ items.splice(items.indexOf(p), 1); delete openEditors[p.id]; title = p.title; }
+      render(); say((title || name) + ' is no longer listed. Publish to make it stick.');
+      return;
+    }
+    if (!p){
+      p = cardFromRepo(r, state === 'shown');
+      items.push(p);
+      render();
+      var li = rowEl(p.id); if (li) li.classList.add('fresh');
+      say(p.title + ' was added at the end of the shelf' + (state === 'shown' ? ' and switched on' : ', hidden') + '. Check its card, then publish.');
+      return;
+    }
+    p.visible = state === 'shown';
+    render(); say(p.title + (p.visible ? ' is switched on.' : ' is hidden.'));
+  }
+  function renderRepos(){
+    var body = $('repoBody');
+    if (!repos){ return; }
+    var list = eligible();
+    var counts = { all: list.length, fresh: 0, none: 0, listed: 0 };
+    list.forEach(function(r){ var s = repoState(r); if (s === 'none') counts.none++; else counts.listed++; if (isNew(r)) counts.fresh++; });
+    var shown = list.filter(function(r){
+      var s = repoState(r);
+      return repoFilter === 'all' || (repoFilter === 'fresh' && isNew(r)) || (repoFilter === 'none' && s === 'none') || (repoFilter === 'listed' && s !== 'none');
+    });
+    var f = function(key, label){ return '<button class="filter" type="button" data-filter="' + key + '" aria-pressed="' + (repoFilter === key) + '">' + label + ' <span class="n">' + counts[key] + '</span></button>'; };
+    var html = '<div class="filters" role="group" aria-label="Filter repositories">' +
+      f('fresh', 'New since last publish') + f('none', 'Not listed') + f('listed', 'On your page') + f('all', 'All') +
+      '<label class="check"><input type="checkbox" id="extras"' + (showExtras ? ' checked' : '') + '> Include forks and archived</label></div>';
+    if (!shown.length){
+      html += '<p class="empty">' + (repoFilter === 'fresh' ? 'Nothing new since you last published.' : 'No repositories match this filter.') + '</p>';
+    } else {
+      html += '<ul class="repos">' + shown.map(function(r){
+        var s = repoState(r), u = liveUrl(r), n = 'r-' + r.name.replace(/[^a-zA-Z0-9_-]/g, '-');
+        var tags = '<span class="tag ' + (r.private ? 'private">Private' : 'public">Public') + '</span>' +
+          (isNew(r) ? '<span class="tag new">New</span>' : '') +
+          (r.archived ? '<span class="tag dim">Archived</span>' : '') + (r.fork ? '<span class="tag dim">Fork</span>' : '');
+        var meta = (u ? 'Live at <a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(locOf(u)) + ' ↗</a>' : 'No live page') +
+          ' · created ' + esc(r.created_at.slice(0, 10)) + ' · updated ' + esc((r.pushed_at || r.updated_at || '').slice(0, 10));
+        var warn = (r.private && !u && s === 'shown') ? '<p class="repo-warn">This repository is private and has no live page. Showing it publishes its card, so check the note says only what you want public.</p>' : '';
+        var radio = function(v, label){ return '<label><input type="radio" name="' + n + '" value="' + v + '" data-repo="' + esc(r.name) + '"' + (s === v ? ' checked' : '') + '>' + label + '</label>'; };
+        return '<li class="repo">' +
+          '<div class="repo-name">' + esc(r.name) + tags + '</div>' +
+          (r.description ? '<p class="repo-desc">' + esc(r.description) + '</p>' : '') +
+          '<p class="repo-meta">' + meta + '</p>' +
+          '<fieldset class="seg"><legend>' + esc(r.name) + ' on the site</legend>' + radio('none', 'Not listed') + radio('hidden', 'Hidden') + radio('shown', 'Shown') + '</fieldset>' +
+          warn + '</li>';
+      }).join('') + '</ul>';
+    }
+    body.innerHTML = html;
+    body.inert = mode !== 'private';
+  }
+  $('repoBody').addEventListener('click', function(e){
+    var b = e.target.closest('[data-filter]'); if (!b) return;
+    repoFilter = b.dataset.filter; renderRepos();
+    var again = $('repoBody').querySelector('[data-filter="' + repoFilter + '"]'); if (again) again.focus();
+  });
+  $('repoBody').addEventListener('change', function(e){
+    if (e.target.id === 'extras'){ showExtras = e.target.checked; renderRepos(); $('extras').focus(); return; }
+    if (e.target.dataset.repo){
+      var name = e.target.dataset.repo, v = e.target.value;
+      setRepoState(name, v);
+      var again = $('repoBody').querySelector('input[data-repo="' + name.replace(/"/g, '') + '"][value="' + v + '"]'); if (again) again.focus();
+    }
+  });
+
+  /* ---------- GitHub calls ---------- */
+  function headers(key, raw){ return { 'Authorization': 'Bearer ' + key, 'Accept': raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }; }
+  function fail(r, step){
+    return r.text().then(function(body){
+      var msg = ''; try { msg = JSON.parse(body).message || ''; } catch (e) {}
+      throw { status: r.status, message: msg, step: step };
+    });
+  }
+  function whoAmI(key){
+    return fetch(API + '/user', { headers: headers(key), cache: 'no-store' })
+      .then(function(r){ return r.ok ? r.json() : fail(r, 'user'); });
+  }
+  function keyKind(key){ return /^github_pat_/.test(key) ? 'fine' : /^gh[pousr]_/.test(key) ? 'classic' : 'unknown'; }
+  function b64(str){
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  function contentsUrl(repo, path){ return API + '/repos/' + encodeURIComponent(cfg().owner) + '/' + encodeURIComponent(repo) + '/contents/' + path.split('/').map(encodeURIComponent).join('/'); }
+  /* Write one file: read its current version (if any), then save over it. */
+  function putFile(repo, path, text, message){
+    var url = contentsUrl(repo, path);
+    return fetch(url + '?ref=' + BRANCH, { headers: headers(pubKey), cache: 'no-store' })
+      .then(function(r){ if (r.status === 404) return null; return r.ok ? r.json() : fail(r, 'read ' + repo); })
+      .then(function(cur){
+        var body = { message: message, content: b64(text), branch: BRANCH };
+        if (cur && cur.sha) body.sha = cur.sha;
+        return fetch(url, { method: 'PUT', headers: headers(pubKey), body: JSON.stringify(body) });
+      })
+      .then(function(r){ return r.ok ? r.json() : fail(r, 'write ' + repo); });
+  }
+  function explain(err, repo){
+    var c = cfg(), s = err.status, m = err.message || '';
+    var said = m ? ' GitHub said: “' + m + '.”' : '';
+    if (s === 401) return 'GitHub didn’t accept the publishing key. It may have expired or been pasted incompletely.' + said;
+    if (s === 403 && /rate limit/i.test(m)) return 'GitHub is limiting requests right now. Wait a minute and try again.' + said;
+    if (s === 403) return 'The publishing key can read ' + repo + ' but can’t write to it. On GitHub, edit the key: under Repository access include ' + c.repo + ' and ' + c.priv + ', and set Contents to Read and write.' + said;
+    if (s === 404) return 'GitHub couldn’t find ' + c.owner + '/' + repo + ', or the publishing key can’t see it. Edit the key on GitHub and add ' + repo + ' under Repository access.' + said;
+    if (s === 409 || s === 422) return 'GitHub reported a newer version of a file. Publish again to retry.' + said;
+    return 'GitHub returned an error (' + s + '). Try again in a minute.' + said;
+  }
+
+  /* ---------- key status strip ---------- */
+  function keyState(which, cls, text){
+    var el = $(which === 'pub' ? 'pubKeyState' : 'readKeyState');
+    el.className = 'key' + (cls ? ' ' + cls : '');
+    $(which === 'pub' ? 'pubKeyText' : 'readKeyText').textContent = text;
+  }
+  function checkLine(which, msg, kind){ var el = $(which === 'pub' ? 'pubCheck' : 'readCheck'); el.className = 'key-check' + (kind ? ' ' + kind : ''); el.textContent = msg; }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-open-keys]'), function(b){
+    b.addEventListener('click', function(){ $('keysPanel').open = true; $('keysPanel').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); });
+  });
+
+  /* ---------- publishing key: load the private catalog ---------- */
+  function draftFor(base){
+    var d = null; try { d = JSON.parse(get(DRAFT) || 'null'); } catch (e) {}
+    if (!d || !Array.isArray(d.projects)){ if (d) del(DRAFT); return null; }   /* old or broken draft format */
+    if (published.saved && (!d.base || d.base !== published.saved)){ del(DRAFT); return null; }   /* made before the last publish */
+    return d;
+  }
+  function enterPrivate(data, fresh){
+    mode = 'private';
+    fileMeta = { version: data.version || 1 };
+    published = {
+      projects: (data.projects || []).map(function(p){ return Object.assign({}, p, { visible: p.visible !== false }); }),
+      ignored: Array.isArray(data.ignored) ? data.ignored.slice() : [],
+      saved: data.saved || '', updated: data.updated || ''
+    };
+    items = clone(published.projects); ignored = published.ignored.slice();
+    var d = draftFor(published.saved);
+    if (d){ items = clone(d.projects); ignored = Array.isArray(d.ignored) ? d.ignored.slice() : ignored; }
+    render();
+    if (fresh) say('There’s no private catalog yet. Publishing creates ' + cfg().priv + '/' + PRIV_PATH + ' from the cards below.', 'ok');
+    else if (d && isDirty()) say('Restored your unpublished changes from ' + new Date(d.saved).toLocaleString() + '. Discard them to start from the published version.');
+    else say('');
+  }
+  function connectPub(){
+    var c = cfg(), b = $('pubConnect');
+    if (!pubKey){ checkLine('pub', 'Paste the publishing key first.', 'bad'); $('pubToken').focus(); return Promise.resolve(); }
+    b.disabled = true; checkLine('pub', 'Checking with GitHub…'); keyState('pub', '', 'Checking…');
+    return whoAmI(pubKey)
+      .then(function(u){
+        if ((u.login || '').toLowerCase() !== c.owner.toLowerCase()) throw { owner: u.login };
+        if (keyKind(pubKey) === 'classic') throw { classic: true };
+        return fetch(contentsUrl(c.priv, PRIV_PATH) + '?ref=' + BRANCH, { headers: headers(pubKey, true), cache: 'no-store' });
+      })
+      .then(function(r){
+        if (r.ok) return r.text().then(function(t){ return { data: JSON.parse(t) }; });
+        if (r.status !== 404) return fail(r, 'load');
+        /* 404: either the file doesn't exist yet, or the key can't see the repository. */
+        return fetch(API + '/repos/' + encodeURIComponent(c.owner) + '/' + encodeURIComponent(c.priv), { headers: headers(pubKey), cache: 'no-store' })
+          .then(function(r2){ if (r2.ok) return { fresh: true }; throw { status: 404, step: 'load' }; });
+      })
+      .then(function(res){
+        if (res.fresh) enterPrivate({ version: 1, projects: items, ignored: [] }, true);
+        else enterPrivate(res.data, false);
+        keyState('pub', 'on', 'Connected as @' + c.owner + '. Hidden cards loaded; publishing works.');
+        checkLine('pub', 'Connected. The full catalog is loaded.', 'ok');
+      })
+      .catch(function(err){
+        var msg;
+        if (err && err.owner) msg = 'This key belongs to @' + err.owner + ', not @' + c.owner + '. Make it while signed in as @' + c.owner + '.';
+        else if (err && err.classic) msg = 'This is a classic token. Make a fine-grained one limited to ' + c.repo + ' and ' + c.priv + ' instead: steps above.';
+        else if (err && err.status === 401) msg = 'GitHub doesn’t recognize this key. It may have expired, or it was pasted incompletely.';
+        else if (err && err.status) msg = explain(err, c.priv);
+        else if (err instanceof SyntaxError) msg = 'The private catalog file isn’t valid JSON, so nothing was loaded. Fix ' + c.priv + '/' + PRIV_PATH + ' on GitHub, then connect again.';
+        else msg = 'Couldn’t reach GitHub. Check your connection and try again.';
+        checkLine('pub', msg, 'bad'); keyState('pub', 'bad', 'Not connected. ' + msg);
+      })
+      .then(function(){ b.disabled = false; });
+  }
+
+  /* ---------- repo list key: every repository ---------- */
+  function connectRead(){
+    var c = cfg(), b = $('readConnect');
+    if (!readKey){ checkLine('read', 'Paste the repo list key first.', 'bad'); $('readToken').focus(); return Promise.resolve(); }
+    b.disabled = true; $('reloadReposBtn').disabled = true;
+    checkLine('read', 'Asking GitHub for your repositories…'); keyState('read', '', 'Loading repositories…');
+    var all = [];
+    function page(n){
+      return fetch(API + '/user/repos?affiliation=owner&sort=created&direction=desc&per_page=100&page=' + n, { headers: headers(readKey), cache: 'no-store' })
+        .then(function(r){ return r.ok ? r.json() : fail(r, 'repos'); })
+        .then(function(list){ all = all.concat(list); return list.length === 100 && n < 10 ? page(n + 1) : all; });
+    }
+    return whoAmI(readKey)
+      .then(function(u){ if ((u.login || '').toLowerCase() !== c.owner.toLowerCase()) throw { owner: u.login }; return page(1); })
+      .then(function(list){
+        repos = list.filter(function(r){ return r.owner && r.owner.login.toLowerCase() === c.owner.toLowerCase(); });
+        var priv = repos.filter(function(r){ return r.private; }).length;
+        var msg = 'Found ' + repos.length + ' repositories (' + priv + ' private).';
+        if (repos.length <= 3) msg += ' That’s very few. If you expected more, edit this key on GitHub and set Repository access to All repositories.';
+        checkLine('read', msg, repos.length <= 3 ? 'bad' : 'ok');
+        keyState('read', 'on', 'Connected. ' + repos.length + ' repositories, ' + priv + ' private.');
+        $('reloadReposBtn').hidden = false;
+        if (!repoFilter || repoFilter === 'all') repoFilter = eligible().some(isNew) ? 'fresh' : 'none';
+        renderRepos();
+      })
+      .catch(function(err){
+        var msg;
+        if (err && err.owner) msg = 'This key belongs to @' + err.owner + ', not @' + c.owner + '.';
+        else if (err && err.status === 401) msg = 'GitHub doesn’t recognize this key. It may have expired, or it was pasted incompletely.';
+        else if (err && err.status === 403 && /rate limit/i.test(err.message || '')) msg = 'GitHub is limiting requests right now. Try again in a minute.';
+        else if (err && err.status) msg = 'GitHub returned an error (' + err.status + ') while listing repositories.' + (err.message ? ' GitHub said: “' + err.message + '.”' : '');
+        else msg = 'Couldn’t reach GitHub. Check your connection and try again.';
+        checkLine('read', msg, 'bad'); keyState('read', 'bad', 'Not connected. ' + msg);
+      })
+      .then(function(){ b.disabled = false; $('reloadReposBtn').disabled = false; });
+  }
+  $('reloadReposBtn').addEventListener('click', connectRead);
+
+  /* ---------- key fields ---------- */
+  function wireKey(which, input, remember, storeKey, connectBtn, forgetBtn, connect){
+    var saved = get(storeKey);
+    if (saved){ $(input).value = saved; $(remember).checked = true; }
+    var setKey = function(v){ if (which === 'pub') pubKey = v; else readKey = v; };
+    setKey(saved || '');
+    $(input).addEventListener('input', function(){ var v = $(input).value.trim(); setKey(v); if ($(remember).checked) set(storeKey, v); });
+    $(input).addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); connect(); } });
+    $(remember).addEventListener('change', function(){ var v = $(input).value.trim(); if ($(remember).checked && v) set(storeKey, v); else del(storeKey); });
+    $(connectBtn).addEventListener('click', connect);
+    $(forgetBtn).addEventListener('click', function(){
+      $(input).value = ''; $(remember).checked = false; del(storeKey); setKey('');
+      checkLine(which, 'Forgotten on this device.', 'ok');
+      keyState(which, '', which === 'pub' ? 'Not connected. Reload the page to lock it again.' : 'Not connected.');
+    });
+    return !!saved;
+  }
+  var hadPub = wireKey('pub', 'pubToken', 'pubRemember', 'gh-token', 'pubConnect', 'pubForget', connectPub);
+  var hadRead = wireKey('read', 'readToken', 'readRemember', 'gh-read-token', 'readConnect', 'readForget', connectRead);
+
+  /* ---------- discard (two-step, in the page) ---------- */
+  var discardArmed = null;
+  $('discardBtn').addEventListener('click', function(){
+    var b = $('discardBtn');
+    if (!discardArmed){
+      b.textContent = 'Click again to discard'; b.classList.add('warn');
+      discardArmed = setTimeout(function(){ b.textContent = 'Discard changes'; b.classList.remove('warn'); discardArmed = null; }, 4000);
+      return;
+    }
+    clearTimeout(discardArmed); discardArmed = null;
+    b.textContent = 'Discard changes'; b.classList.remove('warn');
+    items = clone(published.projects); ignored = published.ignored.slice(); openEditors = {};
+    del(DRAFT); render();
+    say('Changes discarded. The lists match the published version.');
+  });
+
+  /* ---------- publish: private catalog first, then the public list ---------- */
+  $('publishBtn').addEventListener('click', function(){
+    var c = cfg();
+    if (mode !== 'private' || !pubKey){ $('keysPanel').open = true; say('Connect your publishing key first.', 'bad'); return; }
+    var untitled = shownOf(items).filter(function(p){ return !String(p.title || '').trim(); });
+    if (untitled.length){ say('A card that’s switched on has no title. Give it one, or hide it, then publish.', 'bad'); return; }
+    var btn = $('publishBtn'); btn.disabled = true; btn.textContent = 'Publishing…';
+    var shown = shownOf(items).length, savedAt = new Date().toISOString();
+    var privText = privateText(savedAt), pubText = publicText();
+    var step = c.priv, privDone = false;
+    say('Saving the private catalog…');
+    putFile(c.priv, PRIV_PATH, privText, 'Update catalog (' + shown + ' shown, ' + (items.length - shown) + ' hidden)')
+      .then(function(){
+        privDone = true; step = c.repo;
+        say('Saving the public list…');
+        return putFile(c.repo, PUB_PATH, pubText, 'Update project list (' + shown + ' projects)');
+      })
+      .then(function(res){
+        published = { projects: clone(items), ignored: ignored.slice(), saved: savedAt, updated: today() };
+        del(DRAFT);
+        btn.textContent = 'Publish'; render();
+        var link = res && res.commit && res.commit.html_url ? ' <a href="' + esc(res.commit.html_url) + '" target="_blank" rel="noopener">View the commit ↗</a>' : '';
+        say('Published. The live site updates in a minute or two.' + link, 'ok', true);
+      })
+      .catch(function(err){
+        btn.textContent = 'Publish'; btn.disabled = !isDirty();
+        var msg = err && err.status ? explain(err, step) : 'Couldn’t reach GitHub. Check your connection and try again.';
+        if (privDone) msg = 'The private catalog saved, but the public list didn’t. ' + msg + ' Publish again to finish.';
+        say(msg, 'bad');
+        if (err && (err.status === 401 || err.status === 403 || err.status === 404)) $('keysPanel').open = true;
+      });
+  });
+
+  /* ---------- copy fallback ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function(b){
+    var label = b.textContent;
+    b.addEventListener('click', function(){
+      var ta = $(b.dataset.copy);
+      var done = function(){ b.textContent = 'Copied'; setTimeout(function(){ b.textContent = label; }, 2000); };
+      var fallback = function(){ ta.focus(); ta.select(); b.textContent = 'Selected. Press Ctrl+C or ⌘C'; };
+      try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+
+  /* ---------- load: public list first, then whatever keys are remembered ---------- */
+  fetch(PUB_PATH, { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(data){
+      fileMeta = { version: data.version || 1 };
+      items = (data.projects || []).filter(function(p){ return p.visible !== false; }).map(function(p){ return Object.assign({}, p, { visible: true }); });
+      published = { projects: clone(items), ignored: [], saved: '', updated: data.updated || '' };
+      render();
+    })
+    .catch(function(){
+      $('summary').textContent = 'Couldn’t load projects.json';
+      say('The public list didn’t load. Open this page from inquiredu.org, then reload.', 'bad');
+    })
+    .then(function(){
+      var chain = Promise.resolve();
+      if (hadPub) chain = chain.then(connectPub); else $('keysPanel').open = true;
+      if (hadRead) chain = chain.then(connectRead);
+      return chain;
+    });
+})();
+</script>
+</body>
+</html>

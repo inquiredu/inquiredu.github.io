@@ -220,6 +220,9 @@ a:hover{color:var(--accent-text)}
 footer{margin-top:clamp(56px,8vw,88px); padding-top:20px; border-top:1px solid var(--line); display:flex; align-items:center; gap:14px; font:500 14px/1.5 var(--font-sans); color:var(--fg-2)}
 footer img{width:32px; height:auto}
 footer b{font-weight:600; color:var(--fg-1)}
+footer .settings-link{margin-left:auto; width:36px; height:36px; display:inline-grid; place-items:center; border-radius:50%; color:var(--fg-2); opacity:.6; transition:opacity 120ms var(--ease-out), color 120ms var(--ease-out)}
+footer .settings-link:hover{opacity:1; color:var(--accent-text)}
+footer .settings-link svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round}
 
 noscript ul{font-family:var(--font-sans)}
 
@@ -385,6 +388,7 @@ noscript ul{font-family:var(--font-sans)}
     <img class="logo-light" src="assets/mark.png" alt="" width="32" height="31">
     <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="32" height="31">
     <span><b>&gt;0</b> · Any effort is better than none.</span>
+    <a class="settings-link" href="settings.html" aria-label="Site settings" title="Site settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></a>
   </footer>
 
 </div>
@@ -399,7 +403,7 @@ noscript ul{font-family:var(--font-sans)}
   var store = function(k, v){ try { localStorage.setItem(k, v); } catch (e) {} };
 
   /* ---------- catalog ---------- */
-  /* Records come from projects.json, which admin.html edits. Order in the file = order on the shelf. */
+  /* Records come from projects.json, which settings.html edits. Order in the file = order on the shelf. */
   var list = $('records'), card = $('card'), filter = 'all', selected = 0, records = [];
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
   var groupOf = function(f){ return records.filter(function(r){ return f === 'all' || r.group === f; }); };
@@ -409,7 +413,7 @@ noscript ul{font-family:var(--font-sans)}
 
   $('today').textContent = new Date().toLocaleDateString('en-US', { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
 
-  /* index.html#draft shows the unpublished order and visibility saved by admin.html in this browser. */
+  /* index.html#draft shows the unpublished order and visibility saved by settings.html in this browser. */
   function applyDraft(all){
     if (!isDraft) return all;
     var d = null;
@@ -486,7 +490,7 @@ noscript ul{font-family:var(--font-sans)}
     records = applyDraft(all).filter(function(p){ return p.visible !== false; });
     var n = records.length;
     $('recCount').textContent = n + (n === 1 ? ' record' : ' records');
-    $('libraryNote').textContent = (isDraft ? 'Draft preview from the admin page. ' : '') +
+    $('libraryNote').textContent = (isDraft ? 'Draft preview from settings. ' : '') +
       (n === 1 ? 'One record.' : n + ' records.') + ' Choose one to read its catalog card.';
     tabs.forEach(function(t){
       var c = groupOf(t.dataset.f).length;
