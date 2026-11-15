@@ -14,7 +14,7 @@ Both are written together, private first, by either of the two ways below. Don't
 
 ## Choose projects in Site settings
 
-Site settings, and the light table below, run only on the owner's computer, at `http://127.0.0.1:8787/settings.html` and `http://127.0.0.1:8787/lighttable.html`. They are not on inquiredu.org: GitHub Pages can't put a login in front of a page, so the admin pages stay off the public site. Their files (`settings.html`, `lighttable.html`, `assets/settings.*` and `assets/lighttable.*`) sit in a local copy of this repo, listed in `.git/info/exclude` so they are never committed. A small local server starts them (`start-settings.command`, kept beside the repo). Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. The key is held in the tab's memory only and is never saved in the browser.
+Site settings, and the light table below, run only on the owner's computer, at `http://127.0.0.1:8787/settings.html` and `http://127.0.0.1:8787/lighttable.html`. They are not on inquiredu.org: GitHub Pages can't put a login in front of a page, so the admin pages stay off the public site. Their files (`settings.html`, `lighttable.html`, `assets/settings.*` and `assets/lighttable.*`) sit in a local copy of this repo, listed in `.git/info/exclude` so they are never committed. A small local server starts them (`start-settings.command`, kept beside the repo). It answers only on 127.0.0.1, serves only the files these pages need (never `.git`, scripts or folder listings), and refuses requests from other websites. Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. The key is held in the tab's memory only and is never saved in the browser.
 
 The repo list comes from `repos.json`, which the hourly sync keeps current. **Refresh list** in Settings runs the sync right away and reloads the list when it finishes, usually within a minute. It also picks up any card a `shelf` tag just added.
 
@@ -92,7 +92,7 @@ This repo is public, so its Action logs are too. The sync logs counts only, neve
 
 ## Slides
 
-The slide projector next to the catalog plays the photographs listed in `slides.json`, with the images in `assets/slides/`. Each day it loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the projector stays hidden.
+The home page throws the photographs listed in `slides.json` (images in `assets/slides/`) on a wall behind the catalog terminal. Each slide's color lights the page around it, the terminal's deck runs the projector, and today's tray sits below as a row of slide mounts. Each day loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the wall stays hidden and the terminal stands alone.
 
 ### Add photos: the light table
 

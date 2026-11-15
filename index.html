@@ -74,7 +74,8 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{background:var(--bg)}
+[hidden]{display:none !important}
+html{background:var(--bg); overflow-x:clip}
 body{
   margin:0; background:var(--bg); color:var(--fg-1);
   font:400 17px/1.6 var(--font-serif);
@@ -126,8 +127,6 @@ a:hover{color:var(--accent-text)}
 .horizon span{display:block; height:8px; background:var(--sun)}
 .horizon span + span{height:3px; background:var(--water)}
 
-.library-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px 24px; margin-bottom:22px}
-.library-head p{font-size:16px; color:var(--fg-2)}
 
 /* ---------- the terminal (adapted from the Pip-Boy chassis) ---------- */
 .terminal{container-type:inline-size; container-name:term; font-family:var(--font-mono)}
@@ -248,64 +247,92 @@ noscript ul{font-family:var(--font-sans)}
   .fields div{grid-template-columns:minmax(0,1fr); gap:2px}
 }
 
-/* ---------- the bench: terminal and projector side by side on wide screens ---------- */
-.bench{display:grid; grid-template-columns:minmax(0,1fr); gap:clamp(48px,7vw,72px)}
-@media (min-width:1320px){
-  .bench.with-slides{
-    --bench:min(1480px, calc(100vw - 64px));
-    width:var(--bench); margin-inline:calc((100% - var(--bench)) / 2);
-    grid-template-columns:minmax(0,1.32fr) minmax(0,1fr); gap:40px; align-items:start;
-  }
-}
+/* ---------- the room: slides thrown on the wall, the terminal on the desk in front of it ----------
+   One scene, not two gadgets. The projector's light spills onto the page and rims the terminal,
+   and one control deck runs both. --ambient is the current slide's color, set by the script. */
+.room{position:relative; --ambient:244,174,114; --overlap:0px}
+.room.has-slides{--overlap:clamp(40px, 6vw, 88px)}
+.room-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px 24px; margin-bottom:22px}
+.room-head p{font-size:16px; color:var(--fg-2)}
 
-/* ---------- the slide projector: same chassis, warm lamp instead of phosphor ---------- */
-.projector{container-type:inline-size; container-name:proj; font-family:var(--font-mono)}
-.projector .chassis{padding-bottom:1.2rem}
-.pj-gate{
-  position:relative; overflow:hidden; aspect-ratio:3/2; border-radius:.9rem; border:9px solid #0a0a0a; cursor:pointer;
-  background:#0b0d10; box-shadow:inset 0 0 40px #000, 0 0 10px rgba(0,0,0,.8);
+.wall{
+  --wallw:min(1480px, calc(100vw - 32px)); --pad:clamp(14px, 2.6vw, 40px); --band:clamp(40px, 4.4vw, 52px);
+  position:relative; z-index:0; isolation:isolate; overflow:hidden;
+  width:var(--wallw); margin-inline:calc((100% - var(--wallw)) / 2);
+  height:clamp(320px, 36vw, 580px); border-radius:clamp(14px, 2vw, 26px);
+  background:#0b0d10; cursor:pointer; font-family:var(--font-mono);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), inset 0 0 80px rgba(0,0,0,.8), 0 0 120px -30px rgba(var(--ambient),.55), 0 40px 80px -40px var(--desk-shadow);
+  transition:box-shadow 1.4s var(--ease-out);
 }
-.pj-gate.lit{background:radial-gradient(ellipse at 50% 48%, #2a251d, #121110 72%)}
-.pj-frame{position:absolute; inset:0; margin:0; animation:pjWeave 4.8s steps(1) infinite}
-.pj-frame img{
-  position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain;
-  filter:saturate(1.16) contrast(1.08) brightness(1.03) sepia(.05);   /* slide film: rich color, deep shadows, a warm lamp */
-  transition:opacity 160ms linear;
+/* the projector's light, reaching past the wall onto the page */
+.room.has-slides::before{
+  content:""; position:absolute; z-index:-1; pointer-events:none; left:50%; top:-40px; width:min(1600px, 100vw); height:min(900px, 90vw); transform:translateX(-50%);
+  background:radial-gradient(ellipse at 50% 42%, rgba(var(--ambient),.20), transparent 62%); opacity:.9; transition:background 1.4s var(--ease-out);
 }
-.pj-gate:not(.lit) .pj-frame img{opacity:0}
+.wall:not(.lit){box-shadow:inset 0 0 0 1px rgba(255,255,255,.05), inset 0 0 80px rgba(0,0,0,.8), 0 40px 80px -40px var(--desk-shadow)}
+.room.has-slides:has(.wall:not(.lit))::before{opacity:0}
+.wall:focus-visible{box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun)}
+
+.frame{position:absolute; inset:0; margin:0; opacity:0; transition:opacity 1s ease}
+.frame.on{opacity:1}
+.spill{position:absolute; inset:-12%; width:124%; height:124%; max-width:none; object-fit:cover; filter:blur(46px) saturate(1.35) brightness(.5)}
+.window{position:absolute; inset:var(--pad) var(--pad) calc(var(--overlap) + var(--band)) var(--pad); display:flex; align-items:center; justify-content:center}
+.photo{
+  display:block; width:auto; height:auto; max-width:100%; max-height:100%; border-radius:3px;
+  filter:saturate(1.12) contrast(1.06) sepia(.04);   /* slide film: rich color, deep shadows, a warm lamp */
+  box-shadow:0 0 0 1px rgba(255,255,255,.07), 0 24px 60px -10px rgba(0,0,0,.7), 0 0 90px -20px rgba(var(--ambient),.6);
+  transform-origin:var(--kx,50%) var(--ky,50%);
+}
+.wall.lit .frame.on .photo{animation:kenBurns 11s ease-out both}
+.wall:not(.lit) .frame{opacity:0}
 /* lamp hotspot, lens falloff, and a little dust on the slide */
-.pj-glow{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 46%, rgba(255,236,204,.16), transparent 58%); mix-blend-mode:screen; animation:pjFlicker 5.5s ease-in-out infinite}
-.pj-falloff{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(0,0,0,.62) 100%)}
+.pj-glow{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 40%, rgba(255,236,204,.12), transparent 55%); mix-blend-mode:screen; animation:pjFlicker 5.5s ease-in-out infinite}
+.pj-falloff{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(0,0,0,.55) 100%)}
 .pj-dust{
-  position:absolute; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:multiply;
+  position:absolute; inset:0; pointer-events:none; opacity:.4; mix-blend-mode:multiply;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><g fill='none' stroke='%23000' stroke-linecap='round' opacity='.55'><path d='M92 71c6 3 9 9 8 15' stroke-width='.9'/><path d='M471 302c-4 6-11 8-17 7' stroke-width='.8'/><path d='M318 44c8-1 13 3 15 9' stroke-width='.6'/></g><g fill='%23000' opacity='.45'><circle cx='140' cy='290' r='1.4'/><circle cx='402' cy='118' r='1'/><circle cx='530' cy='64' r='1.6'/><circle cx='61' cy='188' r='.9'/><circle cx='255' cy='355' r='1.2'/><circle cx='488' cy='212' r='.8'/></g></svg>");
   background-size:100% 100%;
 }
-.pj-gate:not(.lit) .pj-glow,.pj-gate:not(.lit) .pj-dust{display:none}
-.pj-gate.changing .pj-frame img{animation:pjDrop .5s cubic-bezier(.6,0,.3,1)}
-.pj-gate:focus-visible{box-shadow:0 0 0 3px #000, 0 0 0 5px var(--sun)}
-.pj-off-note{position:absolute; inset:0; display:grid; place-items:center; font:600 12px/1 var(--font-sans); letter-spacing:.2em; text-transform:uppercase; color:#4a4f55}
-.pj-gate.lit .pj-off-note{display:none}
+.wall:not(.lit) .pj-glow,.wall:not(.lit) .pj-dust{display:none}
+.pj-off-note{position:absolute; inset:0 0 var(--overlap); display:none; place-items:center; font:600 12px/1 var(--font-sans); letter-spacing:.2em; text-transform:uppercase; color:#4a4f55}
+.wall:not(.lit) .pj-off-note{display:grid}
 
-/* the caption, on embossed label tape stuck under the gate */
-.pj-label-row{display:flex; justify-content:center; padding-top:1rem; min-height:2.6rem}
+/* the readout band between the picture and the desk: label tape, timer, slide number */
+.band{position:absolute; left:var(--pad); right:var(--pad); bottom:var(--overlap); height:var(--band); display:flex; align-items:center; gap:16px; pointer-events:none}
 .pj-label{
-  display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  flex:none; max-width:min(60%, 420px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   padding:6px 14px 5px; border-radius:2px; transform:rotate(-.6deg);
   background:linear-gradient(#cf8957, #b06d40); color:#FAF3EA;
-  font:600 13px/1.2 var(--font-mono); letter-spacing:.16em; text-transform:uppercase;
+  font:600 12.5px/1.2 var(--font-mono); letter-spacing:.16em; text-transform:uppercase;
   text-shadow:0 1px 0 rgba(0,0,0,.35), 0 -1px 0 rgba(255,255,255,.3);
   box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 2px 3px rgba(0,0,0,.6);
 }
+.pj-label:empty{display:none}
+.dwell{flex:1; height:2px; background:rgba(255,255,255,.1); border-radius:1px; overflow:hidden}
+.dwell i{display:block; height:100%; width:100%; background:rgba(var(--ambient),.9); box-shadow:0 0 8px rgba(var(--ambient),.8); transform-origin:left; transform:scaleX(0)}
+.dwell.run i{animation:dwell var(--dwell,7s) linear forwards}
+.wall-no{flex:none; font:600 12.5px/1 var(--font-mono); letter-spacing:.12em; color:#c9cdd1; font-variant-numeric:tabular-nums; text-shadow:0 1px 2px #000}
+.wall:not(.lit) .band{opacity:.35}
 
-.pj-deck{display:flex; justify-content:space-between; align-items:center; gap:18px; flex-wrap:wrap; padding-top:1rem; font-family:var(--font-sans)}
-.pj-tray{display:flex; align-items:center; gap:12px}
-.pj-tray svg{width:64px; height:64px; display:block; transition:transform 500ms cubic-bezier(.6,0,.3,1)}
+/* the terminal sits on the desk, its top edge over the foot of the wall */
+.room.has-slides .terminal{position:relative; z-index:1; margin-top:calc(-1 * var(--overlap)); margin-inline:auto; max-width:1000px}
+.room.has-slides .terminal .chassis{
+  box-shadow:inset 0 0 22px #000, inset 0 1px 0 rgba(var(--ambient),.35), 0 0 0 2px #2a2d31, 0 -14px 60px -26px rgba(var(--ambient),.7), 0 34px 60px -24px var(--desk-shadow), 0 6px 18px -6px var(--desk-shadow);
+  transition:box-shadow 1.4s var(--ease-out);
+}
+.room.has-slides:has(.wall:not(.lit)) .terminal .chassis{box-shadow:inset 0 0 22px #000, inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 2px #2a2d31, 0 34px 60px -24px var(--desk-shadow), 0 6px 18px -6px var(--desk-shadow)}
+
+/* one deck runs the projector and the terminal */
+.deck-group{display:flex; align-items:center; gap:18px}
+.deck-sep{width:2px; align-self:stretch; min-height:40px; border-radius:1px; background:linear-gradient(#060708, #2b2f33)}
+.room.has-slides .grille{display:none}
+.pj-tray{display:flex; align-items:center; gap:10px}
+.pj-tray svg{width:52px; height:52px; display:block}
 .pj-count{display:flex; flex-direction:column; gap:5px; font:700 10px/1 var(--font-sans); letter-spacing:.2em; text-transform:uppercase; color:#8d9298; text-shadow:0 -1px 0 #000}
 .pj-count b{font:600 18px/1 var(--font-mono); letter-spacing:.04em; color:#F4AE72; text-shadow:0 0 6px rgba(244,174,114,.45); font-variant-numeric:tabular-nums}
 .pj-keys{display:flex; gap:6px}
 .pj-key{
-  width:46px; height:34px; border:0; border-radius:6px; cursor:pointer; display:grid; place-items:center;
+  width:42px; height:32px; border:0; border-radius:6px; cursor:pointer; display:grid; place-items:center;
   background:linear-gradient(#4a4f55, #24282c); box-shadow:0 3px 0 #0b0c0d, 0 4px 8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.16);
   color:#c9cdd1; font:700 10px/1 var(--font-sans); letter-spacing:.14em;
 }
@@ -319,25 +346,44 @@ noscript ul{font-family:var(--font-sans)}
 .pj-switch[aria-pressed="false"] .opt.man,.pj-switch[aria-pressed="true"] .opt.auto{opacity:1; color:#F4AE72; text-shadow:0 0 6px rgba(244,174,114,.45)}
 .pj-led{width:8px; height:8px; border-radius:50%; background:#2a2c2e; box-shadow:inset 0 1px 1px #000}
 .pj-led.on{background:#F4AE72; box-shadow:0 0 8px rgba(244,174,114,.7), 0 0 2px #F4AE72}
-.slides-note{margin-top:16px; font:400 13px/1.5 var(--font-mono); color:var(--fg-2)}
 
-@container proj (max-width: 560px){
-  .projector .chassis{padding:1.6rem 1.1rem 1.9rem; border-radius:1.4rem}
-  .projector .screw.s1,.projector .screw.s3{left:9px} .projector .screw.s2,.projector .screw.s4{right:9px}
-  .projector .screw.s1,.projector .screw.s2{top:8px} .projector .screw.s3,.projector .screw.s4{bottom:8px}
-  .pj-gate{border-width:6px; border-radius:.7rem}
-  .pj-plate-text{display:none}
-  .pj-deck{gap:12px}
-  .pj-tray svg{width:52px; height:52px}
+/* today's tray: every slide in a mount; a mount fills in once its slide has been on the wall */
+.tray{margin-top:clamp(28px, 4vw, 40px)}
+.tray-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px 24px; margin-bottom:14px}
+.tray-head p{font-size:15px; color:var(--fg-2)}
+.mounts{list-style:none; margin:0; padding:6px 4px 14px; display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:thin; scrollbar-color:var(--line) transparent}
+.mounts li{flex:none; scroll-snap-align:center}
+.mount{
+  position:relative; display:block; width:84px; height:84px; padding:0; border:0; border-radius:6px; cursor:pointer;
+  background:linear-gradient(160deg, #EFE9DC, #D9D0BE); box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 3px 8px -2px var(--desk-shadow);
+  transition:transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), opacity 200ms;
+  opacity:.82;
+}
+.mount:hover{opacity:1; transform:translateY(-2px)}
+.mount .win{position:absolute; left:9px; right:9px; top:16px; bottom:16px; border-radius:2px; overflow:hidden; background:#15181b; box-shadow:inset 0 1px 3px rgba(0,0,0,.8)}
+.mount.port .win{left:20px; right:20px; top:9px; bottom:9px}
+.mount img{display:block; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 500ms}
+.mount img.in{opacity:1}
+.mount .no{position:absolute; left:6px; top:3px; font:600 9px/1 var(--font-mono); letter-spacing:.08em; color:#6b5a48}
+.mount.port .no{top:auto; bottom:3px}
+.mount[aria-current="true"]{opacity:1; transform:translateY(-3px); box-shadow:0 0 0 2px var(--sun), 0 8px 18px -6px var(--desk-shadow)}
+.mount:focus-visible{box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--sun)}
+
+@media (max-width:700px){
+  .wall{height:clamp(300px, 96vw, 520px)}
+  .room.has-slides{--overlap:28px}
+  .pj-label{max-width:62%}
+}
+@container term (max-width: 760px){
+  .room.has-slides .deck{display:grid; grid-template-columns:minmax(0,1fr); justify-items:stretch; gap:16px}
+  .room.has-slides .plate{display:none}
+  .deck-sep{display:none !important}
+  .deck-group{flex-wrap:wrap; justify-content:space-between; gap:14px 10px}
+  .room.has-slides .controls{justify-content:space-around; padding-top:14px; border-top:2px solid #0a0b0c; box-shadow:0 1px 0 rgba(255,255,255,.05)}
 }
 
-@keyframes pjDrop{
-  0%{opacity:1; transform:none}
-  30%{opacity:0; transform:translateY(-1.5%)}
-  58%{opacity:0; transform:translateY(2.5%)}
-  100%{opacity:1; transform:none}
-}
-@keyframes pjWeave{0%{transform:none} 25%{transform:translate(.4px,-.3px)} 50%{transform:translate(-.3px,.4px)} 75%{transform:translate(.2px,.2px)}}
+@keyframes kenBurns{from{transform:scale(1)} to{transform:scale(1.05)}}
+@keyframes dwell{from{transform:scaleX(0)} to{transform:scaleX(1)}}
 @keyframes pjFlicker{0%,100%{opacity:1} 40%{opacity:.86} 43%{opacity:.97} 70%{opacity:.92}}
 
 @keyframes crtScanline{0%{transform:translateY(-100%)}100%{transform:translateY(800%)}}
@@ -366,8 +412,8 @@ noscript ul{font-family:var(--font-sans)}
   .screen,.crt.booting .screen{animation:none}
   .crt.off .screen{animation:none; opacity:0}
   .glass::after,.cursor,.card.glitch{animation:none}
-  .pj-frame,.pj-glow,.pj-gate.changing .pj-frame img{animation:none}
-  .pj-tray svg{transition:none}
+  .pj-glow,.wall.lit .frame.on .photo,.dwell.run i{animation:none}
+  .frame{transition:none}
 }
 </style>
 </head>
@@ -406,15 +452,28 @@ noscript ul{font-family:var(--font-sans)}
 
   <div class="horizon" aria-hidden="true"><span></span><span></span></div>
 
-  <main class="bench" id="bench">
-  <!-- Library -->
-  <section class="station" aria-label="Project library">
-    <div class="library-head">
+  <main class="room" id="room">
+    <div class="room-head">
       <h2 class="eyebrow">The project library</h2>
       <p id="libraryNote">Loading the catalog.</p>
     </div>
 
-    <div class="terminal">
+    <!-- Slides, thrown on the wall behind the terminal. Shown once slides.json has at least one slide. -->
+    <section class="wall lit" id="wall" tabindex="0" aria-roledescription="slide show" aria-label="Photographs by Sean Beaverson. Click or press the right arrow for the next slide." hidden>
+      <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+      <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+      <div class="pj-glow" aria-hidden="true"></div>
+      <div class="pj-dust" aria-hidden="true"></div>
+      <div class="pj-falloff" aria-hidden="true"></div>
+      <div class="pj-off-note" aria-hidden="true">Projector lamp off</div>
+      <div class="band">
+        <span class="pj-label" id="pjLabel" aria-live="polite"></span>
+        <span class="dwell" id="dwell" aria-hidden="true"><i></i></span>
+        <span class="wall-no" id="wallNo" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="terminal" aria-label="Project catalog">
       <div class="chassis">
         <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
         <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
@@ -451,10 +510,43 @@ noscript ul{font-family:var(--font-sans)}
         <div class="deck">
           <div class="plate">
             <img src="assets/mark-reversed.png" alt="" width="34" height="32">
-            <div class="engrave"><span>Catalog terminal</span><span class="model">Model &gt;0</span></div>
+            <div class="engrave"><span>Catalog &amp; projector</span><span class="model">Model &gt;0</span></div>
           </div>
           <div class="grille" aria-hidden="true"></div>
-          <div class="controls">
+
+          <div class="deck-group" id="pjGroup" role="group" aria-label="Projector" hidden>
+            <div class="pj-tray">
+              <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
+              <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
+            </div>
+            <div class="ctl">
+              <span>Rev · Fwd</span>
+              <div class="pj-keys">
+                <button class="pj-key" id="pjRev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="pj-key" id="pjFwd" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+              </div>
+            </div>
+            <div class="ctl">
+              <span>Advance</span>
+              <button class="pj-switch" id="pjAuto" type="button" aria-pressed="true" aria-label="Advance slides automatically">
+                <span class="opt man">Man</span>
+                <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                <span class="opt auto">Auto</span>
+              </button>
+            </div>
+            <div class="ctl">
+              <span>Bulb</span>
+              <div style="display:flex; align-items:center; gap:10px">
+                <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
+                <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <span class="deck-sep" id="deckSep" aria-hidden="true" hidden></span>
+
+          <div class="controls" role="group" aria-label="Terminal">
             <div class="ctl">
               <span>Phosphor</span>
               <button class="slide" id="phosphor" type="button" aria-label="Phosphor color: amber. Switch to green.">
@@ -475,76 +567,18 @@ noscript ul{font-family:var(--font-sans)}
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p>
-
-    <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
-  </section>
-
-  <!-- Slides: shown once slides.json has at least one slide -->
-  <section class="station" id="slidesStation" aria-labelledby="slidesHead" hidden>
-    <div class="library-head">
-      <h2 class="eyebrow" id="slidesHead">Slides</h2>
-      <p id="slidesNote">Loading the tray.</p>
-    </div>
-
-    <div class="projector" role="region" aria-roledescription="slide show" aria-label="Photographs">
-      <div class="chassis">
-        <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
-        <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
-
-        <div class="pj-gate lit" id="pjGate" title="Next slide">
-          <figure class="pj-frame"><img id="pjImg" alt=""></figure>
-          <div class="pj-glow" aria-hidden="true"></div>
-          <div class="pj-dust" aria-hidden="true"></div>
-          <div class="pj-falloff" aria-hidden="true"></div>
-          <div class="pj-off-note" aria-hidden="true">Lamp off</div>
-        </div>
-
-        <div class="pj-label-row"><span class="pj-label" id="pjLabel" aria-live="polite"></span></div>
-
-        <div class="pj-deck">
-          <div class="plate">
-            <img src="assets/mark-reversed.png" alt="" width="34" height="32">
-            <div class="engrave pj-plate-text"><span>Slide projector</span><span class="model">Model &gt;0</span></div>
-          </div>
-          <div class="pj-tray">
-            <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
-            <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
-          </div>
-          <div class="controls">
-            <div class="ctl">
-              <span>Rev · Fwd</span>
-              <div class="pj-keys">
-                <button class="pj-key" id="pjRev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-                <button class="pj-key" id="pjFwd" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-              </div>
-            </div>
-            <div class="ctl">
-              <span>Advance</span>
-              <button class="pj-switch" id="pjAuto" type="button" aria-pressed="true" aria-label="Advance slides automatically">
-                <span class="opt man">Man</span>
-                <span class="track" aria-hidden="true"><span class="knob"></span></span>
-                <span class="opt auto">Auto</span>
-              </button>
-            </div>
-            <div class="ctl">
-              <span>Lamp</span>
-              <div style="display:flex; align-items:center; gap:10px">
-                <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
-                <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+    <section class="tray" id="tray" aria-labelledby="trayHead" hidden>
+      <div class="tray-head">
+        <h2 class="eyebrow" id="trayHead">Today’s tray</h2>
+        <p id="slidesNote">Loading the tray.</p>
       </div>
-    </div>
+      <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
+    </section>
 
-    <p class="slides-note">A new tray loads each day. Photographs by Sean Beaverson.</p>
-  </section>
+    <p class="dewey">Call numbers follow the Dewey Decimal System, more or less. Photographs by Sean Beaverson.</p>
+    <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
   </main>
 
   <footer>
@@ -721,19 +755,20 @@ noscript ul{font-family:var(--font-sans)}
 })();
 </script>
 <script>
-/* ---------- slide projector ----------
-   Slides come from slides.json, which scripts/darkroom.mjs fills from Google Photos.
-   Each day loads a tray of up to `tray` slides drawn from the whole collection.
-   Everyone sees the same tray on a given day (Minnesota time). */
+/* ---------- the slide projector ----------
+   Slides come from slides.json, which the light table publishes. Each day loads a tray of up to
+   `tray` slides drawn from the whole collection; everyone sees the same tray that day (Minnesota time).
+   Slides are thrown on the wall behind the terminal. Each one's color lights the room (--ambient). */
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var station = $('slidesStation'), bench = $('bench'), gate = $('pjGate'), img = $('pjImg');
-  var label = $('pjLabel'), num = $('pjNum'), trayEl = $('pjTray'), autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed');
+  var room = $('room'), wall = $('wall'), frames = wall.querySelectorAll('.frame');
+  var label = $('pjLabel'), num = $('pjNum'), wallNo = $('wallNo'), dwellEl = $('dwell'), trayEl = $('pjTray');
+  var autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed'), mountsEl = $('mounts');
   var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 7000;
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var slides = [], at = 0, angle = 0, spin = null;
+  var slides = [], at = -1, angle = 0, spin = null, front = 0, want = 0;
   var lit = true, auto = !reduce, visible = false, hovering = false, timer = null;
   var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
 
@@ -763,14 +798,26 @@ noscript ul{font-family:var(--font-sans)}
     if (!m) return '';
     return (m[2] ? names[+m[2] - 1] + ' ' : '') + m[1];
   }
-  function labelText(s, i){
-    var parts = [s.caption, taken(s, MON)].filter(Boolean);
-    return parts.length ? parts.join(' · ') : 'Slide ' + pad(i + 1);
-  }
+  function labelText(s){ return [s.caption, taken(s, MON)].filter(Boolean).join(' · '); }
   function altText(s){
     if (s.alt) return s.alt;
     var when = taken(s, MONTH);
     return (s.caption ? s.caption + '. ' : '') + 'Photograph by Sean Beaverson' + (when ? ', ' + when : '') + '.';
+  }
+  function isPortrait(s){ return s.width && s.height && s.height > s.width; }
+
+  /* the slide's own color, sampled small, kept bright enough to read as light */
+  function ambientOf(im){
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 10;
+      var x = c.getContext('2d'); x.drawImage(im, 0, 0, 10, 10);
+      var d = x.getImageData(0, 0, 10, 10).data, r = 0, g = 0, b = 0, n = d.length / 4;
+      for (var i = 0; i < d.length; i += 4){ r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+      r /= n; g /= n; b /= n;
+      var max = Math.max(r, g, b), k = max ? 225 / max : 1;   /* lift to lamp brightness */
+      var sat = function(v){ return Math.round(Math.max(0, Math.min(255, (max - (max - v) * 1.35) * k))); };   /* and a little more color */
+      return [sat(r), sat(g), sat(b)].join(',');
+    } catch (e) { return null; }   /* a cross-origin image can't be read; keep the last color */
   }
 
   /* the round tray, seen from above; the lit slot is the one in the gate */
@@ -797,64 +844,113 @@ noscript ul{font-family:var(--font-sans)}
     });
   }
 
-  function preload(i){ var s = slides[(i + slides.length) % slides.length]; if (s){ var p = new Image(); p.src = s.src; } }
-  function show(i, animate){
-    at = (i + slides.length) % slides.length;
-    var s = slides[at];
-    var apply = function(){
-      img.src = s.src; img.alt = altText(s);
-      if (s.width && s.height){ img.width = s.width; img.height = s.height; }
-      label.textContent = labelText(s, at);
-      num.textContent = pad(at + 1);
-      markSlot(); preload(at + 1);
+  /* today's tray as a row of mounts; a mount fills in once its slide has loaded */
+  function drawMounts(){
+    mountsEl.innerHTML = slides.map(function(s, i){
+      return '<li><button class="mount' + (isPortrait(s) ? ' port' : '') + '" type="button" data-k="' + i + '" aria-label="Slide ' + (i + 1) +
+        (labelText(s) ? ', ' + labelText(s) : '') + '"><span class="win"><img alt="" decoding="async"></span><span class="no" aria-hidden="true">' + pad(i + 1) + '</span></button></li>';
+    }).join('');
+  }
+  function fillMount(i){
+    var m = mountsEl.querySelector('[data-k="' + i + '"] img');
+    if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].src; }
+  }
+  function markMount(){
+    var cur = null;
+    Array.prototype.forEach.call(mountsEl.querySelectorAll('.mount'), function(b){
+      var on = +b.dataset.k === at; b.setAttribute('aria-current', on ? 'true' : 'false'); if (on) cur = b;
+    });
+    if (cur && mountsEl.scrollWidth > mountsEl.clientWidth){
+      var left = cur.parentNode.offsetLeft - (mountsEl.clientWidth - cur.offsetWidth) / 2;
+      mountsEl.scrollTo({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }
+
+  function preload(i){
+    var k = (i + slides.length) % slides.length, s = slides[k]; if (!s) return;
+    var p = new Image(); p.onload = function(){ fillMount(k); }; p.src = s.src;
+  }
+  /* load the slide off-screen, then cross-fade it in on the back frame */
+  function show(i){
+    var k = (i + slides.length) % slides.length, s = slides[k];
+    want = k;
+    var im = new Image();
+    im.onload = function(){
+      if (want !== k) return;   /* a newer request has arrived since */
+      at = k;
+      var f = frames[front = 1 - front], other = frames[1 - front], photo = f.querySelector('.photo');
+      f.querySelector('.spill').src = s.src;
+      photo.src = s.src; photo.alt = altText(s);
+      if (s.width && s.height){ photo.width = s.width; photo.height = s.height; }
+      var rnd = seeded(s.id || s.src);                     /* each slide drifts toward its own corner */
+      photo.style.setProperty('--kx', Math.round(20 + rnd() * 60) + '%');
+      photo.style.setProperty('--ky', Math.round(25 + rnd() * 50) + '%');
+      f.classList.remove('on'); void f.offsetWidth;
+      f.classList.add('on'); other.classList.remove('on');
+      other.setAttribute('aria-hidden', 'true'); f.removeAttribute('aria-hidden');
+      var amb = ambientOf(im); if (amb) room.style.setProperty('--ambient', amb);
+      label.textContent = labelText(s);
+      num.textContent = pad(k + 1);
+      wallNo.textContent = pad(k + 1) + ' / ' + pad(slides.length);
+      fillMount(k); markSlot(); markMount(); preload(k + 1);
+      schedule();
     };
-    if (animate && lit && !reduce){
-      gate.classList.remove('changing'); void gate.offsetWidth; gate.classList.add('changing');
-      setTimeout(apply, 210);
-    } else apply();
+    im.onerror = function(){ if (want === k && slides.length > 1){ slides.splice(k, 1); drawTray(slides.length); drawMounts(); show(k); } };
+    im.src = s.src;
   }
   function step(dir){
     if (slides.length < 2) return;
     angle -= dir * 360 / slides.length;
     if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
-    show(at + dir, true);
+    show(want + dir);
+  }
+  function jump(k){
+    if (k === want) return;
+    var d = k - want; angle -= d * 360 / slides.length;
+    if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
+    show(k);
   }
 
-  /* automatic advance: only while the projector is on screen, lit, and not being looked at closely */
+  /* automatic advance: only while the wall is on screen, lit, and not being looked at closely */
+  function running(){ return auto && lit && visible && !hovering && !document.hidden && slides.length > 1; }
   function schedule(){
     clearTimeout(timer);
     label.setAttribute('aria-live', auto ? 'off' : 'polite');
-    if (auto && lit && visible && !hovering && !document.hidden && slides.length > 1){
-      timer = setTimeout(function(){ step(1); schedule(); }, DWELL);
+    var run = running();
+    dwellEl.classList.remove('run');
+    if (run){
+      if (!reduce){ void dwellEl.offsetWidth; dwellEl.classList.add('run'); }
+      timer = setTimeout(function(){ step(1); }, DWELL);
     }
   }
-  function manual(dir){ step(dir); schedule(); }
+  function manual(dir){ step(dir); }
 
-  gate.addEventListener('click', function(){ if (lit) manual(1); });
+  wall.addEventListener('click', function(){ if (lit) manual(1); });
   $('pjFwd').addEventListener('click', function(){ manual(1); });
   $('pjRev').addEventListener('click', function(){ manual(-1); });
-  station.addEventListener('keydown', function(e){
-    if (e.target.closest && e.target.closest('input, textarea')) return;
-    if (e.key === 'ArrowRight'){ e.preventDefault(); manual(1); }
-    if (e.key === 'ArrowLeft'){ e.preventDefault(); manual(-1); }
+  mountsEl.addEventListener('click', function(e){ var b = e.target.closest('.mount'); if (b) jump(+b.dataset.k); });
+  [wall, $('pjGroup'), $('tray')].forEach(function(el){
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowRight'){ e.preventDefault(); manual(1); }
+      if (e.key === 'ArrowLeft'){ e.preventDefault(); manual(-1); }
+      if (el === wall && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); manual(1); }
+    });
+    el.addEventListener('mouseenter', function(){ hovering = true; schedule(); });
+    el.addEventListener('mouseleave', function(){ hovering = false; schedule(); });
+    el.addEventListener('focusin', function(){ hovering = true; schedule(); });
+    el.addEventListener('focusout', function(e){ if (!el.contains(e.relatedTarget)){ hovering = false; schedule(); } });
   });
-  autoBtn.addEventListener('click', function(){
-    auto = !auto; autoBtn.setAttribute('aria-pressed', String(auto)); schedule();
-  });
+  autoBtn.addEventListener('click', function(){ auto = !auto; autoBtn.setAttribute('aria-pressed', String(auto)); schedule(); });
   lampBtn.addEventListener('click', function(){
     lit = !lit;
-    gate.classList.toggle('lit', lit); led.classList.toggle('on', lit);
+    wall.classList.toggle('lit', lit); led.classList.toggle('on', lit);
     lampBtn.setAttribute('aria-pressed', String(lit));
-    img.setAttribute('aria-hidden', String(!lit));
+    Array.prototype.forEach.call(frames, function(f){ f.querySelector('.photo').setAttribute('aria-hidden', String(!lit)); });
     schedule();
   });
-  station.addEventListener('mouseenter', function(){ hovering = true; schedule(); });
-  station.addEventListener('mouseleave', function(){ hovering = false; schedule(); });
-  station.addEventListener('focusin', function(){ hovering = true; schedule(); });
-  station.addEventListener('focusout', function(e){ if (!station.contains(e.relatedTarget)){ hovering = false; schedule(); } });
   document.addEventListener('visibilitychange', schedule);
   if ('IntersectionObserver' in window){
-    new IntersectionObserver(function(entries){ visible = entries[0].isIntersecting; schedule(); }, { threshold: .35 }).observe(gate);
+    new IntersectionObserver(function(entries){ visible = entries[0].isIntersecting; schedule(); }, { threshold: .3 }).observe(wall);
   } else visible = true;
 
   function start(data){
@@ -862,20 +958,21 @@ noscript ul{font-family:var(--font-sans)}
     if (!pool.length) return;
     var size = Math.max(1, Math.min(+data.tray || 24, 80));
     slides = trayFor(pool, size, today());
-    station.hidden = false;
-    bench.classList.add('with-slides');
-    $('slidesNote').textContent = pool.length > slides.length
-      ? 'Today’s tray: ' + slides.length + ' of ' + pool.length + ' slides.'
-      : (slides.length === 1 ? 'One slide.' : slides.length + ' slides.');
+    wall.hidden = false; $('pjGroup').hidden = false; $('deckSep').hidden = false; $('tray').hidden = false;
+    room.classList.add('has-slides');
+    dwellEl.style.setProperty('--dwell', DWELL + 'ms');
+    $('slidesNote').textContent = (pool.length > slides.length
+      ? slides.length + ' of ' + pool.length + ' slides'
+      : (slides.length === 1 ? 'One slide' : slides.length + ' slides')) + '. A new tray loads each day.';
     autoBtn.setAttribute('aria-pressed', String(auto));
     drawTray(slides.length);
-    show(0, false);
-    schedule();
+    drawMounts();
+    show(0);
   }
   fetch('slides.json', { cache: 'no-cache' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){ if (d) start(d); })
-    .catch(function(){ /* no slides yet: the projector stays put away */ });
+    .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
 </body>
