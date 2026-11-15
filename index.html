@@ -8,8 +8,8 @@
 <meta property="og:title" content="Sean Beaverson">
 <meta property="og:description" content="An English teacher who builds things. A catalog of projects for schools, school leaders, and the people in them.">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#F4F1EB" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#142434" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EEF2F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1A222B" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -423,6 +423,7 @@ noscript ul{font-family:var(--font-sans)}
 <link rel="stylesheet" href="assets/photo-player.css?v=20261115.18">
 <link rel="stylesheet" href="assets/listening-room.css?v=20261115.18">
 <link rel="stylesheet" href="assets/tube-tv.css?v=20261115.17">
+<link rel="stylesheet" href="assets/winter.css?v=20261115.2">
 </head>
 <body>
 <a class="skip-link" href="#projects">Skip to the collection</a>
@@ -589,8 +590,8 @@ noscript ul{font-family:var(--font-sans)}
           <div class="controls" role="group" aria-label="Terminal">
             <div class="ctl">
               <span>Phosphor</span>
-              <button class="slide" id="phosphor" type="button" aria-label="Phosphor color: amber. Switch to green.">
-                <span class="opt" id="optAmb">Amb</span>
+              <button class="slide" id="phosphor" type="button" aria-label="Phosphor color: ice. Switch to green.">
+                <span class="opt" id="optAmb">Ice</span>
                 <span class="track" aria-hidden="true"><span class="knob"></span></span>
                 <span class="opt" id="optGrn">Grn</span>
               </button>
@@ -758,14 +759,16 @@ noscript ul{font-family:var(--font-sans)}
   var ph = $('phosphor');
   function renderPhosphor(){
     var green = root.getAttribute('data-phosphor') === 'green';
+    var base = root.getAttribute('data-season') === 'autumn' ? 'amber' : 'ice';   /* winter screens glow ice; autumn ones amber */
+    $('optAmb').textContent = base === 'ice' ? 'Ice' : 'Amb';
     $('optAmb').classList.toggle('on', !green);
     $('optGrn').classList.toggle('on', green);
-    ph.setAttribute('aria-label', 'Phosphor color: ' + (green ? 'green. Switch to amber.' : 'amber. Switch to green.'));
+    ph.setAttribute('aria-label', 'Phosphor color: ' + (green ? 'green. Switch to ' + base + '.' : base + '. Switch to green.'));
   }
   ph.addEventListener('click', function(){
     var green = root.getAttribute('data-phosphor') !== 'green';
     if (green) root.setAttribute('data-phosphor', 'green'); else root.removeAttribute('data-phosphor');
-    store('phosphor', green ? 'green' : 'amber');
+    store('phosphor', green ? 'green' : 'default');
     renderPhosphor();
   });
   renderPhosphor();
