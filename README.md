@@ -98,7 +98,7 @@ A compact viewfinder in the upper introduction quietly cycles through `slides.js
 
 **Frame notes** reveals the capture date, camera and lens, exposure settings, and frame dimensions when available. The color swatches are sampled from the photograph itself. **Kaleidoscope** is an optional mirrored view made from that same photo; it gently turns, responds to pointer movement, and pauses when offscreen, in the background, or on the contact sheet. Reduced-motion mode keeps the pattern still.
 
-The seven original uploads no longer contain EXIF. They show their known month, dimensions, and sampled colors. In the editor, **Read notes from original** restores selected camera details from a file you choose without replacing the displayed photo. New imports read those details before resizing. Each image has a **Share capture date and camera notes** choice; GPS coordinates, device serial numbers, owner names, and paths are never copied into the public manifest. Disabling camera notes omits them from the saved public manifest (the manually entered month remains).
+The seven original uploads no longer contain EXIF. They show their known month, dimensions, and sampled colors. In the editor, **Read place & notes from original** restores selected camera details and GPS from a file you choose without replacing the displayed photo. New imports read those details before resizing. Each image has a **Share capture date and camera notes** choice; device serial numbers, owner names, and paths are never copied into the public manifest. Disabling camera notes omits them from the saved public manifest (the manually entered month remains).
 
 In **Studio → Photographs**, add several images at once, write captions and image descriptions, reorder them, and choose a daily shuffle or your own sequence. The studio resizes new photographs to 1600 pixels, removes embedded metadata from the image file, saves selected camera notes separately, generates small thumbnails, and publishes the batch and manifest in one commit. Files never leave the device until you publish. New visible images require an image description.
 
@@ -111,7 +111,24 @@ Hiding an existing photo removes it from the tray, but its published image URL a
 Serve this directory with a local static HTTP server, then open its address. `/admin/?preview=1` demonstrates the editor using public data, with publishing disabled. It never loads private content. Run:
 
 ```sh
-node --test tests/studio.test.mjs
+node --test tests/*.test.mjs
 ```
 
 The EXIF reader is the vendored `exifr` 7.1.3 distribution (MIT license in `assets/vendor/exifr-LICENSE.txt`). It runs locally in the editor; photo originals are not sent to a metadata service.
+
+
+## Places, as a light print
+
+**Places → Light print** draws an exportable density artwork from shared photo locations, without a basemap. More photographs make a place glow more brightly. Visitors can filter by year, show place labels, select photographs, or switch to an OpenStreetMap view. No sample coordinates are published; the view stays empty until photographs have shared locations.
+
+The studio stores full coordinates in private `site-catalog/photo-locations.json`. A new geotagged import defaults to approximate sharing: public coordinates are rounded to one decimal degree (roughly 10 km, varying by latitude). Choose **Keep this location private** or **Exact pin** per photo. Hidden photographs never contribute to the public print. Original image files stay on the device; resized uploads have embedded metadata removed. Any location deliberately published remains in Git history even after it is hidden.
+
+Apple Photos originals or JPEG exports with location information are the most useful input. Google Photos downloads can be imported too; add missing places manually. This is selected-file import, not automatic library synchronization. Google Photos Picker requires separate OAuth setup and strips GPS from downloads, so it is not connected here.
+
+## Writing and listening
+
+**Studio → Inbox** accepts Medium, Spotify, and SoundCloud links as drafts. The optional bookmark-bar shortcut brings the current source page into that inbox. Set profile links under **Connected shelves** and save. Individual Spotify selections and public SoundCloud profiles, tracks, or sets open their official players on demand; nothing autoplays. Updating a playlist at its source updates the embedded player.
+
+Medium stories come from the public RSS feed. The existing hourly **Sync catalog** workflow also refreshes `feeds/medium.json`, keeping only titles, dates, short plain-text excerpts, and source links. It preserves the last good feed on network failure. The source profile must match before cached stories are displayed. Local writing and imported stories share one reading shelf, with duplicate links removed. Spotify profile links are navigation links; add a playlist, album, track, or other supported selection to create a player.
+
+Leaflet 1.9.4 and fast-xml-parser 5.12.1 are vendored with their licenses. The map loads only when selected, credits OpenStreetMap, and does not prefetch tiles. The light print needs no map service.

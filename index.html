@@ -416,7 +416,9 @@ noscript ul{font-family:var(--font-sans)}
   .frame{transition:none}
 }
 </style>
-<link rel="stylesheet" href="assets/collection.css">
+<link rel="stylesheet" href="assets/collection.css?v=20261115.2">
+<link rel="stylesheet" href="assets/portfolio.css?v=20261115.2">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
 </head>
 <body>
 <a class="skip-link" href="#projects">Skip to the collection</a>
@@ -456,7 +458,7 @@ noscript ul{font-family:var(--font-sans)}
           <a href="#projects">01 <span>Projects</span></a>
 
           <a href="#writing" id="writingNav" hidden>03 <span>Writing</span></a>
-          <a href="#listening" id="listeningNav" hidden>04 <span>Song lists</span></a>
+          <a href="#listening" id="listeningNav" hidden>04 <span>Listening</span></a>
         </nav>
       </div>
     <section id="photographs" class="photo-collection" aria-labelledby="photoHeading">
@@ -519,6 +521,7 @@ noscript ul{font-family:var(--font-sans)}
           </div>
           <span id="deckSep" hidden></span>
           <div class="viewfinder-tools">
+            <button id="placesToggle" type="button">Places <span aria-hidden="true">↗</span></button>
             <button id="frameNotesToggle" type="button" aria-expanded="false" aria-controls="frameNotes">Frame notes <span aria-hidden="true">＋</span></button>
             <button id="kaleidoscopeToggle" type="button" aria-pressed="false"><span aria-hidden="true">✺</span> Kaleidoscope</button>
           </div>
@@ -608,7 +611,7 @@ noscript ul{font-family:var(--font-sans)}
 
     <p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p>
     <section class="editorial-section" id="writing" hidden aria-labelledby="writingHeading"><h2 class="section-title" id="writingHeading"><span class="section-number">03 / FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></section>
-    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">04 / ON REPEAT</span>A soundtrack for the moment.</h2><div id="listeningItems"></div></section>
+    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">04 / ON REPEAT</span>The listening room.</h2><div id="listeningItems"></div></section>
     <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
   </main>
 
@@ -949,7 +952,9 @@ noscript ul{font-family:var(--font-sans)}
   }
 
   /* automatic advance: only while the wall is on screen, lit, and not being looked at closely */
-  function running(){ return auto && lit && !sheetOpen && visible && !hovering && !document.hidden && slides.length > 1; }
+  var atlasOpen=false;
+  window.addEventListener('viewfinder:atlas',function(e){atlasOpen=!!e.detail.open;schedule();});
+  function running(){ return auto && lit && !sheetOpen && !atlasOpen && visible && !hovering && !document.hidden && slides.length > 1; }
   function schedule(){
     clearTimeout(timer);
     label.setAttribute('aria-live', auto ? 'off' : 'polite');
@@ -1023,7 +1028,8 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
-<script type="module" src="assets/collection.js"></script>
-<script type="module" src="assets/viewfinder.mjs"></script>
+<script type="module" src="assets/collection.js?v=20261115.2"></script>
+<script type="module" src="assets/viewfinder.mjs?v=20261115.2"></script>
+<script type="module" src="assets/photo-atlas.mjs?v=20261115.2"></script>
 </body>
 </html>

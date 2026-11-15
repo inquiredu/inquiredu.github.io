@@ -1,5 +1,6 @@
-// A deliberate public metadata allowlist: no GPS, serial numbers, owner names, or file paths.
+// Capture metadata stays separate from the explicitly reviewed public map location.
 export const EXIF_TAGS = ['DateTimeOriginal','Make','Model','LensModel','FNumber','ExposureTime','ISO','FocalLength','FocalLengthIn35mmFormat'];
+export const LOCATION_TAGS = ['GPSLatitude','GPSLatitudeRef','GPSLongitude','GPSLongitudeRef'];
 const clean = value => typeof value === 'string' ? value.replace(/[\u0000-\u001f]/g,'').trim().slice(0,120) : '';
 const positive = value => typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
 export function safeMetadata(raw = {}) {
@@ -18,6 +19,31 @@ export function metadataFromExif(exif = {}) {
   const original=typeof exif.DateTimeOriginal==='string'?exif.DateTimeOriginal:'';
   const date=/^(\d{4})[:\-](\d{2})[:\-](\d{2})/.exec(original);
   return safeMetadata({camera,lens:exif.LensModel,date:date?`${date[1]}-${date[2]}-${date[3]}`:'',aperture:exif.FNumber,exposure:exif.ExposureTime,iso:exif.ISO,focalLength:exif.FocalLength});
+}
+export function safeLocation(raw) {
+  if(!raw||raw.lat===''||raw.lon===''||raw.lat==null||raw.lon==null)return null;
+  if(!['number','string'].includes(typeof raw.lat)||!['number','string'].includes(typeof raw.lon))return null;
+  const lat=Number(raw.lat),lon=Number(raw.lon);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return null;
+  return {lat,lon,label:clean(raw.label),precision:['approximate','exact'].includes(raw.precision)?raw.precision:'hidden'};
+}
+export function locationFromExif(exif={}) {
+  const decimal=(value,ref)=>{
+    if(!Array.isArray(value))return typeof value==='number'?value:NaN;
+    if(value.length!==3||!value.every(Number.isFinite))return NaN;
+    return (value[0]+value[1]/60+value[2]/3600)*(['S','W'].includes(ref)?-1:1);
+  };
+  return safeLocation({lat:exif.latitude??decimal(exif.GPSLatitude,exif.GPSLatitudeRef),lon:exif.longitude??decimal(exif.GPSLongitude,exif.GPSLongitudeRef),precision:'hidden'});
+}
+export function publicLocation(raw) {
+  const location=safeLocation(raw);
+  if(!location||location.precision==='hidden')return null;
+  // Approximation happens before data enters the public repository, not just on the map.
+  const digits=location.precision==='exact'?5:1;
+  return {...location,lat:Number(location.lat.toFixed(digits)),lon:Number(location.lon.toFixed(digits))};
+}
+export function publicMapPhotos(data) {
+  return (data?.slides||[]).filter(slide=>!slide.hidden).flatMap(slide=>{const location=publicLocation(slide.location);return location?[{...slide,location}]:[];});
 }
 export function exposureLabel(value) {
   if(!positive(value))return '';
@@ -39,11 +65,13 @@ export function metadataRows(slide = {}) {
   return rows;
 }
 export function publicSlides(data) {
-  return {...data, slides:data.slides.map(slide=>{
+  const header={};for(const key of ['version','updated','shuffle','tray'])if(data[key]!==undefined)header[key]=data[key];
+  return {...header, slides:data.slides.map(slide=>{
     const result={};
     for(const key of ['id','src','thumb','width','height','taken','caption','alt','hidden','shareMetadata'])if(slide[key]!==undefined)result[key]=slide[key];
     const metadata=slide.shareMetadata===false?{}:safeMetadata(slide.metadata);
     if(Object.keys(metadata).length)result.metadata=metadata;
+    const location=slide.hidden?null:publicLocation(slide.location);if(location)result.location=location;
     return result;
   })};
 }

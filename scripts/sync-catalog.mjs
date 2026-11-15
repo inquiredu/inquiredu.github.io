@@ -28,6 +28,7 @@
   Locally, `gh auth token` works for both keys.
 */
 import { appendFile } from 'node:fs/promises';
+import {syncMedium} from './medium-feed.mjs';
 
 const OWNER = process.env.OWNER || 'inquiredu';
 const TOPIC = process.env.TOPIC || 'shelf';
@@ -291,6 +292,9 @@ async function main() {
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, '### Tag sync\n\n' + counts + listNote + '\n\nDetails are in the commit to the private catalog.\n');
 }
 
+// The existing hourly job also refreshes the public writing shelf. A source outage
+// preserves the last good feed and never prevents project catalog maintenance.
+try{await syncMedium({read:path=>readFile(SITE_REPO,path),write:(path,text,sha,message)=>writeFile(SITE_REPO,path,text,sha,message),dry:DRY});}catch{console.log('::warning::Medium could not be refreshed. Keeping the previous writing shelf.');}
 main().catch(err => {
   if (err.status === 409) { console.log('::warning::The catalog changed while the sync was running. It will try again next hour.'); process.exit(0); }
   /* Error text can name a private repo, so a public log gets the status code only. */

@@ -1,6 +1,11 @@
 {
   "version": 1,
   "intro": "An educator’s collection of things made, ideas explored, and moments worth keeping.",
+  "sources": {
+    "medium": "https://medium.com/@smbeaverson",
+    "spotify": "https://open.spotify.com/user/smbeaverson",
+    "soundcloud": "https://soundcloud.com/sean-beaverson"
+  },
   "writing": [],
   "playlists": [
     {
@@ -9,8 +14,17 @@
       "date": "2026-11-15",
       "note": "",
       "url": "https://open.spotify.com/playlist/6DB4Qf8vrDgM62TjmymEua?si=5Vt-e-x2Sga-vCuZe-yOHw",
-      "published": true,
-      "tracks": []
+      "tracks": [],
+      "published": true
+    },
+    {
+      "id": "sean-soundcloud-recordings",
+      "title": "Recordings",
+      "date": "",
+      "note": "",
+      "url": "https://soundcloud.com/sean-beaverson",
+      "tracks": [],
+      "published": true
     }
   ]
 }

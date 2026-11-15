@@ -1,4 +1,4 @@
-import { metadataRows, paletteFromPixels } from './photo-notes.mjs';
+import { metadataRows, paletteFromPixels } from './photo-notes.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const wall=$('wall'), flip=$('viewfinderFlip'), canvas=$('kaleidoscopeCanvas'), toggle=$('kaleidoscopeToggle');
 const context=canvas.getContext('2d');
@@ -43,7 +43,9 @@ function draw(){
     context.restore();
   }
 }
-function shouldRun(){return active&&visible&&!document.hidden&&!flip.classList.contains('is-flipped')&&!motion.matches;}
+let atlasOpen=false;
+window.addEventListener('viewfinder:atlas',event=>{atlasOpen=!!event.detail.open;sync();});
+function shouldRun(){return active&&visible&&!atlasOpen&&!document.hidden&&!flip.classList.contains('is-flipped')&&!motion.matches;}
 function tick(time){
   request=0;if(!shouldRun())return;
   if(time-lastTime>40){phase+=Math.min(time-lastTime,80)*.00006;lastTime=time;draw();}

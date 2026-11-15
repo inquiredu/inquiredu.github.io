@@ -1,11 +1,12 @@
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
-import { EXIF_TAGS, metadataFromExif, metadataRows, publicSlides } from '../assets/photo-notes.mjs';
-import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.1';
+import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
+import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
-let github, config, popup, channel, catalog, content, photos, revisions = {}, active = 'projects', busy = false;
+let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
 let dirty = new Set(), pending = new Map(), objectURLs = [], demo = new URLSearchParams(location.search).get('preview') === '1';
-const group = () => ['writing','playlists','about'].includes(active) ? 'content' : active;
+const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
 function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; }
@@ -14,7 +15,7 @@ function field(parent, label, obj, key, type = 'text', wide = false) {
   const wrap = make('label', label, wide ? 'wide' : '');
   const input = make(type === 'textarea' ? 'textarea' : 'input');
   if (type !== 'textarea') input.type = type;
-  input.value = obj[key] || ''; input.addEventListener('input', () => { obj[key] = input.value; changed(); });
+  input.value = obj[key] ?? ''; input.addEventListener('input', () => { obj[key] = input.value; changed(); });
   wrap.append(input); parent.append(wrap); return input;
 }
 function check(parent, label, obj, key, invert = false) {
@@ -56,7 +57,7 @@ function renderPhotos() {
   $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
   const drop = make('div', '', 'drop'); const label = make('label', 'Choose photos or drop them here'); const input = make('input');
   input.type='file'; input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif'; input.multiple=true;
-  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Images are resized; camera notes are kept separately. GPS and device serial numbers are never published. Originals stay on your device.'));
+  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Original photos bring their places with them. Exact coordinates stay in your private catalog; the public map uses approximate areas unless you choose otherwise.'));
   drop.ondragover = e => { e.preventDefault(); drop.classList.add('dragover'); }; drop.ondragleave = () => drop.classList.remove('dragover');
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
   const options = make('div', '', 'actions');
@@ -69,6 +70,12 @@ function renderPhotos() {
     const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
     field(card,'Caption',photo,'caption'); field(card,'Image description',photo,'alt'); field(card,'Month taken',photo,'taken','month');
     check(card,'Include in the projector',photo,'hidden',true);
+    photo.location ||= {lat:'',lon:'',label:'',precision:'hidden'};
+    const place=make('details','','place-editor');place.append(make('summary',safeLocation(photo.location)?'Place & map sharing':'Add a place'));
+    field(place,'Place name',photo.location,'label');
+    const coordinates=make('div','','coordinates');const latitude=field(coordinates,'Latitude',photo.location,'lat','number'),longitude=field(coordinates,'Longitude',photo.location,'lon','number');latitude.step=longitude.step='any';latitude.min='-90';latitude.max='90';longitude.min='-180';longitude.max='180';place.append(coordinates);
+    select(place,'Public map',photo.location,'precision',[['hidden','Keep this location private'],['approximate','Approximate area (~10 km)'],['exact','Exact pin']]);
+    place.append(make('small','Only the chosen precision is written to the public site. Removing a published pin cannot erase earlier repository history.'));card.append(place);
     const notes = metadataRows({...photo, shareMetadata:true}).filter(row=>['Camera','Lens','Exposure'].includes(row[0]));
     card.append(make('p', notes.length ? notes.map(row=>row[1]).join(' · ') : 'No camera notes attached yet.', 'muted'));
     if(Object.keys(photo.metadata || {}).length)check(card,'Share capture date and camera notes',photo,'shareMetadata');
@@ -76,12 +83,13 @@ function renderPhotos() {
     original.onchange=async()=>{
       const file=original.files[0];if(!file)return;
       if(file.size>30*1024*1024){status('Choose an original smaller than 30 MB.');return;}
-      const details=await readMetadata(file);
-      if(!Object.keys(details).length){status('This file has no readable camera metadata. Try the original photograph rather than an exported copy.');return;}
-      photo.metadata=details;photo.shareMetadata=true;if(details.date)photo.taken=details.date.slice(0,7);
-      dirty.add('photos');render();status('Camera notes restored from the original. Review them, then publish when ready.');
+      const {metadata,location}=await readMetadata(file);
+      if(!Object.keys(metadata).length&&!location){status('This file has no readable camera or location metadata. Try the original photograph, or add a place manually.');return;}
+      photo.metadata=metadata;photo.shareMetadata=true;if(metadata.date)photo.taken=metadata.date.slice(0,7);
+      if(location)photo.location={...location,label:photo.location.label||'',precision:'approximate'};
+      dirty.add('photos');render();status('Metadata restored. Review the approximate map location, then publish when ready.');
     };
-    card.append(original,button('Read notes from original',()=>original.click()));
+    card.append(original,button('Read place & notes from original',()=>original.click()));
     const actions = reorder(card,photos.slides,index);
     if (pending.has(photo.id)) actions.append(button('Remove new photo',()=>{ pending.delete(photo.id); photos.slides.splice(index,1);changed();render(); }));
     grid.append(card);
@@ -104,14 +112,38 @@ function renderWords() {
       const input=field(fields,'Songs — one per line: title | artist | optional link',tracks,'lines','textarea',true);
       input.addEventListener('input',()=>{item.tracks=input.value.split('\n').filter(x=>x.trim()).map(line=>{const [title='',artist='',url='']=line.split('|').map(x=>x.trim());return {title,artist,url};});});
     }
-    field(fields,writing?'Optional link to the full piece':'Optional playlist link',item,'url','url',true);check(fields,'Publish on the public page',item,'published');
+    field(fields,writing?'Optional link to the full piece':'Spotify or SoundCloud link',item,'url','url',true);
+    if(!writing){const source=musicSource(item.url);fields.append(make('p',source?`${source.provider} player · changes to this selection stay live at the source.`:'Paste a public playlist, album, track, or SoundCloud profile link.','muted'));}
+    check(fields,'Publish on the public page',item,'published');
     card.append(fields);reorder(card,items,index);$('items').append(card);
   });
+}
+function addSharedLink(url,title='') {
+  const result=importLink(url,title),duplicate=content[result.section].find(item=>item.url===result.item.url);
+  if(duplicate){active=result.section;render();status('This link is already in your collection.');return;}
+  content[result.section].unshift({...result.item,id:crypto.randomUUID(),date:new Date().toISOString().slice(0,10)});dirty.add('content');active=result.section;render();status('Added as a draft. Add your context, then save.');
+}
+function renderInbox() {
+  $('toolbar').append(make('p','A small doorway into the collection. Bring a link, a photograph, or a thought.'));
+  const capture=make('section','','capture-box');capture.append(make('p','QUICK ADD','eyebrow'),make('h2','Found something worth keeping?'));
+  const entry={url:''};const input=field(capture,'Spotify, SoundCloud, or Medium link',entry,'url','url');input.placeholder='Paste a link…';
+  capture.append(button('Add to the collection',()=>{try{addSharedLink(entry.url);}catch(error){status(error.message);}}),button('Add photographs',()=>{active='photos';render();}));$('items').append(capture);
+  const bookmark=make('a','Keep in my collection','capture-bookmark');
+  bookmark.href="javascript:(()=>{const u=new URL('https://inquiredu.org/admin/');u.searchParams.set('share',location.href);u.searchParams.set('title',document.title);window.open(u.href,'_blank','noopener');})()";
+  const shortcut=make('p','','muted');shortcut.append('On a computer, drag ',bookmark,' to your bookmarks bar. Use it on a Spotify, SoundCloud, or Medium page to bring that link here as a draft.');capture.append(shortcut);
+  const drafts=make('div','','inbox-drafts');for(const [section,label] of [['writing','writing'],['playlists','listening']]){const count=content[section].filter(x=>!x.published).length;if(count)drafts.append(button(`${count} ${label} draft${count===1?'':'s'} →`,()=>{active=section;render();}));}if(drafts.childElementCount)$('items').append(drafts);
+  const sources=make('section','','item');sources.append(make('h2','Connected shelves'),make('p','Maintain a playlist at its source; keep the story and context here.','muted'));const fields=make('div','','fields');
+  field(fields,'Medium profile or publication',content.sources,'medium','url',true);fields.append(make('p','Your latest published Medium stories join the writing shelf automatically. The first refresh can take up to an hour.','muted wide'));
+  field(fields,'Spotify profile',content.sources,'spotify','url');field(fields,'SoundCloud profile',content.sources,'soundcloud','url');sources.append(fields);$('items').append(sources);
+  const help=make('details','','item');help.append(make('summary','From your photo library'));
+  help.append(make('p','Apple Photos: select favorites, then File → Export → Export Unmodified Original. Add those originals here to recover capture locations. JPEG exports with location information work too.'));
+  help.append(make('p','Google Photos: export or download your selected favorites, then add them here. If an image has no location, you can add a place. Google’s Picker API removes GPS; a shared album link cannot supply a live map.'));
+  help.append(make('p','On your phone, Add photographs opens the system picker. Import only the moments you want to share; review the map setting before publishing.'));$('items').append(help);
 }
 function render() {
   $('toolbar').replaceChildren();$('items').replaceChildren();
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===active)));
-  if(active==='projects')renderProjects(); else if(active==='photos')renderPhotos(); else if(active==='about'){
+  if(active==='inbox')renderInbox();else if(active==='projects')renderProjects(); else if(active==='photos')renderPhotos(); else if(active==='about'){
     $('toolbar').append(make('p','The short introduction under your name.'));field($('items'),'Introduction',content,'intro','textarea');
   } else renderWords();
   updateButton();
@@ -123,20 +155,22 @@ async function load() {
       const responses=await Promise.all(['projects.json','content.json','slides.json'].map(p=>fetch(`../${p}`).then(r=>{if(!r.ok)throw new Error('Preview content did not load.');return r.json();})));
       [catalog,content,photos]=responses;
     }else{
-      const [cat,words,pictures,pubProjects,pubContent,head]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head()]);
+      const [cat,words,pictures,pubProjects,pubContent,head,places]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head(),github.read(PRIVATE,'photo-locations.json',true)]);
       catalog=cat.data;content=words?.data||pubContent?.data||{version:1,intro:'',writing:[],playlists:[]};photos=pictures.data;
-      revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head};
+      privateLocations=places?.data.locations||{};for(const photo of photos.slides)if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);
+      revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha};
     }
-    content.writing ||= [];content.playlists ||= [];dirty.clear();pending.clear();
+    content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();
     objectURLs.forEach(URL.revokeObjectURL);objectURLs=[];
     $('gate').hidden=true;$('studio').hidden=false;$('signout').hidden=demo;
     $('sessionLabel').textContent=demo?'Preview · edits are not saved':'Signed in · inquiredu';
     status(demo?'Preview mode. You can explore the editor; publishing is disabled.':'');render();
+    if(!sharedLinkHandled){sharedLinkHandled=true;const params=new URLSearchParams(location.search);if(params.has('share')){try{addSharedLink(params.get('share'),params.get('title')||'');}catch(error){status(error.message);}if(!demo)history.replaceState(null,'',location.pathname);}}
   }catch(error){status(error.message);}finally{busy=false;updateButton();}
 }
 async function readMetadata(file) {
-  try { return metadataFromExif(await parseExif(file,{pick:EXIF_TAGS,gps:false,reviveValues:false,xmp:false,iptc:false,icc:false})); }
-  catch { return {}; }
+  try {const raw=await parseExif(file,{pick:[...EXIF_TAGS,...LOCATION_TAGS],gps:true,reviveValues:false,xmp:false,iptc:false,icc:false});return {metadata:metadataFromExif(raw),location:locationFromExif(raw)};}
+  catch { return {metadata:{},location:null}; }
 }
 async function importPhotos(files) {
   if(busy)return;
@@ -147,7 +181,7 @@ async function importPhotos(files) {
     try{
       if(file.size>30*1024*1024)throw new Error('over 30 MB');
       status(`Preparing photograph ${added+1}…`);
-      const metadata=await readMetadata(file);
+      const {metadata,location:place}=await readMetadata(file);
       bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
       if(bitmap.width*bitmap.height>80000000)throw new Error('image too large');
       const canvas=document.createElement('canvas'), ratio=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
@@ -159,7 +193,7 @@ async function importPhotos(files) {
       const image64=canvas.toDataURL('image/jpeg',.86).split(',')[1];
       const thumb=document.createElement('canvas');const scale=Math.min(1,360/Math.max(canvas.width,canvas.height));thumb.width=Math.round(canvas.width*scale);thumb.height=Math.round(canvas.height*scale);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
       const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
-      photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true});
+      photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true,...(place?{location:{...place,precision:'approximate'}}:{})});
       pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;
     }catch{failed.push(file.name);}finally{bitmap?.close();}
   }
@@ -171,6 +205,12 @@ function validate() {
   if(group()==='photos'){
     if(!Number.isInteger(+photos.tray)||+photos.tray<1||+photos.tray>80)throw new Error('Choose between 1 and 80 slides per tray.');
     for(const slide of photos.slides)if(pending.has(slide.id)&&!slide.hidden&&!slide.alt?.trim())throw new Error('Add an image description to each new photo before publishing.');
+    for(const slide of photos.slides)if(slide.location?.precision!=='hidden'&&slide.location&&!safeLocation(slide.location))throw new Error('Enter valid latitude and longitude, or keep that location private.');
+  }
+  if(group()==='content'){
+    if(content.sources?.medium&&!mediumSource(content.sources.medium))throw new Error('Use a Medium profile or publication URL, such as https://medium.com/@username.');
+    const sources=publicSources(content.sources);for(const key of ['spotify','soundcloud'])if(content.sources?.[key]&&!sources[key])throw new Error(`Use a full public ${key==='spotify'?'Spotify profile':'SoundCloud'} URL.`);
+    for(const item of content.playlists)if(item.published&&item.url&&/spotify|soundcloud/i.test(item.url)&&!musicSource(item.url))throw new Error('Use a full public Spotify selection or SoundCloud link. Private and short music links are not published.');
   }
   const entries=group()==='projects'?catalog.projects:group()==='content'?[...content.writing,...content.playlists]:[];
   if(entries.some(x=>!x.title?.trim()))throw new Error('Give each entry a title before publishing.');
@@ -189,6 +229,8 @@ async function publish() {
       revisions.pubContent=await github.write(SITE,'content.json',publicContent(content),revisions.pubContent,'Publish writing and song lists');
     }else{
       photos.updated=new Date().toISOString().slice(0,10);photos.tray=+photos.tray;
+      for(const photo of photos.slides){const place=safeLocation(photo.location);if(place)privateLocations[photo.id]=place;else delete privateLocations[photo.id];}
+      revisions.locations=await github.write(PRIVATE,'photo-locations.json',{version:1,locations:privateLocations},revisions.locations,'Save private photograph locations');
       const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(publicSlides(photos))});
       revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
     }
