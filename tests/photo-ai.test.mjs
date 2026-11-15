@@ -24,7 +24,7 @@ test('AI verifies owner before accepting a billable image request',async()=>{
 });
 test('missing key reports a disabled capability without exposing configuration',async()=>{
   const response=await photoAI(req('/ai/config'),{...env,OPENAI_API_KEY:''},async()=>ok({id:192934662}));
-  assert.deepEqual(await response.json(),{enabled:false,provider:'OpenAI'});
+  assert.deepEqual(await response.json(),{enabled:false,provider:'OpenAI',places:true});
 });
 test('JPEG previews discard EXIF, comments and trailing private data',()=>{
   const raw=Buffer.from(image.split(',')[1],'base64'),privateData=Buffer.from('Exif\0\0PRIVATE-GPS');
@@ -43,8 +43,8 @@ test('AI accepts only image data, never metadata or arbitrary source URLs',async
 });
 test('OpenAI receives bounded image-only structured request and its result is sanitized',async()=>{
   const calls=[];const result=await photoAI(req(),env,async(url,options)=>{calls.push({url,options});return ok(calls.length===1?{id:192934662}:completed);});
-  assert.equal(result.status,200);assert.deepEqual(await result.json(),draft);assert.equal(calls[1].url,'https://api.openai.com/v1/responses');
-  const body=JSON.parse(calls[1].options.body);assert.equal(body.store,false);assert.equal(body.max_output_tokens,600);assert.equal(body.text.format.strict,true);assert.equal(body.input[0].content[1].detail,'high');
+  assert.equal(result.status,200);assert.deepEqual(await result.json(),{...draft,place:null,placeMessage:'No reliable public place recognized. Add a known city or landmark to help.'});assert.equal(calls[1].url,'https://api.openai.com/v1/responses');
+  const body=JSON.parse(calls[1].options.body);assert.equal(body.store,false);assert.equal(body.max_output_tokens,1000);assert.equal(body.text.format.strict,true);assert.equal(body.input[0].content[1].detail,'high');
   assert.doesNotMatch(JSON.stringify(body),/test_token|fake-api-key|latitude|longitude/);assert.equal(result.headers.get('Cache-Control'),'no-store');
 });
 test('provider failure does not leak credentials, upstream details or partial text',async()=>{

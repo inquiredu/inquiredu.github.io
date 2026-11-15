@@ -418,6 +418,7 @@ noscript ul{font-family:var(--font-sans)}
 </style>
 <link rel="stylesheet" href="assets/collection.css?v=20261115.2">
 <link rel="stylesheet" href="assets/portfolio.css?v=20261115.2">
+<link rel="stylesheet" href="assets/analog.css?v=20261115.7">
 <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
 </head>
 <body>
@@ -457,8 +458,8 @@ noscript ul{font-family:var(--font-sans)}
         <nav class="collection-nav" aria-label="The collection">
           <a href="#projects">01 <span>Projects</span></a>
 
-          <a href="#writing" id="writingNav" hidden>03 <span>Writing</span></a>
-          <a href="#listening" id="listeningNav" hidden>04 <span>Listening</span></a>
+          <a href="#writing" id="writingNav" hidden>02 <span>Writing</span></a>
+          <a href="#listening" id="listeningNav" hidden>03 <span>Listening</span></a>
         </nav>
       </div>
     <section id="photographs" class="photo-collection" aria-labelledby="photoHeading">
@@ -469,7 +470,7 @@ noscript ul{font-family:var(--font-sans)}
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
       <canvas id="kaleidoscopeCanvas" class="kaleidoscope-canvas" aria-hidden="true" hidden></canvas>
-      <div class="pj-glow" aria-hidden="true"></div>
+      <div class="photo-shutter" aria-hidden="true"></div><div class="pj-glow" aria-hidden="true"></div>
       <div class="pj-dust" aria-hidden="true"></div>
       <div class="pj-falloff" aria-hidden="true"></div>
       <div class="pj-off-note" aria-hidden="true">Projector lamp off</div>
@@ -545,7 +546,7 @@ noscript ul{font-family:var(--font-sans)}
       <p id="libraryNote">Loading the catalog.</p>
     </div>
 
-    <section class="terminal" aria-label="Project catalog">
+    <div class="library-objects"><section class="terminal" aria-label="Project catalog">
       <div class="chassis">
         <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
         <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
@@ -561,7 +562,7 @@ noscript ul{font-family:var(--font-sans)}
 
             <div class="panes">
               <ul class="records" id="records" aria-label="Project records"></ul>
-              <article class="card" id="card" aria-live="polite"></article>
+
             </div>
 
             <div class="bar">
@@ -609,9 +610,9 @@ noscript ul{font-family:var(--font-sans)}
       </div>
     </section>
 
-    <p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p>
-    <section class="editorial-section" id="writing" hidden aria-labelledby="writingHeading"><h2 class="section-title" id="writingHeading"><span class="section-number">03 / FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></section>
-    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">04 / ON REPEAT</span>The listening room.</h2><div id="listeningItems"></div></section>
+    <div class="paper-catalog"><article class="card" id="card" aria-live="polite"></article><p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p></div></div>
+    <section class="editorial-section" id="writing" hidden aria-labelledby="writingHeading"><h2 class="section-title" id="writingHeading"><span class="section-number">02 / FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></section>
+    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">03 / ON REPEAT</span>The listening room.</h2><div id="listeningItems"></div></section>
     <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
   </main>
 
@@ -680,7 +681,7 @@ noscript ul{font-family:var(--font-sans)}
       ? '<a href="' + esc(safeUrl) + '">' + esc(locOf(safeUrl)) + ' ↗</a>'
       : 'Closed stacks · <a href="' + ASK + '">ask the librarian ↗</a>';
     card.innerHTML =
-      '<div class="card-top"><span>' + esc(r.call) + '</span><span>' + (r.featured ? '✦ ' : '') + esc(r.status) + '</span></div>' +
+      '<div class="card-top"><span class="card-call">' + esc(r.call).replace(' ', '<br>') + '</span><span>' + (r.featured ? '✦ ' : '') + esc(r.status) + '</span></div>' +
       '<h3 class="card-title">' + esc(r.title) + '</h3>' +
       '<dl class="fields">' +
         (String(r.subject || '').trim() ? '<div><dt>Subject</dt><dd>' + esc(r.subject) + '</dd></div>' : '') +
@@ -805,7 +806,7 @@ noscript ul{font-family:var(--font-sans)}
   var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 9000;
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var slides = [], at = -1, angle = 0, spin = null, front = 0, want = 0;
+  var slides = [], at = -1, angle = 0, spin = null, front = 0, want = 0, slots = 24, filmTimer;
   var sheetOpen = false;
   var lit = true, auto = !reduce, visible = false, hovering = false, timer = null;
   var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
@@ -864,12 +865,12 @@ noscript ul{font-family:var(--font-sans)}
     var mk = function(tag, attrs, parent){ var el = document.createElementNS(SVGNS, tag); for (var k in attrs) el.setAttribute(k, attrs[k]); (parent || trayEl).appendChild(el); return el; };
     mk('circle', { r: 47, fill: '#0a0b0c' });
     spin = mk('g', {});
-    spin.style.transition = reduce ? 'none' : 'transform 500ms cubic-bezier(.6,0,.3,1)';
+    spin.style.transition = reduce ? 'none' : 'transform 650ms cubic-bezier(.4,1.5,.5,1)';
     mk('circle', { r: 45, fill: '#1d2124', stroke: '#2f3439', 'stroke-width': 1 }, spin);
-    for (var k = 0; k < n; k++){
-      var a = (k * 360 / n - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    for (var k = 0; k < slots; k++){
+      var a = (k * 360 / slots - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
       mk('line', { x1: (c * 21).toFixed(2), y1: (s * 21).toFixed(2), x2: (c * 41).toFixed(2), y2: (s * 41).toFixed(2),
-        stroke: '#0b0c0d', 'stroke-width': n > 40 ? 2 : 3, 'stroke-linecap': 'round', 'data-k': k }, spin);
+        stroke: k < n ? '#d9d0be' : '#11120f', 'stroke-width': slots > 40 ? 2 : 3, 'stroke-linecap': 'round', 'data-k': k }, spin);
     }
     mk('circle', { r: 15, fill: '#2a2e33', stroke: '#0b0c0d', 'stroke-width': 1.5 }, spin);
     mk('circle', { r: 4, fill: '#0b0c0d' }, spin);
@@ -878,7 +879,7 @@ noscript ul{font-family:var(--font-sans)}
   function markSlot(){
     if (!spin) return;
     Array.prototype.forEach.call(spin.querySelectorAll('line'), function(l){
-      l.setAttribute('stroke', +l.getAttribute('data-k') === at ? '#F4AE72' : '#0b0c0d');
+      l.setAttribute('stroke', +l.getAttribute('data-k') === at ? '#F4AE72' : (+l.getAttribute('data-k') < slides.length ? '#d9d0be' : '#11120f'));
     });
   }
 
@@ -915,6 +916,8 @@ noscript ul{font-family:var(--font-sans)}
     var im = new Image();
     im.onload = function(){
       if (want !== k) return;   /* a newer request has arrived since */
+      clearTimeout(filmTimer);if(!reduce)wall.classList.add('advancing');
+      filmTimer=setTimeout(function(){if(want!==k)return;
       at = k;
       var f = frames[front = 1 - front], other = frames[1 - front], photo = f.querySelector('.photo');
       f.querySelector('.spill').src = s.src;
@@ -926,7 +929,8 @@ noscript ul{font-family:var(--font-sans)}
       photo.style.setProperty('--kx', Math.round(20 + rnd() * 60) + '%');
       photo.style.setProperty('--ky', Math.round(25 + rnd() * 50) + '%');
       f.classList.remove('on'); void f.offsetWidth;
-      f.classList.add('on'); other.classList.remove('on');
+      f.classList.add('on');if(!reduce)f.classList.add('film-enter');other.classList.remove('on');
+      wall.classList.remove('advancing');setTimeout(function(){f.classList.remove('film-enter');},40);
       other.setAttribute('aria-hidden', 'true'); f.removeAttribute('aria-hidden');
       var amb = ambientOf(im); if (amb) room.style.setProperty('--ambient', amb);
       label.textContent = labelText(s);
@@ -934,25 +938,27 @@ noscript ul{font-family:var(--font-sans)}
       wallNo.textContent = pad(k + 1) + ' / ' + pad(slides.length);
       fillMount(k); markSlot(); markMount(); preload(k + 1);
       schedule();
+      },reduce?0:170);
     };
     im.onerror = function(){ if (want === k && slides.length > 1){ slides.splice(k, 1); drawTray(slides.length); drawMounts(); show(k); } };
     im.src = s.src;
   }
   function step(dir){
     if (slides.length < 2) return;
-    angle -= dir * 360 / slides.length;
+    angle -= dir * 360 / slots;
     if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
     show(want + dir);
   }
   function jump(k){
     if (k === want) return;
-    var d = k - want; angle -= d * 360 / slides.length;
+    var d = k - want; angle -= d * 360 / slots;
     if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
     show(k);
   }
 
   /* automatic advance: only while the wall is on screen, lit, and not being looked at closely */
   var atlasOpen=false;
+  window.addEventListener('viewfinder:select',function(e){var i=slides.findIndex(function(s){return s.id===e.detail.id;});if(i>=0)jump(i);});
   window.addEventListener('viewfinder:atlas',function(e){atlasOpen=!!e.detail.open;schedule();});
   function running(){ return auto && lit && !sheetOpen && !atlasOpen && visible && !hovering && !document.hidden && slides.length > 1; }
   function schedule(){
@@ -1008,7 +1014,7 @@ noscript ul{font-family:var(--font-sans)}
   function start(data){
     var pool = (data.slides || []).filter(function(s){ return s && s.src && !s.hidden; });
     if (!pool.length) return;
-    var size = Math.max(1, Math.min(+data.tray || 24, 80));
+    var size = Math.max(1, Math.min(+data.tray || 24, 80));slots=size;
     slides = data.shuffle === false ? pool.slice(0, size) : trayFor(pool, size, today());
     wall.hidden = false; $('pjGroup').hidden = false; $('deckSep').hidden = false; $('tray').hidden = false;
     room.classList.add('has-slides');
@@ -1028,8 +1034,8 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
-<script type="module" src="assets/collection.js?v=20261115.2"></script>
+<script type="module" src="assets/collection.js?v=20261115.7"></script>
 <script type="module" src="assets/viewfinder.mjs?v=20261115.2"></script>
-<script type="module" src="assets/photo-atlas.mjs?v=20261115.4"></script>
+<script type="module" src="assets/photo-atlas.mjs?v=20261115.7"></script>
 </body>
 </html>

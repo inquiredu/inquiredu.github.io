@@ -3,7 +3,7 @@ export function photoContexts(slides) {
   return Object.fromEntries(slides.filter(photo=>typeof photo.id==='string'&&cleanContext(photo.aiContext)).map(photo=>[photo.id,cleanContext(photo.aiContext)]));
 }
 export async function aiRequest(origin,token,path,image,context='') {
-  const response=await fetch(new URL(path,origin),{method:image?'POST':'GET',credentials:'omit',cache:'no-store',headers:{Authorization:`Bearer ${token}`,...(image?{'Content-Type':'application/json'}:{})},...(image?{body:JSON.stringify({image,...(cleanContext(context)?{context:cleanContext(context)}:{})})}:{}),signal:AbortSignal.timeout(image?55000:12000)});
+  const response=await fetch(new URL(path,origin),{method:image?'POST':'GET',credentials:'omit',cache:'no-store',headers:{Authorization:`Bearer ${token}`,...(image?{'Content-Type':'application/json'}:{})},...(image?{body:JSON.stringify({image,...(cleanContext(context)?{context:cleanContext(context)}:{})})}:{}),signal:AbortSignal.timeout(image?70000:12000)});
   let data;try{data=await response.json();}catch{throw new Error('The description service is not connected yet.');}
   if(!response.ok)throw new Error(data.error||'The description service is unavailable.');return data;
 }

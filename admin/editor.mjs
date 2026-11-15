@@ -2,7 +2,9 @@ import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
-import { aiRequest, imagePreview, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.6';
+import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
+import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.7';
+import { aiRequest, imagePreview, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.7';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
@@ -11,6 +13,8 @@ let dirty = new Set(), pending = new Map(), objectURLs = [], demo = new URLSearc
 let expandedProject;
 let aiReady=false, autoDescribe=true, aiMessage='Checking the description service…';
 const aiStates=new Map(), aiViews=new Map();
+let placeReviews={},refreshPlacesRunning=false,stopPlaceRefresh=false;
+const placeViews=new Map();
 const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
@@ -64,13 +68,13 @@ function renderProjects() {
 }
 async function checkAI() {
   aiReady=false;
-  try{aiReady=!demo&&(await aiRequest(config.authOrigin,github.token,'/ai/config')).enabled;aiMessage=aiReady?'AI can name recognizable public landmarks. A preview and any place name you add go to OpenAI; GPS and camera metadata stay private. Review names before publishing.':demo?'AI is available in the signed-in studio once connected.':'AI needs its one-time OpenAI connection. Uploads and manual descriptions still work.';}
+  try{aiReady=!demo&&(await aiRequest(config.authOrigin,github.token,'/ai/config')).enabled;aiMessage=aiReady?'AI can name recognizable public landmarks. A preview and any place name you add go to OpenAI; GPS and camera metadata stay private. Recognized public places are checked against Wikipedia and offered as approximate areas for your review.':demo?'AI is available in the signed-in studio once connected.':'AI needs its one-time OpenAI connection. Uploads and manual descriptions still work.';}
   catch{aiMessage='The description service is unavailable. Uploads and manual descriptions still work.';}
 }
 function photoAIControls(photo,box,caption,alt) {
   const refresh=()=>{
     box.replaceChildren();const state=aiStates.get(photo.id);
-    const action=button(state?.loading?'Finding the words…':'Suggest description',()=>suggestPhoto(photo),!aiReady||busy||state?.loading);
+    const action=button(state?.loading?'Looking closely…':'Suggest words & place',()=>suggestPhoto(photo),!aiReady||busy||state?.loading);
     box.append(action);
     if(state?.message)box.append(make('p',state.message,'muted'));
     if(state?.draft){
@@ -81,7 +85,7 @@ function photoAIControls(photo,box,caption,alt) {
   };
   aiViews.set(photo.id,()=>{caption.value=photo.caption||'';alt.value=photo.alt||'';refresh();});refresh();
 }
-async function suggestPhoto(photo,{automatic=false,blob}={}) {
+async function suggestPhoto(photo,{automatic=false,blob,placeOnly=false}={}) {
   if(!aiReady||(!automatic&&busy))return false;
   if(!automatic){busy=true;updateButton();}
   const before={caption:photo.caption,alt:photo.alt};
@@ -90,15 +94,60 @@ async function suggestPhoto(photo,{automatic=false,blob}={}) {
     if(!blob){const response=await fetch(pending.get(photo.id)?.preview||new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error('The image preview could not be read.');blob=await response.blob();}
     const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob),photo.aiContext);
     if(!photos.slides.includes(photo))return false;
-    const filled=fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
+    if(needsPlace(photo)){placeReviews[photo.id]={place:safeSuggestion(draft.place),message:draft.placeMessage||'No reliable place found.',status:'suggested',context:cleanContext(photo.aiContext),updated:new Date().toISOString()};}
+    const filled=placeOnly?[]:fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
     state.message=filled.length===2?'AI draft added. Edit either field before publishing.':'Your words are preserved. Review this suggestion below.';
-    if(filled.length<2)state.draft=draft;
+    if(!placeOnly&&filled.length<2)state.draft=draft;
+    if(placeOnly)state.message='Location refresh finished. Existing words are preserved.';
+    if(!automatic)try{await savePlaceReviews();}catch{state.message+=' Private save failed; suggestions remain in this tab.';}
     return true;
   }catch(error){state.message=error.name==='TimeoutError'?'This took too long. Try again, or write your own description.':error.message;return false;}
-  finally{state.loading=false;if(!automatic)busy=false;updateButton();for(const refresh of aiViews.values())refresh();}
+  finally{state.loading=false;if(!automatic)busy=false;updateButton();for(const refresh of [...aiViews.values(),...placeViews.values()])refresh();}
+}
+async function savePlaceReviews() {
+  if(demo||!github)return;
+  revisions.placeReviews=await github.write(PRIVATE,'photo-place-suggestions.json',{version:1,reviews:placeReviews},revisions.placeReviews,'Save private photo place suggestions for review');
+}
+function placeControls(photo,box) {
+  const refresh=()=>{
+    box.replaceChildren();const review=placeReviews[photo.id],suggestion=safeSuggestion(review?.place);
+    if(!review)return;
+    if(!suggestion){box.append(make('p',review.message||'No reliable place found. Add a known city or landmark and retry.','muted'));return;}
+    if(review.status==='dismissed'){box.append(make('p','Place suggestion dismissed. Refresh to try again.','muted'));return;}
+    if(!needsPlace(photo)){box.append(make('p',review.status==='published'?'Reviewed place published.':'Location kept. Save & publish when you are ready.','muted'));return;}
+    const proposal=make('div','','place-proposal');proposal.append(make('small','SUGGESTED AREA · NOT PUBLISHED'),make('h3',suggestion.label),make('p',suggestion.evidence),make('p',`${suggestion.lat.toFixed(1)}°, ${suggestion.lon.toFixed(1)}° · approximate area (~10 km)`,'muted'));
+    const source=make('a','Check place reference ↗');source.href=suggestion.sourceUrl;source.target='_blank';source.rel='noopener';proposal.append(source);
+    const actions=make('div','','actions');actions.append(button('Review area',()=>previewPlace(suggestion),busy),button('Use approximate area',()=>{if(applyPlaceSuggestion(photo,review)){dirty.add('photos');render();status('Approximate area added to your draft. It will appear publicly only when you Save & publish photographs.');}},busy),button('Dismiss place',async()=>{review.status='dismissed';refresh();try{await savePlaceReviews();status('Place suggestion dismissed and saved privately.');}catch(error){status(error.message+' Your review remains in this tab.');}},busy));proposal.append(actions);box.append(proposal);
+  };placeViews.set(photo.id,refresh);refresh();
+}
+async function previewPlace(suggestion) {
+  const dialog=make('dialog','','place-review-dialog'),close=button('Close ×',()=>dialog.close());
+  dialog.append(close,make('p','APPROXIMATE AREA · REVIEW BEFORE PUBLISHING','eyebrow'),make('h2',suggestion.label),make('p',suggestion.evidence));
+  const mapEl=make('div','','place-review-map');mapEl.setAttribute('aria-label','Suggested area on a map');dialog.append(mapEl,make('p','The circle shows an approximate public area, not the camera position.','muted'));document.body.append(dialog);dialog.showModal();
+  let map;dialog.addEventListener('close',()=>{map?.remove();dialog.remove();});
+  try{const L=await import('../assets/vendor/leaflet/leaflet.mjs');if(!dialog.open)return;map=L.map(mapEl,{scrollWheelZoom:false}).setView([suggestion.lat,suggestion.lon],10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:15,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);L.circle([suggestion.lat,suggestion.lon],{radius:8000,color:'#c47d4d',fillOpacity:.15}).addTo(map);map.invalidateSize();}catch{mapEl.textContent='Map unavailable. You can still check the place reference and coordinates.';}
+}
+function previewPlaceArt() {
+  const dialog=make('dialog','','place-review-dialog'),canvas=make('canvas');canvas.width=1000;canvas.height=650;canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Preview of existing shared places and pending approximate place suggestions');
+  const points=publicMapPhotos({slides:reviewPhotos(photos.slides,placeReviews)});
+  dialog.append(button('Close ×',()=>dialog.close()),make('p','PRIVATE PREVIEW · NOT PUBLISHED','eyebrow'),make('h2','Places taking shape.'),make('p',`${points.length} photographs with existing or suggested areas. Accept each suggestion separately before publishing.`),canvas);
+  document.body.append(dialog);dialog.showModal();drawGeoArt(canvas,points,{labels:true});dialog.addEventListener('close',()=>dialog.remove());
+}
+async function refreshPhotoPlaces() {
+  if(busy||!aiReady)return;
+  const queue=photos.slides.filter(needsPlace);if(!queue.length){status('Every included photograph already has a location. Existing locations are preserved.');return;}
+  busy=true;refreshPlacesRunning=true;stopPlaceRefresh=false;render();let done=0,found=0,failed=0;
+  for(const photo of queue){
+    if(stopPlaceRefresh)break;
+    status(`Refreshing places ${done+1} of ${queue.length}… Existing words and locations are preserved.`);
+    if(await suggestPhoto(photo,{automatic:true,placeOnly:true})){if(placeReviews[photo.id]?.place)found++;}else failed++;
+    done++;
+  }
+  let saved=true;try{await savePlaceReviews();}catch{saved=false;}
+  busy=false;refreshPlacesRunning=false;render();status(`${done} photographs refreshed. ${found} approximate area suggestion${found===1?'':'s'} ready to review. ${photos.slides.length-queue.length} existing locations or hidden photos kept.${failed?` ${failed} need a retry.`:''} ${saved?'Suggestions saved privately.':'Private save failed; suggestions remain in this tab.'} Nothing was published.`);
 }
 function renderPhotos() {
-  aiViews.clear();
+  aiViews.clear();placeViews.clear();
   $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
   const drop = make('div', '', 'drop'),input=make('input'),originals=make('input');
   input.type=originals.type='file';input.accept='image/*';originals.accept='.jpg,.jpeg,.png,.webp,.heic,.heif';input.multiple=originals.multiple=true;input.hidden=originals.hidden=true;
@@ -114,7 +163,7 @@ function renderPhotos() {
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
   const assistant=make('div','','photo-assistant'),label=make('label','','check'),toggle=make('input');toggle.type='checkbox';toggle.checked=autoDescribe;toggle.disabled=!aiReady||busy;toggle.onchange=()=>{autoDescribe=toggle.checked;};label.append(toggle,document.createTextNode('Draft captions & descriptions when I add photos'));assistant.append(make('p','A little help finding the words.','assistant-title'),label,make('small',aiMessage));
   if(!aiReady&&!demo)assistant.append(button('Check connection',async()=>{if(busy)return;busy=true;updateButton();await checkAI();busy=false;render();}));
-  $('toolbar').append(assistant);
+  const refreshActions=make('div','','actions');refreshActions.append(button(refreshPlacesRunning?'Refreshing places…':'Refresh location suggestions',refreshPhotoPlaces,!aiReady||busy),button('Preview suggested heatmap',previewPlaceArt,busy||!Object.values(placeReviews).some(r=>safeSuggestion(r.place)&&r.status!=='dismissed')));if(refreshPlacesRunning)refreshActions.append(button('Stop after this photo',()=>{stopPlaceRefresh=true;}));assistant.append(refreshActions,make('small','Refresh scans included photos without a location. Suggestions are saved privately; accepting one only changes your draft.'));$('toolbar').append(assistant);
   const options = make('div', '', 'actions');
   const mode = {mode:photos.shuffle === false ? 'curated' : 'daily'};
   select(options, 'Tray order', mode, 'mode', [['daily','A fresh shuffle each day'],['curated','My chosen order']]);
@@ -127,6 +176,7 @@ function renderPhotos() {
     const context=field(card,'Known place or landmark (optional)',photo,'aiContext');context.maxLength=300;context.placeholder='e.g. Mississippi River · Minneapolis';
     card.append(make('small','A confirmed name for AI to use. This note stays off the public page.'));
     const aiBox=make('div','','photo-ai');aiBox.setAttribute('aria-live','polite');photoAIControls(photo,aiBox,caption,alt);card.append(aiBox);
+    const placeBox=make('div','','photo-place-ai');placeBox.setAttribute('aria-live','polite');placeControls(photo,placeBox);card.append(placeBox);
     field(card,'Month taken',photo,'taken','month');
     check(card,'Include in the projector',photo,'hidden',true);
     photo.location ||= {lat:'',lon:'',label:'',precision:'hidden'};
@@ -214,10 +264,10 @@ async function load() {
       const responses=await Promise.all(['projects.json','content.json','slides.json'].map(p=>fetch(`../${p}`).then(r=>{if(!r.ok)throw new Error('Preview content did not load.');return r.json();})));
       [catalog,content,photos]=responses;
     }else{
-      const [cat,words,pictures,pubProjects,pubContent,head,places]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head(),github.read(PRIVATE,'photo-locations.json',true)]);
+      const [cat,words,pictures,pubProjects,pubContent,head,places,reviews]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head(),github.read(PRIVATE,'photo-locations.json',true),github.read(PRIVATE,'photo-place-suggestions.json',true)]);
       catalog=cat.data;content=words?.data||pubContent?.data||{version:1,intro:'',writing:[],playlists:[]};photos=pictures.data;
-      privateLocations=places?.data.locations||{};for(const photo of photos.slides){if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);photo.aiContext=cleanContext(places?.data.contexts?.[photo.id]);}
-      revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha};
+      placeReviews=reviews?.data.reviews||{};privateLocations=places?.data.locations||{};for(const photo of photos.slides){if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);photo.aiContext=cleanContext(places?.data.contexts?.[photo.id]);}
+      revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha,placeReviews:reviews?.sha};
     }
     content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();aiStates.clear();aiViews.clear();
     await checkAI();
@@ -259,7 +309,7 @@ async function importPhotos(files) {
       if(aiReady&&autoDescribe){render();status(`Drafting words for photograph ${added}…`);if(await suggestPhoto(photos.slides.at(-1),{automatic:true,blob}))described++;else aiFailed++;}
     }catch{failed.push(file.name);}finally{bitmap?.close();}
   }
-  if(added)dirty.add('photos');busy=false;render();
+  if(added){dirty.add('photos');try{await savePlaceReviews();}catch{status('Place suggestions remain in this tab; private save failed.');}}busy=false;render();
   status(`${added} photo${added===1?'':'s'} ready.${added?` ${located} with a location; ${added-located} without. Review places before publishing.`:''}${described?` ${described} AI draft(s) ready to edit.`:''}${aiFailed?` ${aiFailed} description(s) need a retry or your own words; the photos were still added.`:''}${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
 }
 function validate() {
@@ -295,6 +345,8 @@ async function publish() {
       revisions.locations=await github.write(PRIVATE,'photo-locations.json',{version:1,locations:privateLocations,contexts:photoContexts(photos.slides)},revisions.locations,'Save private photograph locations and confirmed context');
       const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(publicSlides(photos))});
       revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
+      for(const photo of photos.slides)if(safeLocation(photo.location)&&placeReviews[photo.id]?.status==='suggested')placeReviews[photo.id].status='published';
+      try{await savePlaceReviews();}catch{}
     }
     dirty.delete(group());status('Published to GitHub. The public page will update after GitHub Pages finishes deploying.');
     // Refresh the head only when the photo collection is unchanged; otherwise preserve its conflict baseline.
