@@ -2,5 +2,15 @@
   "version": 1,
   "intro": "An educator’s collection of things made, ideas explored, and moments worth keeping.",
   "writing": [],
-  "playlists": []
+  "playlists": [
+    {
+      "id": "fbdc08ad-aa27-48ea-80b1-e0ae46286e4a",
+      "title": "Some Favorites",
+      "date": "2026-11-15",
+      "note": "",
+      "url": "https://open.spotify.com/playlist/6DB4Qf8vrDgM62TjmymEua?si=5Vt-e-x2Sga-vCuZe-yOHw",
+      "published": true,
+      "tracks": []
+    }
+  ]
 }
