@@ -210,3 +210,24 @@ footer { margin-top: 70px; font-size: 11px; }
 .photo-collection .contact-sheet .mount .no { display:block; top:auto; bottom:2px; left:4px; color:#211f19; font-size:7px; }
 @media(max-width:700px) { .viewfinder-flip { height:245px; } }
 @media(prefers-reduced-motion:reduce) { .photo-collection .viewfinder-flip .wall,.photo-collection .contact-sheet { transition:none; } }
+
+/* Optional play and the small facts behind a frame. */
+.viewfinder-tools { display:flex; gap:12px; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid #48473d; }
+.viewfinder-tools button { border:0; background:none; padding:4px 0; color:#b9ac98; font:10px/1.5 var(--font-mono); cursor:pointer; }
+.viewfinder-tools button > span { margin-right:5px; }
+.viewfinder-tools button:hover, .viewfinder-tools button[aria-pressed="true"] { color:#e6c394; }
+#kaleidoscopeToggle[aria-pressed="true"] > span { display:inline-block; color:#e6c394; }
+.kaleidoscope-canvas { position:absolute; z-index:2; left:12px; top:12px; width:calc(100% - 24px); height:calc(100% - 44px); border-radius:2px; pointer-events:none; }
+.photo-collection .wall.kaleidoscope-on .photo, .photo-collection .wall.kaleidoscope-on .spill { visibility:hidden; }
+.photo-collection .wall::after { z-index:3; }
+.photo-collection .wall .band { z-index:4; }
+.frame-notes { padding-top:16px; }
+.frame-notes dl { margin:0; display:grid; gap:9px; }
+.frame-notes dl > div { display:grid; grid-template-columns:60px minmax(0,1fr); gap:12px; }
+.frame-notes dt, .frame-notes dd { font:10px/1.7 var(--font-mono); margin:0; }
+.frame-notes dt { color:#8f887a; }
+.frame-notes dd { color:#c8bead; overflow-wrap:anywhere; }
+.palette-row { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-top:17px; padding-top:12px; border-top:1px solid #48473d; }
+.palette-row > span { color:#9e9586; font:9px var(--font-mono); }
+.photo-palette { display:flex; overflow:hidden; border-radius:3px; border:1px solid #ffffff18; }
+.photo-palette > span { width:23px; height:16px; display:block; }

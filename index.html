@@ -466,6 +466,7 @@ noscript ul{font-family:var(--font-sans)}
     <section class="wall lit" id="wall" tabindex="0" role="button" aria-label="Open photo contact sheet" aria-expanded="false" aria-controls="tray" hidden>
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+      <canvas id="kaleidoscopeCanvas" class="kaleidoscope-canvas" aria-hidden="true" hidden></canvas>
       <div class="pj-glow" aria-hidden="true"></div>
       <div class="pj-dust" aria-hidden="true"></div>
       <div class="pj-falloff" aria-hidden="true"></div>
@@ -517,6 +518,14 @@ noscript ul{font-family:var(--font-sans)}
             </div>
           </div>
           <span id="deckSep" hidden></span>
+          <div class="viewfinder-tools">
+            <button id="frameNotesToggle" type="button" aria-expanded="false" aria-controls="frameNotes">Frame notes <span aria-hidden="true">＋</span></button>
+            <button id="kaleidoscopeToggle" type="button" aria-pressed="false"><span aria-hidden="true">✺</span> Kaleidoscope</button>
+          </div>
+          <div id="frameNotes" class="frame-notes" hidden>
+            <dl id="photoMetadata"></dl>
+            <div class="palette-row"><span>Colors in this frame</span><div id="photoPalette" class="photo-palette" aria-label="Colors sampled from this photograph"></div></div>
+          </div>
 
 </div>
 
@@ -907,6 +916,8 @@ noscript ul{font-family:var(--font-sans)}
       var f = frames[front = 1 - front], other = frames[1 - front], photo = f.querySelector('.photo');
       f.querySelector('.spill').src = s.src;
       photo.src = s.src; photo.alt = altText(s);
+      wall.dataset.slide = JSON.stringify(s);
+      window.dispatchEvent(new CustomEvent('viewfinder:photo', { detail:{ slide:s, image:im } }));
       if (s.width && s.height){ photo.width = s.width; photo.height = s.height; }
       var rnd = seeded(s.id || s.src);                     /* each slide drifts toward its own corner */
       photo.style.setProperty('--kx', Math.round(20 + rnd() * 60) + '%');
@@ -1013,5 +1024,6 @@ noscript ul{font-family:var(--font-sans)}
 })();
 </script>
 <script type="module" src="assets/collection.js"></script>
+<script type="module" src="assets/viewfinder.mjs"></script>
 </body>
 </html>

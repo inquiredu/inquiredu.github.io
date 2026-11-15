@@ -96,7 +96,11 @@ This repo is public, so its Action logs are too. The sync logs counts only, neve
 
 A compact viewfinder in the upper introduction quietly cycles through `slides.json`. It pauses on hover, keyboard focus, or a hidden tab. Reduced-motion visitors start in manual mode. Click the frame to flip it to a contact sheet. Choose a photograph to flip back, or use Back / Escape. The full frame is preserved, including portraits; reduced-motion mode also disables the flip animation.
 
-In **Studio → Photographs**, add several images at once, write captions and image descriptions, reorder them, and choose a daily shuffle or your own sequence. The studio resizes new photographs to 1600 pixels, removes embedded location/camera metadata, generates small thumbnails, and publishes the batch and manifest in one commit. Files never leave the device until you publish. New visible images require an image description.
+**Frame notes** reveals the capture date, camera and lens, exposure settings, and frame dimensions when available. The color swatches are sampled from the photograph itself. **Kaleidoscope** is an optional mirrored view made from that same photo; it gently turns, responds to pointer movement, and pauses when offscreen, in the background, or on the contact sheet. Reduced-motion mode keeps the pattern still.
+
+The seven original uploads no longer contain EXIF. They show their known month, dimensions, and sampled colors. In the editor, **Read notes from original** restores selected camera details from a file you choose without replacing the displayed photo. New imports read those details before resizing. Each image has a **Share capture date and camera notes** choice; GPS coordinates, device serial numbers, owner names, and paths are never copied into the public manifest. Disabling camera notes omits them from the saved public manifest (the manually entered month remains).
+
+In **Studio → Photographs**, add several images at once, write captions and image descriptions, reorder them, and choose a daily shuffle or your own sequence. The studio resizes new photographs to 1600 pixels, removes embedded metadata from the image file, saves selected camera notes separately, generates small thumbnails, and publishes the batch and manifest in one commit. Files never leave the device until you publish. New visible images require an image description.
 
 Hiding an existing photo removes it from the tray, but its published image URL and Git history remain public. The studio does not request access to an entire photo library. Select the photographs you want to share; on devices that expose a photo library in their file chooser, you can select from there. HEIC support depends on the browser; export as JPEG if conversion fails.
 
@@ -109,3 +113,5 @@ Serve this directory with a local static HTTP server, then open its address. `/a
 ```sh
 node --test tests/studio.test.mjs
 ```
+
+The EXIF reader is the vendored `exifr` 7.1.3 distribution (MIT license in `assets/vendor/exifr-LICENSE.txt`). It runs locally in the editor; photo originals are not sent to a metadata service.

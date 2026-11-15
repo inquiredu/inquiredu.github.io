@@ -34,7 +34,7 @@ The sign-in button intentionally stays disabled until the Worker URL is configur
 - The `/admin/` page shell is public, like a sign-in page. Private catalog data and write operations require GitHub authorization. The preview URL `?preview=1` loads public data only and disables publishing.
 - Private project data remains in `site-catalog/catalog.json`. Writing and song-list drafts are in `site-catalog/content.json`. Only explicitly published entries are projected to the public `content.json`.
 - Private and public saves are separate GitHub writes. The editor saves private data first. If public publishing fails, it reports the failure and keeps in-memory edits; private drafts remain saved. File SHAs prevent silent overwrites. Reload after an external update before retrying.
-- Photo batches create one Git tree and commit, then advance the branch without force. A changed baseline is rejected. New images and their manifest therefore publish together. Files are resized to 1600 pixels, re-encoded without EXIF, and receive a smaller thumbnail. The original files stay on the device.
+- Photo batches create one Git tree and commit, then advance the branch without force. A changed baseline is rejected. New images and their manifest therefore publish together. Files are resized to 1600 pixels, re-encoded without embedded EXIF, and receive a smaller thumbnail. A strict allowlist preserves chosen capture/camera notes in the manifest; GPS and serial numbers are excluded. The original files stay on the device.
 - Unchecking an already-published photo hides it from the slideshow; it does not erase its public URL or repository history. New unuploaded photos can be removed before publishing.
 
 ## Verification

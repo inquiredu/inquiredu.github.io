@@ -1,3 +1,5 @@
+import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
+import { EXIF_TAGS, metadataFromExif, metadataRows, publicSlides } from '../assets/photo-notes.mjs';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
@@ -54,7 +56,7 @@ function renderPhotos() {
   $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
   const drop = make('div', '', 'drop'); const label = make('label', 'Choose photos or drop them here'); const input = make('input');
   input.type='file'; input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif'; input.multiple=true;
-  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Images are resized and location metadata is removed before publishing. Originals stay on your device.'));
+  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Images are resized; camera notes are kept separately. GPS and device serial numbers are never published. Originals stay on your device.'));
   drop.ondragover = e => { e.preventDefault(); drop.classList.add('dragover'); }; drop.ondragleave = () => drop.classList.remove('dragover');
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
   const options = make('div', '', 'actions');
@@ -67,6 +69,19 @@ function renderPhotos() {
     const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
     field(card,'Caption',photo,'caption'); field(card,'Image description',photo,'alt'); field(card,'Month taken',photo,'taken','month');
     check(card,'Include in the projector',photo,'hidden',true);
+    const notes = metadataRows({...photo, shareMetadata:true}).filter(row=>['Camera','Lens','Exposure'].includes(row[0]));
+    card.append(make('p', notes.length ? notes.map(row=>row[1]).join(' · ') : 'No camera notes attached yet.', 'muted'));
+    if(Object.keys(photo.metadata || {}).length)check(card,'Share capture date and camera notes',photo,'shareMetadata');
+    const original=make('input');original.type='file';original.accept='image/jpeg,image/heic,image/heif,image/png';original.hidden=true;
+    original.onchange=async()=>{
+      const file=original.files[0];if(!file)return;
+      if(file.size>30*1024*1024){status('Choose an original smaller than 30 MB.');return;}
+      const details=await readMetadata(file);
+      if(!Object.keys(details).length){status('This file has no readable camera metadata. Try the original photograph rather than an exported copy.');return;}
+      photo.metadata=details;photo.shareMetadata=true;if(details.date)photo.taken=details.date.slice(0,7);
+      dirty.add('photos');render();status('Camera notes restored from the original. Review them, then publish when ready.');
+    };
+    card.append(original,button('Read notes from original',()=>original.click()));
     const actions = reorder(card,photos.slides,index);
     if (pending.has(photo.id)) actions.append(button('Remove new photo',()=>{ pending.delete(photo.id); photos.slides.splice(index,1);changed();render(); }));
     grid.append(card);
@@ -119,6 +134,10 @@ async function load() {
     status(demo?'Preview mode. You can explore the editor; publishing is disabled.':'');render();
   }catch(error){status(error.message);}finally{busy=false;updateButton();}
 }
+async function readMetadata(file) {
+  try { return metadataFromExif(await parseExif(file,{pick:EXIF_TAGS,gps:false,reviveValues:false,xmp:false,iptc:false,icc:false})); }
+  catch { return {}; }
+}
 async function importPhotos(files) {
   if(busy)return;
   if(files.length>30){status('Add up to 30 photos at a time.');return;}
@@ -128,6 +147,7 @@ async function importPhotos(files) {
     try{
       if(file.size>30*1024*1024)throw new Error('over 30 MB');
       status(`Preparing photograph ${added+1}…`);
+      const metadata=await readMetadata(file);
       bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
       if(bitmap.width*bitmap.height>80000000)throw new Error('image too large');
       const canvas=document.createElement('canvas'), ratio=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
@@ -139,7 +159,7 @@ async function importPhotos(files) {
       const image64=canvas.toDataURL('image/jpeg',.86).split(',')[1];
       const thumb=document.createElement('canvas');const scale=Math.min(1,360/Math.max(canvas.width,canvas.height));thumb.width=Math.round(canvas.width*scale);thumb.height=Math.round(canvas.height*scale);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
       const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
-      photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:'',caption:'',alt:'',hidden:false});
+      photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true});
       pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;
     }catch{failed.push(file.name);}finally{bitmap?.close();}
   }
@@ -169,7 +189,7 @@ async function publish() {
       revisions.pubContent=await github.write(SITE,'content.json',publicContent(content),revisions.pubContent,'Publish writing and song lists');
     }else{
       photos.updated=new Date().toISOString().slice(0,10);photos.tray=+photos.tray;
-      const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(photos)});
+      const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(publicSlides(photos))});
       revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
     }
     dirty.delete(group());status('Published to GitHub. The public page will update after GitHub Pages finishes deploying.');
