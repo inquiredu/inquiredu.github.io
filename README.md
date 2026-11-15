@@ -92,42 +92,24 @@ This repo is public, so its Action logs are too. The sync logs counts only, neve
 
 ## Slides
 
-The slide projector next to the catalog plays photographs listed in `slides.json`, with the images in `assets/slides/`. Each day it loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the projector stays hidden.
+The slide projector next to the catalog plays the photographs listed in `slides.json`, with the images in `assets/slides/`. Each day it loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the projector stays hidden.
 
-### Add photos from Google Photos
+### Add photos
 
-From anywhere inside your copy of this repo:
+1. Put your favorites in **Pictures › Slideshow**. Any mix works: JPEG, HEIC from an iPhone, PNG, or the zip Google Photos gives you from an album's **⋮ › Download all**.
+2. From your copy of this repo, run:
 
 ```bash
 node scripts/darkroom.mjs
 ```
 
-1. Google sign-in opens in your browser.
-2. Google Photos' own chooser opens. Search an album title, a place, a person or a year, pick photos, and press **Done**.
-3. The command downloads each one at web size (1600 px on the long edge), removes camera and location data, and saves it to `assets/slides/`. Photos already in the collection are skipped, and videos are left out.
-4. It offers to caption them. Each photo opens in Preview while you type a short caption (shown on the label tape) and a description for screen readers.
-5. It commits, then asks before publishing. Use `--no-push` to stop after the commit.
+For each new photo it makes a web-size copy (1600 px on the long edge), turns it the right way up, removes camera and location data, and reads the month it was taken. It offers to caption them (each opens in Preview while you type), commits, and publishes after you say yes. Your originals are never changed; they move into **Slideshow › Added** so the next run only sees new ones. Photos already on the projector are skipped.
 
-Google doesn't let a web page download picked photos, only a program running on your computer, which is why this is a command and not a page in Settings. Nothing is synced automatically: each run is one pick. Run it again whenever you want to add more.
+The first run makes the Slideshow folder and opens it in Finder if it isn't there yet. To use a different folder or a single zip, name it: `node scripts/darkroom.mjs ~/Downloads/Photos-001.zip`. Add `--no-push` to stop after the local commit.
 
 To change a caption, edit `slides.json`. To take a photo out of rotation without deleting it, add `"hidden": true` to its entry. To remove it entirely, delete its entry and its file.
 
-### One-time setup: Google sign-in
-
-1. Go to <https://console.cloud.google.com/> and create a project (for example "inquiredu slides").
-2. **APIs & Services → Library**: find **Photos Picker API** and enable it.
-3. **Google Auth Platform** (the OAuth consent screen): give the app a name, choose **External**, and leave it in **Testing**. Under **Audience → Test users**, add your own Google account. Only test users can sign in.
-4. **Data access → Add or remove scopes**: add `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`.
-5. **Clients → Create client**: choose **Desktop app**, create it, and download the JSON file.
-6. Save that file where the command looks for it:
-
-```bash
-mkdir -p ~/.config/inquiredu && mv ~/Downloads/client_secret_*.json ~/.config/inquiredu/darkroom.json
-```
-
-When you sign in, Google warns that it hasn't verified the app. That's expected for your own app in testing mode: choose **Continue**. The command stores no Google tokens; each run signs in fresh. Keep the client file out of this repo.
-
-Optional shortcut, from your copy of this repo:
+Optional shortcut, run once from your copy of this repo, so `gh darkroom` works from any folder:
 
 ```bash
 gh alias set --shell darkroom "node '$PWD/scripts/darkroom.mjs' \"\$@\""

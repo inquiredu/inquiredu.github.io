@@ -1,168 +1,51 @@
 #!/usr/bin/env node
 /*
-  Darkroom: bring photos from Google Photos into the slide projector on inquiredu.org.
+  Darkroom: put photographs on the slide projector at inquiredu.org.
 
-  1. Opens Google sign-in in your browser.
-  2. Opens Google Photos' own chooser. Search an album title, a place, a person or a
-     year, and pick the photos you want.
-  3. Downloads each pick at web size (Google does the resizing), removes camera and
-     location data, and saves it to assets/slides/. Adds it to slides.json.
-  4. Optionally lets you caption each one, then commits. It pushes only after you say yes.
-
-  Why a command and not a web page: Google's photo server won't hand picked photos to
-  a web page, only to a program like this one.
-
-  Setup, once: see "Slides" in README.md.
+  Drop photos in ~/Pictures/Slideshow (JPEG, HEIC, PNG, or a zip straight from Google
+  Photos' "Download all"), then run this. For each new photo it:
+    - makes a web-size copy (1600 px on the long edge),
+    - turns it the right way up,
+    - removes camera and location data,
+    - adds it to slides.json.
+  Then it offers captions, commits, and publishes after you say yes.
+  Originals are never changed; they move into Slideshow/Added once they're in.
 
   Usage
-    node scripts/darkroom.mjs              pick, import, caption, commit, ask to publish
-    node scripts/darkroom.mjs --no-push    the same, but stop after the local commit
-    node scripts/darkroom.mjs --max=50     cap how many photos one pick can bring in (default 200)
+    node scripts/darkroom.mjs                 use ~/Pictures/Slideshow
+    node scripts/darkroom.mjs <folder|zip>    use another folder, or one zip
+    node scripts/darkroom.mjs --no-push       stop after the local commit
+
+  Needs macOS (it uses the built-in `sips` to convert and resize).
 */
-import http from 'node:http';
-import crypto from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import readline from 'node:readline/promises';
-import { readFile, writeFile, mkdir, access, unlink } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, stat, rename, rm, mkdtemp } from 'node:fs/promises';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SLIDES_JSON = path.join(ROOT, 'slides.json');
 const SLIDES_DIR = path.join(ROOT, 'assets', 'slides');
-const CONFIG = process.env.DARKROOM_CONFIG || path.join(os.homedir(), '.config', 'inquiredu', 'darkroom.json');
-const SCOPE = 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
-const PICKER = 'https://photospicker.googleapis.com/v1';
+const INBOX = path.join(os.homedir(), 'Pictures', 'Slideshow');
 const LONG_EDGE = 1600;
-
-const args = process.argv.slice(2);
-const NO_PUSH = args.includes('--no-push');
-const MAX = Math.min(2000, Math.max(1, parseInt((args.find(a => a.startsWith('--max=')) || '').slice(6), 10) || 200));
+const IMAGE = /\.(jpe?g|heic|heif|png|tiff?|webp)$/i;
 
 const say = (...m) => console.log(...m);
-const die = (msg) => { console.error('\n' + msg); process.exit(1); };
-const exists = p => access(p).then(() => true, () => false);
+const die = msg => { console.error('\n' + msg); process.exit(1); };
+const sips = argv => execFileSync('/usr/bin/sips', argv, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+const git = (argv, quiet) => execFileSync('git', argv, { cwd: ROOT, encoding: 'utf8', stdio: quiet ? 'pipe' : 'inherit' });
+const openInFinder = p => { try { spawn('open', [p], { stdio: 'ignore', detached: true }).unref(); } catch {} };
 
-/* ---------- setup ---------- */
-async function loadClient() {
-  let raw;
-  try { raw = JSON.parse(await readFile(CONFIG, 'utf8')); }
-  catch {
-    die('No Google sign-in setup found at ' + CONFIG + '.\n' +
-        'Follow "Slides: one-time setup" in README.md, then save the downloaded client file there.');
-  }
-  const c = raw.installed || raw.web || raw;   // accepts the JSON Google gives you as-is
-  if (!c.client_id) die(CONFIG + ' has no client_id. Download the client file again from Google Cloud.');
-  return { id: c.client_id, secret: c.client_secret || '' };
-}
-
-function launch(url) {
-  const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open';
-  const argv = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
-  try { spawn(cmd, argv, { stdio: 'ignore', detached: true }).unref(); } catch {}
-}
-
-/* ---------- Google sign-in (loopback + PKCE, nothing stored) ---------- */
-async function signIn(client) {
-  const b64url = buf => buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const verifier = b64url(crypto.randomBytes(48));
-  const challenge = b64url(crypto.createHash('sha256').update(verifier).digest());
-  const state = b64url(crypto.randomBytes(16));
-
-  const server = http.createServer();
-  await new Promise(r => server.listen(0, '127.0.0.1', r));
-  const redirect = 'http://127.0.0.1:' + server.address().port + '/callback';
-
-  const code = await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Sign-in timed out after 5 minutes.')), 5 * 60 * 1000);
-    server.on('request', (req, res) => {
-      const u = new URL(req.url, redirect);
-      if (u.pathname !== '/callback') { res.writeHead(404).end(); return; }
-      const ok = u.searchParams.get('state') === state && u.searchParams.get('code');
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end('<!doctype html><title>Darkroom</title><body style="font:16px system-ui;padding:40px;background:#142434;color:#F4F1EB">' +
-        (ok ? 'Signed in. You can close this tab and go back to the terminal.' : 'Sign-in didn’t finish. Go back to the terminal and try again.') + '</body>');
-      clearTimeout(timer);
-      if (ok) resolve(u.searchParams.get('code'));
-      else reject(new Error(u.searchParams.get('error') === 'access_denied' ? 'Sign-in was cancelled.' : 'Sign-in failed: ' + (u.searchParams.get('error') || 'no code returned') + '.'));
-    });
-    const auth = 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
-      client_id: client.id, redirect_uri: redirect, response_type: 'code', scope: SCOPE,
-      code_challenge: challenge, code_challenge_method: 'S256', state, prompt: 'select_account'
-    });
-    say('Opening Google sign-in in your browser…');
-    say('If nothing opens, paste this into your browser:\n  ' + auth + '\n');
-    launch(auth);
-  }).finally(() => server.close());
-
-  const res = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      code, client_id: client.id, client_secret: client.secret, redirect_uri: redirect,
-      grant_type: 'authorization_code', code_verifier: verifier
-    })
-  });
-  const tok = await res.json();
-  if (!res.ok || !tok.access_token) throw new Error('Google didn’t issue a sign-in token: ' + (tok.error_description || tok.error || res.status));
-  return tok.access_token;
-}
-
-/* ---------- Google Photos Picker ---------- */
-async function picker(token, method, p, body) {
-  const res = await fetch(PICKER + p, {
-    method, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  if (method === 'DELETE') return null;
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = (data.error && data.error.message) || res.statusText;
-    if (res.status === 403 && /not been used|disabled/i.test(msg)) throw new Error('The Photos Picker API isn’t turned on for your Google Cloud project. Enable it, wait a minute, and try again.');
-    throw new Error('Google Photos answered ' + res.status + ': ' + msg);
-  }
-  return data;
-}
-const seconds = d => Math.max(1, parseFloat(String(d || '5s')) || 5);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function pick(token) {
-  const session = await picker(token, 'POST', '/sessions', { pickingConfig: { maxItemCount: String(MAX) } });
-  say('Opening Google Photos. Search an album title, a place or a year, pick your photos, then press Done.');
-  say('If nothing opens, paste this into your browser:\n  ' + session.pickerUri + '\n');
-  launch(session.pickerUri + '/autoclose');
-
-  let s = session;
-  const until = Date.now() + seconds(session.pollingConfig && session.pollingConfig.timeoutIn) * 1000;
-  process.stdout.write('Waiting for your picks');
-  while (!s.mediaItemsSet) {
-    if (Date.now() > until) { process.stdout.write('\n'); throw new Error('Google Photos stopped waiting for picks. Run the command again.'); }
-    await sleep(seconds(s.pollingConfig && s.pollingConfig.pollInterval) * 1000);
-    process.stdout.write('.');
-    s = await picker(token, 'GET', '/sessions/' + session.id);
-  }
-  process.stdout.write('\n');
-
-  const items = [];
-  let pageToken = '';
-  do {
-    const q = new URLSearchParams({ sessionId: session.id, pageSize: '100' });
-    if (pageToken) q.set('pageToken', pageToken);
-    const page = await picker(token, 'GET', '/mediaItems?' + q);
-    items.push(...(page.mediaItems || []));
-    pageToken = page.nextPageToken || '';
-  } while (pageToken);
-  return { sessionId: session.id, items };
-}
-
-/* ---------- JPEG handling: strip metadata, read size and orientation ---------- */
+/* ---------- JPEG: strip metadata, read size and orientation ---------- */
 /* Keeps the image data, JFIF header, color profile (APP2) and Adobe marker (APP14).
    Drops EXIF and XMP (APP1, where GPS lives), every other APPn, and comments. */
 export function stripJpeg(buf) {
   if (buf[0] !== 0xFF || buf[1] !== 0xD8) throw new Error('not a JPEG');
   const keep = [buf.subarray(0, 2)];
-  let i = 2, width = 0, height = 0, orientation = 1;
+  let i = 2, width = 0, height = 0, orientation = 1, taken = '';
   while (i < buf.length) {
     if (buf[i] !== 0xFF) throw new Error('unexpected JPEG structure');
     let m = buf[i + 1];
@@ -172,128 +55,184 @@ export function stripJpeg(buf) {
     const len = buf.readUInt16BE(i + 2);
     const seg = buf.subarray(i, i + 2 + len);
     if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) { height = buf.readUInt16BE(i + 5); width = buf.readUInt16BE(i + 7); }
-    if (m === 0xE1) orientation = exifOrientation(seg) || orientation;
+    if (m === 0xE1) { const x = exifInfo(seg); orientation = x.orientation || orientation; taken = taken || x.taken; }
     const drop = (m >= 0xE1 && m <= 0xEF && m !== 0xE2 && m !== 0xEE) || m === 0xFE;
     if (!drop) keep.push(seg);
     i += 2 + len;
   }
-  return { data: Buffer.concat(keep), width, height, orientation };
+  return { data: Buffer.concat(keep), width, height, orientation, taken };
 }
-function exifOrientation(seg) {
-  // seg: FF E1 len(2) "Exif\0\0" TIFF…
-  if (seg.toString('latin1', 4, 10) !== 'Exif\0\0') return 0;
+/* Orientation (IFD0 0x0112) and month taken (Exif 0x9003 DateTimeOriginal, else IFD0 0x0132). */
+function exifInfo(seg) {
+  const out = { orientation: 0, taken: '' };
+  if (seg.toString('latin1', 4, 10) !== 'Exif\0\0') return out;
   const t = 10, le = seg.toString('latin1', t, t + 2) === 'II';
   const u16 = o => le ? seg.readUInt16LE(o) : seg.readUInt16BE(o);
   const u32 = o => le ? seg.readUInt32LE(o) : seg.readUInt32BE(o);
+  const month = e => { const m = /^(\d{4}):(\d{2})/.exec(seg.toString('latin1', t + u32(e + 8), t + u32(e + 8) + 7)); return m && m[1] !== '0000' ? m[1] + '-' + m[2] : ''; };
+  const entries = ifd => { const n = u16(ifd), list = []; for (let k = 0; k < n; k++) list.push(ifd + 2 + k * 12); return list; };
   try {
-    const ifd = t + u32(t + 4), n = u16(ifd);
-    for (let k = 0; k < n; k++) { const e = ifd + 2 + k * 12; if (u16(e) === 0x0112) return u16(e + 8); }
+    let fallback = '';
+    for (const e of entries(t + u32(t + 4))) {
+      const tag = u16(e);
+      if (tag === 0x0112) out.orientation = u16(e + 8);
+      if (tag === 0x0132) fallback = month(e);
+      if (tag === 0x8769) for (const x of entries(t + u32(e + 8))) if (u16(x) === 0x9003) out.taken = month(x);
+    }
+    out.taken = out.taken || fallback;
   } catch {}
-  return 0;
+  return out;
 }
-function sips(argv) { execFileSync('/usr/bin/sips', argv, { stdio: 'ignore' }); }
 
-async function develop(token, item, out) {
-  const f = item.mediaFile || {};
-  if (!f.baseUrl) throw new Error('no download address');
-  const res = await fetch(f.baseUrl + '=w' + LONG_EDGE + '-h' + LONG_EDGE, { headers: { Authorization: 'Bearer ' + token } });
-  if (!res.ok) throw new Error('download failed (' + res.status + ')');
-  let buf = Buffer.from(await res.arrayBuffer());
-  const type = (res.headers.get('content-type') || '').split(';')[0];
+/* ---------- one photo in, one clean web copy out ---------- */
+function takenMonth(file) {
+  try {
+    const m = /creation:\s*(\d{4})[:-](\d{2})/.exec(sips(['-g', 'creation', file]));   // EXIF date taken
+    if (m) return m[1] + '-' + m[2];
+  } catch {}
+  return '';
+}
+async function develop(src, out) {
+  const dims = sips(['-g', 'pixelWidth', '-g', 'pixelHeight', src]).match(/pixel(?:Width|Height):\s*(\d+)/g) || [];
+  const longest = Math.max(0, ...dims.map(s => +s.split(':')[1]));
+  const argv = ['-s', 'format', 'jpeg', '-s', 'formatOptions', '82'];
+  if (longest > LONG_EDGE) argv.push('-Z', String(LONG_EDGE));
+  sips([...argv, src, '--out', out]);
 
-  if (type !== 'image/jpeg') {                       // PNG, WebP, HEIC: convert with macOS's sips
-    if (process.platform !== 'darwin') throw new Error('got ' + type + '; converting it needs macOS');
-    const tmp = path.join(os.tmpdir(), 'darkroom-' + crypto.randomBytes(6).toString('hex'));
-    await writeFile(tmp, buf);
-    sips(['-s', 'format', 'jpeg', '-s', 'formatOptions', '82', tmp, '--out', tmp + '.jpg']);
-    buf = await readFile(tmp + '.jpg');
-    await unlink(tmp).catch(() => {}); await unlink(tmp + '.jpg').catch(() => {});
-  }
-
-  let j = stripJpeg(buf);
+  let j = stripJpeg(await readFile(out));
+  const taken = j.taken;
   const turn = { 3: '180', 6: '90', 8: '270' }[j.orientation];
-  if (turn) {                                           // EXIF said "rotate"; bake it in before the EXIF is gone
-    if (process.platform !== 'darwin') throw new Error('needs rotating, which needs macOS');
-    await writeFile(out, buf);
-    sips(['-r', turn, out]);
-    j = stripJpeg(await readFile(out));
-  }
+  if (turn) { sips(['-r', turn, out]); j = stripJpeg(await readFile(out)); }   // bake the rotation in before its tag is dropped
   await writeFile(out, j.data);
-  return { width: j.width, height: j.height };
+  return { width: j.width, height: j.height, taken };
 }
 
-/* ---------- git ---------- */
-function git(argv, opts = {}) { return execFileSync('git', argv, { cwd: ROOT, encoding: 'utf8', stdio: opts.quiet ? 'pipe' : 'inherit' }); }
+/* ---------- gather photos: a folder (zips inside are opened) or a single zip ---------- */
+async function gather(source, scratch) {
+  const found = [];
+  const walk = async dir => {
+    for (const e of await readdir(dir, { withFileTypes: true })) {
+      if (e.name.startsWith('.') || e.name === 'Added' || e.name === '__MACOSX') continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) await walk(p);
+      else if (IMAGE.test(e.name)) found.push({ file: p, original: p });
+      else if (/\.zip$/i.test(e.name)) {
+        const to = path.join(scratch, 'zip-' + found.length + '-' + crypto.randomBytes(3).toString('hex'));
+        execFileSync('/usr/bin/ditto', ['-x', '-k', p, to]);
+        const before = found.length;
+        await walkZip(to, p);
+        if (found.length === before) say('  ' + e.name + ' has no photos in it.');
+      }
+    }
+  };
+  const walkZip = async (dir, zip) => {
+    for (const e of await readdir(dir, { withFileTypes: true })) {
+      if (e.name.startsWith('.') || e.name === '__MACOSX') continue;
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) await walkZip(p, zip);
+      else if (IMAGE.test(e.name)) found.push({ file: p, original: zip });
+    }
+  };
+  const st = await stat(source);
+  if (st.isDirectory()) await walk(source);
+  else if (/\.zip$/i.test(source)) { const to = path.join(scratch, 'zip'); execFileSync('/usr/bin/ditto', ['-x', '-k', source, to]); await walkZip(to, source); }
+  else if (IMAGE.test(source)) found.push({ file: source, original: source });
+  return found;
+}
 
-/* ---------- main ---------- */
 async function main() {
-  const client = await loadClient();
-  const data = await exists(SLIDES_JSON) ? JSON.parse(await readFile(SLIDES_JSON, 'utf8')) : { version: 1, updated: '', tray: 24, slides: [] };
-  data.slides = data.slides || [];
-  const known = new Set(data.slides.map(s => s.id));
+  if (process.platform !== 'darwin') die('Darkroom needs macOS: it uses the built-in sips tool to convert and resize photos.');
+  const args = process.argv.slice(2);
+  const NO_PUSH = args.includes('--no-push');
+  const given = args.find(a => !a.startsWith('--'));
+  const source = given ? path.resolve(given.replace(/^~(?=$|\/)/, os.homedir())) : INBOX;
 
-  const token = await signIn(client);
-  const { sessionId, items } = await pick(token);
-  const photos = items.filter(it => it.type === 'PHOTO' || (it.mediaFile && /^image\//.test(it.mediaFile.mimeType || '')));
-  const skippedVideo = items.length - photos.length;
-  say('You picked ' + items.length + (items.length === 1 ? ' item' : ' items') + (skippedVideo ? ' (' + skippedVideo + ' video' + (skippedVideo === 1 ? '' : 's') + ' skipped)' : '') + '.');
-
-  await mkdir(SLIDES_DIR, { recursive: true });
-  const added = [];
-  let n = 0;
-  for (const it of photos) {
-    n++;
-    const id = crypto.createHash('sha1').update(String(it.id)).digest('hex').slice(0, 10);
-    if (known.has(id)) { say('  ' + n + '/' + photos.length + '  already in the collection'); continue; }
-    const takenAt = (it.createTime || '').slice(0, 7);          // "2019-07"
-    const file = (takenAt || 'undated') + '-' + id + '.jpg';
-    try {
-      const size = await develop(token, it, path.join(SLIDES_DIR, file));
-      const slide = { id, src: 'assets/slides/' + file, width: size.width, height: size.height, taken: takenAt, caption: '', alt: '' };
-      added.push(slide); known.add(id);
-      say('  ' + n + '/' + photos.length + '  ' + file + '  ' + size.width + '×' + size.height);
-    } catch (e) {
-      say('  ' + n + '/' + photos.length + '  skipped: ' + e.message);
-    }
-  }
-  await picker(token, 'DELETE', '/sessions/' + sessionId).catch(() => {});
-
-  if (!added.length) { say('\nNothing new to add.'); return; }
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const yes = async q => /^y(es)?$/i.test((await rl.question(q)).trim());
-
-  if (await yes('\nCaption them now? Each photo opens in Preview while you type. [y/N] ')) {
-    say('Press Return to leave a field empty. The caption shows on the label; the description is read aloud by screen readers.');
-    for (const s of added) {
-      if (process.platform === 'darwin') launch(path.join(ROOT, s.src));
-      say('\n' + s.src);
-      s.caption = (await rl.question('  Caption (short, e.g. Lake Superior): ')).trim();
-      s.alt = (await rl.question('  Description for screen readers: ')).trim();
-    }
+  try { await stat(source); }
+  catch {
+    if (given) die('Couldn’t find ' + source + '.');
+    await mkdir(INBOX, { recursive: true });
+    openInFinder(INBOX);
+    say('Made a Slideshow folder in your Pictures and opened it in Finder.');
+    say('Drop your favorite photos in it (or a zip from Google Photos’ "Download all"), then run this again.');
+    return;
   }
 
-  data.slides = added.concat(data.slides);
-  data.updated = new Date().toISOString().slice(0, 10);
-  if (!data.tray) data.tray = 24;
-  await writeFile(SLIDES_JSON, JSON.stringify(data, null, 2) + '\n');
-  say('\nAdded ' + added.length + ' to slides.json (' + data.slides.length + ' in the collection).');
+  const scratch = await mkdtemp(path.join(os.tmpdir(), 'darkroom-'));
+  try {
+    const photos = await gather(source, scratch);
+    if (!photos.length) {
+      if (!given) openInFinder(INBOX);
+      say('No photos found in ' + source + '. Drop some in (or a Google Photos zip) and run this again.');
+      return;
+    }
 
-  let inRepo = true;
-  try { git(['rev-parse', '--is-inside-work-tree'], { quiet: true }); } catch { inRepo = false; }
-  if (!inRepo) { rl.close(); say('This folder isn’t a git repository, so nothing was committed.'); return; }
+    const data = JSON.parse(await readFile(SLIDES_JSON, 'utf8').catch(() => '{"version":1,"tray":24,"slides":[]}'));
+    data.slides = data.slides || [];
+    const known = new Set(data.slides.map(s => s.id));
+    await mkdir(SLIDES_DIR, { recursive: true });
 
-  git(['add', 'slides.json', ...added.map(s => s.src)]);
-  git(['commit', '-q', '-m', 'Slides: add ' + added.length + ' from Google Photos']);
-  say('Committed.');
+    say('Developing ' + photos.length + (photos.length === 1 ? ' photo' : ' photos') + '…');
+    const added = [], done = new Set();
+    let n = 0;
+    for (const p of photos) {
+      n++;
+      const tag = '  ' + String(n).padStart(String(photos.length).length) + '/' + photos.length + '  ' + path.basename(p.file);
+      const id = crypto.createHash('sha1').update(await readFile(p.file)).digest('hex').slice(0, 10);
+      if (known.has(id)) { say(tag + '  already on the projector'); done.add(p.original); continue; }
+      const tmp = path.join(SLIDES_DIR, '.developing-' + id + '.jpg');
+      try {
+        const size = await develop(p.file, tmp);
+        const taken = size.taken || takenMonth(p.file);
+        const name = (taken || 'undated') + '-' + id + '.jpg';
+        await rename(tmp, path.join(SLIDES_DIR, name));
+        added.push({ id, src: 'assets/slides/' + name, width: size.width, height: size.height, taken, caption: '', alt: '' });
+        known.add(id); done.add(p.original);
+        say(tag + '  ' + size.width + '×' + size.height + (taken ? '  ' + taken : ''));
+      } catch (e) {
+        await rm(tmp, { force: true });
+        say(tag + '  skipped: ' + (e.message || 'couldn’t read it as a photo'));
+      }
+    }
+    /* move originals out of the inbox so the next run only sees new ones */
+    if (!given) {
+      const shelf = path.join(INBOX, 'Added');
+      await mkdir(shelf, { recursive: true });
+      for (const o of done) if (o.startsWith(INBOX + path.sep)) await rename(o, path.join(shelf, path.basename(o))).catch(() => {});
+    }
+    if (!added.length) { say('\nNothing new to add.'); return; }
 
-  if (NO_PUSH) { rl.close(); say('Not pushed (--no-push). Run git push when you’re ready.'); return; }
-  const go = await yes('Publish ' + added.length + (added.length === 1 ? ' photo' : ' photos') + ' to the public site now? [y/N] ');
-  rl.close();
-  if (!go) { say('Not pushed. Run git push when you’re ready.'); return; }
-  git(['pull', '--rebase', '-q']);
-  git(['push', '-q']);
-  say('Published. The projector shows them after GitHub Pages rebuilds, usually within a minute or two.');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const yes = async q => /^y(es)?$/i.test((await rl.question(q)).trim());
+
+    if (await yes('\nCaption them now? Each photo opens in Preview while you type. [y/N] ')) {
+      say('Press Return to skip. The caption goes on the label tape; the description is read aloud by screen readers.');
+      for (const s of added) {
+        openInFinder(path.join(ROOT, s.src));
+        say('\n' + path.basename(s.src));
+        s.caption = (await rl.question('  Caption (short, e.g. Lake Superior): ')).trim();
+        s.alt = (await rl.question('  Description: ')).trim();
+      }
+    }
+
+    data.slides = added.concat(data.slides);
+    data.updated = new Date().toISOString().slice(0, 10);
+    data.tray = data.tray || 24;
+    await writeFile(SLIDES_JSON, JSON.stringify(data, null, 2) + '\n');
+
+    git(['add', 'slides.json', ...added.map(s => s.src)]);
+    git(['commit', '-q', '-m', 'Slides: add ' + added.length + (added.length === 1 ? ' photo' : ' photos')]);
+    say('\nAdded ' + added.length + ' (' + data.slides.length + ' on the projector in all). Committed.');
+
+    if (NO_PUSH) { rl.close(); say('Not published (--no-push). Run git push when you’re ready.'); return; }
+    const go = await yes('Publish to inquiredu.org now? [y/N] ');
+    rl.close();
+    if (!go) { say('Not published. Run git push when you’re ready.'); return; }
+    git(['pull', '--rebase', '-q']);
+    git(['push', '-q']);
+    say('Published. The projector shows them in a minute or two.');
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
