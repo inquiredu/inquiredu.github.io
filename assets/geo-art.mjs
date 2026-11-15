@@ -27,7 +27,28 @@ export function drawGeoArt(canvas,photos,{labels=false,strength=50,caption=true,
   for(let i=0;i<values.length;i++){const level=Math.pow(values[i]/peak,.7),v=level*5,low=Math.min(4,Math.floor(v)),mix=v-low,contour=level>.09&&(level*9)%1<.075?9:0;for(let c=0;c<3;c++)pixels.data[i*4+c]=Math.min(255,Math.round(ramp[low][c]*(1-mix)+ramp[low+1][c]*mix+contour));pixels.data[i*4+3]=255;}
   dc.putImageData(pixels,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(field,0,0,width,height);
   ctx.strokeStyle='#c5d4d51a';ctx.lineWidth=1;ctx.beginPath();for(let i=1;i<6;i++){ctx.moveTo(width*i/6,0);ctx.lineTo(width*i/6,height);}for(let i=1;i<4;i++){ctx.moveTo(0,height*i/4);ctx.lineTo(width,height*i/4);}ctx.stroke();
-  if(labels){ctx.font=`${Math.max(11,width/75)}px ui-monospace,monospace`;const used=new Set();for(const p of points){const key=p.photo.location.label||`${p.photo.location.lat.toFixed(1)}°, ${p.photo.location.lon.toFixed(1)}°`;if(used.has(key))continue;used.add(key);ctx.strokeStyle='#e4d9c699';ctx.beginPath();ctx.moveTo(p.x-6,p.y);ctx.lineTo(p.x+6,p.y);ctx.moveTo(p.x,p.y-6);ctx.lineTo(p.x,p.y+6);ctx.stroke();const label=key.slice(0,40),labelWidth=ctx.measureText(label).width,x=Math.max(12,Math.min(width-labelWidth-16,p.x+14)),y=Math.max(28,p.y-14);ctx.fillStyle='#0f1a24d1';ctx.fillRect(x-5,y-18,labelWidth+10,25);ctx.fillStyle='#e4d9c6';ctx.fillText(label,x,y);}}
+  if(labels){
+    ctx.font=`${Math.max(11,width/75)}px ui-monospace,monospace`;
+    const groups=new Map(),occupied=[];
+    for(const p of points){
+      const key=`${p.photo.location.lat},${p.photo.location.lon}`;
+      if(!groups.has(key))groups.set(key,{...p,names:[],count:0});
+      const group=groups.get(key);group.count++;
+      if(p.photo.location.label)group.names.push(p.photo.location.label);
+    }
+    for(const p of groups.values()){
+      const place=p.names.sort((a,b)=>a.length-b.length)[0]||`${p.photo.location.lat.toFixed(1)}°, ${p.photo.location.lon.toFixed(1)}°`;
+      const label=place.slice(0,40)+(p.count>1?` · ${p.count} photos`:''),labelWidth=ctx.measureText(label).width;
+      const x=Math.max(12,Math.min(width-labelWidth-16,p.x+14));let y=Math.max(28,p.y-14);
+      for(let tries=0;tries<groups.size;tries++){
+        if(!occupied.some(r=>x-5<r.right&&x+labelWidth+5>r.left&&y-18<r.bottom&&y+7>r.top))break;
+        y+=30;
+      }
+      occupied.push({left:x-5,right:x+labelWidth+5,top:y-18,bottom:y+7});
+      ctx.strokeStyle='#e4d9c699';ctx.beginPath();ctx.moveTo(p.x-6,p.y);ctx.lineTo(p.x+6,p.y);ctx.moveTo(p.x,p.y-6);ctx.lineTo(p.x,p.y+6);ctx.stroke();
+      ctx.fillStyle='#0f1a24d1';ctx.fillRect(x-5,y-18,labelWidth+10,25);ctx.fillStyle='#e4d9c6';ctx.fillText(label,x,y);
+    }
+  }
   if(activeId){const p=points.find(p=>p.photo.id===activeId);if(p){ctx.strokeStyle='#f6f0e28c';ctx.beginPath();ctx.arc(p.x,p.y,9+(time%2400)/160,0,Math.PI*2);ctx.stroke();}}
   if(caption){ctx.fillStyle='#c1c6bd';ctx.font=`${Math.max(10,width/90)}px ui-monospace,monospace`;ctx.fillText(demo?'ILLUSTRATIVE STUDY / SAMPLE LOCATIONS':'AFTERIMAGE / A GEOGRAPHY OF MOMENTS',28,height-34);ctx.textAlign='right';ctx.fillText(`${photos.length} ${demo?'SAMPLES':'PHOTOGRAPHS'} · INQUIREDU.ORG`,width-28,height-34);ctx.textAlign='left';}
   return points;

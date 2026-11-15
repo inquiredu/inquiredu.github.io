@@ -3,7 +3,7 @@ import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides,
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
-import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.7';
+import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.10';
 import { aiRequest, imagePreview, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.7';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
