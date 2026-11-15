@@ -120,12 +120,11 @@ function placeControls(photo,box) {
     const actions=make('div','','actions');actions.append(button('Review area',()=>previewPlace(suggestion),busy),button('Use approximate area',()=>{if(applyPlaceSuggestion(photo,review)){dirty.add('photos');render();status('Approximate area added to your draft. It will appear publicly only when you Save & publish photographs.');}},busy),button('Dismiss place',async()=>{review.status='dismissed';refresh();try{await savePlaceReviews();status('Place suggestion dismissed and saved privately.');}catch(error){status(error.message+' Your review remains in this tab.');}},busy));proposal.append(actions);box.append(proposal);
   };placeViews.set(photo.id,refresh);refresh();
 }
-async function previewPlace(suggestion) {
+function previewPlace(suggestion) {
   const dialog=make('dialog','','place-review-dialog'),close=button('Close ×',()=>dialog.close());
-  dialog.append(close,make('p','APPROXIMATE AREA · REVIEW BEFORE PUBLISHING','eyebrow'),make('h2',suggestion.label),make('p',suggestion.evidence));
-  const mapEl=make('div','','place-review-map');mapEl.setAttribute('aria-label','Suggested area on a map');dialog.append(mapEl,make('p','The circle shows an approximate public area, not the camera position.','muted'));document.body.append(dialog);dialog.showModal();
-  let map;dialog.addEventListener('close',()=>{map?.remove();dialog.remove();});
-  try{const L=await import('../assets/vendor/leaflet/leaflet.mjs');if(!dialog.open)return;map=L.map(mapEl,{scrollWheelZoom:false}).setView([suggestion.lat,suggestion.lon],10);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:15,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);L.circle([suggestion.lat,suggestion.lon],{radius:8000,color:'#c47d4d',fillOpacity:.15}).addTo(map);map.invalidateSize();}catch{mapEl.textContent='Map unavailable. You can still check the place reference and coordinates.';}
+  dialog.append(close,make('p','APPROXIMATE AREA · REVIEW BEFORE PUBLISHING','eyebrow'),make('h2',suggestion.label),make('p',suggestion.evidence),make('p',`${suggestion.lat.toFixed(1)}°, ${suggestion.lon.toFixed(1)}° · approximate area (~10 km)`));
+  const map=make('a','Open approximate area in OpenStreetMap ↗');map.href=`https://www.openstreetmap.org/?mlat=${suggestion.lat}&mlon=${suggestion.lon}#map=10/${suggestion.lat}/${suggestion.lon}`;map.target='_blank';map.rel='noopener';
+  const source=make('a','Read the place reference ↗');source.href=suggestion.sourceUrl;source.target='_blank';source.rel='noopener';const links=make('div','','actions');links.append(map,source);dialog.append(links,make('p','Review the city or landmark at the map source. This rounded area describes the setting, not the exact camera position.','muted'));document.body.append(dialog);dialog.showModal();dialog.addEventListener('close',()=>dialog.remove());
 }
 function previewPlaceArt() {
   const dialog=make('dialog','','place-review-dialog'),canvas=make('canvas');canvas.width=1000;canvas.height=650;canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Preview of existing shared places and pending approximate place suggestions');

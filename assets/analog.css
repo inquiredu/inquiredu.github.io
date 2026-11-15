@@ -18,3 +18,5 @@ body::before{opacity:var(--grain)}.horizon{gap:4px}.horizon span{height:4px;back
 @media(prefers-reduced-motion:reduce){.analog-tape,.index-note,.card,.frame,.photo,.tape-hub,.vu-needle{animation:none!important;transition:none!important}.library-objects .glass::after,.library-objects .screen,.photo-collection .pj-glow,.photo-collection .wall.lit .frame.on .photo{animation:none!important}.photo-collection .frame.film-enter{transform:none;filter:none}.photo-shutter{display:none}}
 
 .atlas-photo-list{grid-template-columns:1fr;gap:4px;max-height:290px}.atlas-photo-list button{display:flex;align-items:center;gap:10px;text-align:left;padding:6px}.atlas-photo-list img{width:42px;height:42px;flex:none}.atlas-photo-list button>span{min-width:0;display:grid;gap:5px}.atlas-photo-list strong{font:500 11px/1.4 var(--font-sans)}.atlas-photo-list small{font:9px var(--font-mono);color:#a9b4a2}
+
+.atlas-detail>a{display:inline-block;margin-top:12px;color:#d1b28c;font:10px/1.7 var(--font-mono)}
