@@ -34,6 +34,15 @@ test('the artwork keeps dateline neighbors together and retains repeated locatio
   const projected=projectLocations(photos,1000,600);assert.ok(Math.max(...projected.map(p=>p.x))-Math.min(...projected.map(p=>p.x))<700);
   const same=projectLocations([photos[0],photos[0]],1000,600);assert.equal(same.length,2);assert.equal(same[0].x,same[1].x);assert.equal(same[0].y,same[1].y);
 });
+test('nearby decimal longitudes do not wrap apart at the projection boundary',()=>{
+  const photos=[{location:{lat:45,lon:-93.3}},{location:{lat:46.6,lon:-94.3}}];
+  const [south,north]=projectLocations(photos,1400,900,135);
+  assert.ok(north.y<south.y);assert.ok(north.x<south.x);
+  assert.ok(south.y-north.y>south.x-north.x);
+  assert.ok(Math.hypot(south.x-north.x,south.y-north.y)<400);
+  const shifted=projectLocations(photos.map(p=>({location:{...p.location,lon:p.location.lon+30}})),1400,900,135);
+  for(const [i,point] of [south,north].entries()){assert.ok(Math.abs(point.x-shifted[i].x)<1e-8);assert.ok(Math.abs(point.y-shifted[i].y)<1e-8);}
+});
 test('music links become known official players without exposing private SoundCloud links',()=>{
   const spotify=musicSource('https://open.spotify.com/playlist/6DB4Qf8vrDgM62TjmymEua?si=tracking');assert.equal(spotify.provider,'Spotify');assert.ok(!spotify.url.includes('?'));assert.match(spotify.embed,/^https:\/\/open.spotify.com\/embed\/playlist\//);
   assert.equal(musicSource('https://soundcloud.com/sean-beaverson').provider,'SoundCloud');

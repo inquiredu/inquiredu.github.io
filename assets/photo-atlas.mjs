@@ -1,4 +1,4 @@
-import {publicMapPhotos,drawGeoArt} from './geo-art.mjs';
+import {publicMapPhotos,drawGeoArt} from './geo-art.mjs?v=20261115.4';
 const make=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
 export function mountAtlas(data,{trigger=document.getElementById('placesToggle'),demo=false}={}) {
   const photos=publicMapPhotos(data),dialog=make('dialog','','atlas-dialog');dialog.setAttribute('aria-labelledby','atlasTitle');

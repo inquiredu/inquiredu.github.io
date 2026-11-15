@@ -5,7 +5,9 @@ export function projectLocations(photos,width,height,padding=65) {
   if(!photos.length)return [];
   const longitudes=photos.map(p=>(p.location.lon+360)%360).sort((a,b)=>a-b);
   let gap=-1,start=longitudes[0];
-  for(let i=0;i<longitudes.length;i++){const next=longitudes[(i+1)%longitudes.length]+(i===longitudes.length-1?360:0);if(next-longitudes[i]>gap){gap=next-longitudes[i];start=next%360;}}
+  // Keep the original boundary value: adding/subtracting 360 can nudge a decimal
+  // longitude across its own boundary and incorrectly wrap it around the globe.
+  for(let i=0;i<longitudes.length;i++){const nextIndex=(i+1)%longitudes.length,next=longitudes[nextIndex]+(i===longitudes.length-1?360:0);if(next-longitudes[i]>gap){gap=next-longitudes[i];start=longitudes[nextIndex];}}
   const projected=photos.map(photo=>{let lon=(photo.location.lon+360)%360;if(lon<start)lon+=360;const lat=Math.max(-85,Math.min(85,photo.location.lat))*Math.PI/180;return {photo,x:lon,y:-Math.log(Math.tan(Math.PI/4+lat/2))*180/Math.PI};});
   const xs=projected.map(p=>p.x),ys=projected.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
   const scale=Math.min((width-padding*2)/Math.max(5,maxX-minX),(height-padding*2)/Math.max(5,maxY-minY));
