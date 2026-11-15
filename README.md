@@ -12,11 +12,13 @@ Two files hold the catalog:
 
 Both are written together, private first, by either of the two ways below. Don't edit `projects.json` by hand: the next save rebuilds it from the private catalog.
 
-## Choose projects in Site settings
+## The studio: sign in and edit
 
-Site settings, and the light table below, run only on the owner's computer, at `http://127.0.0.1:8787/settings.html` and `http://127.0.0.1:8787/lighttable.html`. They are not on inquiredu.org: GitHub Pages can't put a login in front of a page, so the admin pages stay off the public site. Their files (`settings.html`, `lighttable.html`, `assets/settings.*` and `assets/lighttable.*`) sit in a local copy of this repo, listed in `.git/info/exclude` so they are never committed. A small local server starts them (`start-settings.command`, kept beside the repo). It answers only on 127.0.0.1, serves only the files these pages need (never `.git`, scripts or folder listings), and refuses requests from other websites. Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. The key is held in the tab's memory only and is never saved in the browser.
+The browser editor at [`/admin/`](https://inquiredu.org/admin/) manages projects, photographs, writing, song lists, and the introduction. It uses **Sign in with GitHub** for the inquiredu owner. Connect it once using [the authentication setup](auth/README.md); until then its sign-in button stays disabled. The public page stays open to visitors.
 
-The repo list comes from `repos.json`, which the hourly sync keeps current. **Refresh list** in Settings runs the sync right away and reloads the list when it finishes, usually within a minute. It also picks up any card a `shelf` tag just added.
+Project changes preserve the existing private catalog, including hidden entries and sync bookkeeping. Reorder with Move up / Move down, edit a card, choose whether it is shown, then **Save & publish this section**. Each section saves separately. Writing and song-list drafts stay in the private `site-catalog/content.json`; only published entries reach the public page. Empty writing and music sections are omitted from the landing page.
+
+The original computer-only Settings and Light Table, if already installed, remain available on that computer. They are not included in this repository. The studio replaces their need for a manually pasted publishing key.
 
 ## Or tag a repo `shelf`
 
@@ -90,21 +92,20 @@ Paste each token when asked. When one expires, make a new one and run the same c
 
 This repo is public, so its Action logs are too. The sync logs counts only, never repo names or card titles. Details go in the commit to the private catalog.
 
-## Slides
+## Photographs and the viewfinder
 
-The home page throws the photographs listed in `slides.json` (images in `assets/slides/`) on a wall behind the catalog terminal. Each slide's color lights the page around it, the terminal's deck runs the projector, and today's tray sits below as a row of slide mounts. Each day loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the wall stays hidden and the terminal stands alone.
+A compact viewfinder in the upper introduction quietly cycles through `slides.json`. It pauses on hover, keyboard focus, or a hidden tab. Reduced-motion visitors start in manual mode. Click the frame to flip it to a contact sheet. Choose a photograph to flip back, or use Back / Escape. The full frame is preserved, including portraits; reduced-motion mode also disables the flip animation.
 
-### Add photos: the light table
+In **Studio → Photographs**, add several images at once, write captions and image descriptions, reorder them, and choose a daily shuffle or your own sequence. The studio resizes new photographs to 1600 pixels, removes embedded location/camera metadata, generates small thumbnails, and publishes the batch and manifest in one commit. Files never leave the device until you publish. New visible images require an image description.
 
-Start it with `start-settings.command`, then open `http://127.0.0.1:8787/lighttable.html`, or follow the link at the top of Site settings. It runs only on the owner's computer.
+Hiding an existing photo removes it from the tray, but its published image URL and Git history remain public. The studio does not request access to an entire photo library. Select the photographs you want to share; on devices that expose a photo library in their file chooser, you can select from there. HEIC support depends on the browser; export as JPEG if conversion fails.
 
-1. **Sign in** with your publishing key, the same one Site settings uses.
-2. **Load your film.** Drop photos on the page or press **Choose photos**. On a Mac the chooser includes your Photos library. In your browser, each photo is shrunk to 1600 px on the long edge, turned the right way up, and stripped of camera and location data. The month it was taken is read when the photo carries it.
-3. **Lay out the slides.** They sit in mounts on a lit table. Click one to look closer and write a caption (it goes on the projector's label tape), the month taken, and a description for screen readers. Untick **In projector** to set a slide aside, or remove it from the collection.
-4. **Publish.** One commit uploads the new slides and the updated `slides.json`. The projector picks it up in a minute or two.
+`node scripts/darkroom.mjs` is still available for the original macOS folder/Google Photos ZIP workflow.
 
-Safari reads iPhone HEIC photos directly. Chrome can't; if a HEIC won't open there, use Safari or export it as JPEG.
+## Local preview and checks
 
-### Or from the command line
+Serve this directory with a local static HTTP server, then open its address. `/admin/?preview=1` demonstrates the editor using public data, with publishing disabled. It never loads private content. Run:
 
-`node scripts/darkroom.mjs` does the same from **Pictures › Slideshow** on a Mac: drop photos (or a Google Photos zip) in that folder and run it. It commits and asks before publishing. Both tools name slides the same way, so a photo added by one is recognized by the other.
+```sh
+node --test tests/studio.test.mjs
+```

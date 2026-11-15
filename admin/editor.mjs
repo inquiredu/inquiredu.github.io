@@ -1,0 +1,202 @@
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs';
+const $ = id => document.getElementById(id);
+const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
+let github, config, popup, channel, catalog, content, photos, revisions = {}, active = 'projects', busy = false;
+let dirty = new Set(), pending = new Map(), objectURLs = [], demo = new URLSearchParams(location.search).get('preview') === '1';
+const group = () => ['writing','playlists','about'].includes(active) ? 'content' : active;
+const status = message => { $('status').textContent = message; };
+function changed() { dirty.add(group()); updateButton(); }
+function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; }
+function button(text, action, disabled = false) { const b = make('button', text); b.type = 'button'; b.disabled = disabled; b.onclick = action; return b; }
+function field(parent, label, obj, key, type = 'text', wide = false) {
+  const wrap = make('label', label, wide ? 'wide' : '');
+  const input = make(type === 'textarea' ? 'textarea' : 'input');
+  if (type !== 'textarea') input.type = type;
+  input.value = obj[key] || ''; input.addEventListener('input', () => { obj[key] = input.value; changed(); });
+  wrap.append(input); parent.append(wrap); return input;
+}
+function check(parent, label, obj, key, invert = false) {
+  const wrap = make('label', '', 'check'); const input = make('input'); input.type = 'checkbox';
+  input.checked = invert ? obj[key] !== true : obj[key] === true;
+  input.onchange = () => { obj[key] = invert ? !input.checked : input.checked; changed(); };
+  wrap.append(input, document.createTextNode(label)); parent.append(wrap);
+}
+function select(parent, label, obj, key, choices) {
+  const wrap = make('label', label); const input = make('select');
+  for (const [value, text] of choices) { const option = make('option', text); option.value = value; input.append(option); }
+  input.value = obj[key]; input.onchange = () => { obj[key] = input.value; changed(); };
+  wrap.append(input); parent.append(wrap);
+}
+function reorder(parent, items, index) {
+  const actions = make('div', '', 'actions');
+  const move = delta => { [items[index], items[index + delta]] = [items[index + delta], items[index]]; changed(); render(); };
+  actions.append(button('↑ Move up', () => move(-1), index === 0), button('↓ Move down', () => move(1), index === items.length - 1));
+  parent.append(actions); return actions;
+}
+function renderProjects() {
+  $('toolbar').append(make('p', 'Choose what goes on the shelf. Hidden projects stay in your private catalog.'), button('Add a project', () => {
+    catalog.projects.push({id: crypto.randomUUID(), title:'Untitled project', visible:false, group:'workshop', status:'In progress', call:'000 NEW', note:''}); changed(); render();
+  }));
+  catalog.projects.forEach((project, index) => {
+    const card = make('details', '', 'item'); card.append(make('summary', `${project.visible === false ? 'Hidden · ' : ''}${project.title}`));
+    const fields = make('div', '', 'fields');
+    field(fields, 'Title', project, 'title'); field(fields, 'Link', project, 'url', 'url');
+    field(fields, 'Description', project, 'note', 'textarea', true); field(fields, 'Subjects', project, 'subject'); field(fields, 'Call number', project, 'call');
+    field(fields, 'Status', project, 'status'); select(fields, 'Shelf', project, 'group', [['live','Live'],['source','Open source'],['workshop','Workshop']]);
+    const visibility = {hidden:project.visible === false};
+    const label = make('label', '', 'check'); const visible = make('input'); visible.type='checkbox'; visible.checked=!visibility.hidden;
+    visible.onchange = () => { project.visible=visible.checked; changed(); }; label.append(visible, document.createTextNode('Show on the public page')); fields.append(label);
+    check(fields, 'Featured project', project, 'featured');
+    card.append(fields); reorder(card, catalog.projects, index); $('items').append(card);
+  });
+}
+function renderPhotos() {
+  $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
+  const drop = make('div', '', 'drop'); const label = make('label', 'Choose photos or drop them here'); const input = make('input');
+  input.type='file'; input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif'; input.multiple=true;
+  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Images are resized and location metadata is removed before publishing. Originals stay on your device.'));
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add('dragover'); }; drop.ondragleave = () => drop.classList.remove('dragover');
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
+  const options = make('div', '', 'actions');
+  const mode = {mode:photos.shuffle === false ? 'curated' : 'daily'};
+  select(options, 'Tray order', mode, 'mode', [['daily','A fresh shuffle each day'],['curated','My chosen order']]);
+  options.querySelector('select').addEventListener('change', () => { photos.shuffle = mode.mode === 'daily'; });
+  field(options, 'Slides per tray (1–80)', photos, 'tray', 'number'); $('toolbar').append(options);
+  const grid = make('div','','photos');
+  photos.slides.forEach((photo,index) => {
+    const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
+    field(card,'Caption',photo,'caption'); field(card,'Image description',photo,'alt'); field(card,'Month taken',photo,'taken','month');
+    check(card,'Include in the projector',photo,'hidden',true);
+    const actions = reorder(card,photos.slides,index);
+    if (pending.has(photo.id)) actions.append(button('Remove new photo',()=>{ pending.delete(photo.id); photos.slides.splice(index,1);changed();render(); }));
+    grid.append(card);
+  });
+  $('items').append(grid, make('p','Hiding a previously published photo removes it from the tray; its original public image link still exists.','muted'));
+}
+function renderWords() {
+  const writing = active === 'writing', items = content[active];
+  $('toolbar').append(make('p', writing ? 'Notes and longer pieces. Unpublished writing is saved only in the private catalog.' : 'Make a song list, add a note, and link to a playlist if you like. Unpublished lists stay private.'), button(writing ? 'New piece' : 'New song list', () => {
+    items.unshift({id:crypto.randomUUID(), title:writing?'Untitled note':'Untitled mix', date:new Date().toLocaleDateString('en-CA',{timeZone:'America/Chicago'}), published:false, ...(writing?{body:'',excerpt:''}:{note:'',tracks:[]})}); changed();render();
+  }));
+  if (!items.length) $('items').append(make('p',writing?'Room for your first note.':'Room for your first song list.','muted'));
+  items.forEach((item,index)=>{
+    const card=make('details','','item'); card.open = index===0; card.append(make('summary',`${item.published?'Published':'Draft'} · ${item.title}`));
+    const fields=make('div','','fields'); field(fields,'Title',item,'title');field(fields,'Date',item,'date','date');
+    if(writing){field(fields,'Short introduction',item,'excerpt','textarea',true);field(fields,'Writing',item,'body','textarea',true);}
+    else {
+      field(fields,'A note about this list',item,'note','textarea',true);
+      const tracks={lines:(item.tracks||[]).map(t=>[t.title,t.artist,t.url].filter(Boolean).join(' | ')).join('\n')};
+      const input=field(fields,'Songs — one per line: title | artist | optional link',tracks,'lines','textarea',true);
+      input.addEventListener('input',()=>{item.tracks=input.value.split('\n').filter(x=>x.trim()).map(line=>{const [title='',artist='',url='']=line.split('|').map(x=>x.trim());return {title,artist,url};});});
+    }
+    field(fields,writing?'Optional link to the full piece':'Optional playlist link',item,'url','url',true);check(fields,'Publish on the public page',item,'published');
+    card.append(fields);reorder(card,items,index);$('items').append(card);
+  });
+}
+function render() {
+  $('toolbar').replaceChildren();$('items').replaceChildren();
+  document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===active)));
+  if(active==='projects')renderProjects(); else if(active==='photos')renderPhotos(); else if(active==='about'){
+    $('toolbar').append(make('p','The short introduction under your name.'));field($('items'),'Introduction',content,'intro','textarea');
+  } else renderWords();
+  updateButton();
+}
+async function load() {
+  busy=true;updateButton();status('Opening the collection…');
+  try {
+    if(demo){
+      const responses=await Promise.all(['projects.json','content.json','slides.json'].map(p=>fetch(`../${p}`).then(r=>{if(!r.ok)throw new Error('Preview content did not load.');return r.json();})));
+      [catalog,content,photos]=responses;
+    }else{
+      const [cat,words,pictures,pubProjects,pubContent,head]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head()]);
+      catalog=cat.data;content=words?.data||pubContent?.data||{version:1,intro:'',writing:[],playlists:[]};photos=pictures.data;
+      revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head};
+    }
+    content.writing ||= [];content.playlists ||= [];dirty.clear();pending.clear();
+    objectURLs.forEach(URL.revokeObjectURL);objectURLs=[];
+    $('gate').hidden=true;$('studio').hidden=false;$('signout').hidden=demo;
+    $('sessionLabel').textContent=demo?'Preview · edits are not saved':'Signed in · inquiredu';
+    status(demo?'Preview mode. You can explore the editor; publishing is disabled.':'');render();
+  }catch(error){status(error.message);}finally{busy=false;updateButton();}
+}
+async function importPhotos(files) {
+  if(busy)return;
+  if(files.length>30){status('Add up to 30 photos at a time.');return;}
+  busy=true;updateButton();let added=0,duplicates=0,failed=[];
+  for(const file of files){
+    let bitmap;
+    try{
+      if(file.size>30*1024*1024)throw new Error('over 30 MB');
+      status(`Preparing photograph ${added+1}…`);
+      bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
+      if(bitmap.width*bitmap.height>80000000)throw new Error('image too large');
+      const canvas=document.createElement('canvas'), ratio=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));
+      canvas.width=Math.round(bitmap.width*ratio);canvas.height=Math.round(bitmap.height*ratio);
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#f4f1eb';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));if(!blob)throw new Error('conversion failed');
+      const id=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))).slice(0,10).map(n=>n.toString(16).padStart(2,'0')).join('');
+      if(photos.slides.some(x=>x.id===id)){duplicates++;continue;}
+      const image64=canvas.toDataURL('image/jpeg',.86).split(',')[1];
+      const thumb=document.createElement('canvas');const scale=Math.min(1,360/Math.max(canvas.width,canvas.height));thumb.width=Math.round(canvas.width*scale);thumb.height=Math.round(canvas.height*scale);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
+      const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
+      photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:'',caption:'',alt:'',hidden:false});
+      pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;
+    }catch{failed.push(file.name);}finally{bitmap?.close();}
+  }
+  if(added)dirty.add('photos');busy=false;render();
+  status(`${added} photo${added===1?'':'s'} ready.${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
+}
+function validate() {
+  for(const input of $('studio').querySelectorAll('input[type=url]')) if(input.value && !safeURL(input.value))throw new Error('Use a complete https:// or http:// link.');
+  if(group()==='photos'){
+    if(!Number.isInteger(+photos.tray)||+photos.tray<1||+photos.tray>80)throw new Error('Choose between 1 and 80 slides per tray.');
+    for(const slide of photos.slides)if(pending.has(slide.id)&&!slide.hidden&&!slide.alt?.trim())throw new Error('Add an image description to each new photo before publishing.');
+  }
+  const entries=group()==='projects'?catalog.projects:group()==='content'?[...content.writing,...content.playlists]:[];
+  if(entries.some(x=>!x.title?.trim()))throw new Error('Give each entry a title before publishing.');
+}
+async function publish() {
+  if(demo||!github||busy)return;
+  try{
+    validate();busy=true;$('studio').inert=true;updateButton();status('Saving the collection…');
+    if(group()==='projects'){
+      revisions.catalog=await github.write(PRIVATE,'catalog.json',catalog,revisions.catalog,'Save project collection');
+      status('Private catalog saved. Updating the public shelf…');
+      revisions.pubProjects=await github.write(SITE,'projects.json',publicProjects(catalog),revisions.pubProjects,'Publish project collection');
+    }else if(group()==='content'){
+      revisions.content=await github.write(PRIVATE,'content.json',content,revisions.content,'Save writing and song lists');
+      status('Private drafts saved. Updating the public page…');
+      revisions.pubContent=await github.write(SITE,'content.json',publicContent(content),revisions.pubContent,'Publish writing and song lists');
+    }else{
+      photos.updated=new Date().toISOString().slice(0,10);photos.tray=+photos.tray;
+      const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(photos)});
+      revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
+    }
+    dirty.delete(group());status('Published to GitHub. The public page will update after GitHub Pages finishes deploying.');
+    // Refresh the head only when the photo collection is unchanged; otherwise preserve its conflict baseline.
+    if(!dirty.has('photos'))revisions.head=await github.head();
+  }catch(error){status(`${error.message}\nYour edits are still in this tab. If the private save succeeded, those drafts are safe even if public publishing failed.`);}
+  finally{busy=false;$('studio').inert=false;updateButton();}
+}
+$('tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b&&!busy){active=b.dataset.tab;render();}};
+$('publish').onclick=publish;
+$('reload').onclick=()=>{if(!dirty.size||confirm('Discard the edits in this tab and reload the saved collection?'))load();};
+$('signout').onclick=()=>{if(!dirty.size||confirm('Sign out and discard unsaved changes?')){github.token='';github=null;location.reload();}};
+window.addEventListener('beforeunload',event=>{if(dirty.size){event.preventDefault();event.returnValue='';}});
+$('signin').onclick=()=>{
+  channel=crypto.randomUUID();const url=new URL('/login',config.authOrigin);url.searchParams.set('channel',channel);
+  popup=window.open(url.href,'collection-signin','width=620,height=720');
+  if(!popup)status('Allow the sign-in popup, then try again.');else status('Finish signing in with GitHub in the new window.');
+};
+window.addEventListener('message',async event=>{
+  if(!config?.authOrigin||event.origin!==new URL(config.authOrigin).origin||event.source!==popup||event.data?.channel!==channel||event.data?.type!=='collection-auth')return;
+  if(typeof event.data.token!=='string'||!event.data.token)return;
+  popup?.close();popup=null;channel=null;github=new GitHub(event.data.token);
+  try{await github.verify();await load();}catch(error){github.token='';github=null;status(error.message);}
+});
+try{
+  config=await fetch('config.json',{cache:'no-store'}).then(r=>r.json());
+  if(config.authOrigin&&new URL(config.authOrigin).protocol==='https:'){$('signin').disabled=false;$('setup').textContent='Only the inquiredu account can open this editor.';}
+  else {$('setup').textContent='GitHub sign-in needs its one-time connection. The public collection is ready to browse.';}
+  if(demo)await load();
+}catch{status('The sign-in configuration could not be loaded. Reload to try again.');}

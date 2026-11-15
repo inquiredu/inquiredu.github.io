@@ -1,0 +1,11 @@
+{
+  "name": "inquiredu-studio-auth",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-14",
+  "workers_dev": true,
+  "vars": {
+    "SITE_ORIGIN": "https://inquiredu.org",
+    "OWNER_ID": "192934662"
+  },
+  "observability": { "enabled": false }
+}
