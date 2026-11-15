@@ -2,7 +2,7 @@ import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
-import { aiRequest, imagePreview, fillEmptyDraft } from './photo-ai.mjs?v=20261115.5';
+import { aiRequest, imagePreview, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.6';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
@@ -64,7 +64,7 @@ function renderProjects() {
 }
 async function checkAI() {
   aiReady=false;
-  try{aiReady=!demo&&(await aiRequest(config.authOrigin,github.token,'/ai/config')).enabled;aiMessage=aiReady?'A small preview goes to OpenAI. GPS and camera metadata stay out of the request. Review the drafts before publishing.':demo?'AI is available in the signed-in studio once connected.':'AI needs its one-time OpenAI connection. Uploads and manual descriptions still work.';}
+  try{aiReady=!demo&&(await aiRequest(config.authOrigin,github.token,'/ai/config')).enabled;aiMessage=aiReady?'AI can name recognizable public landmarks. A preview and any place name you add go to OpenAI; GPS and camera metadata stay private. Review names before publishing.':demo?'AI is available in the signed-in studio once connected.':'AI needs its one-time OpenAI connection. Uploads and manual descriptions still work.';}
   catch{aiMessage='The description service is unavailable. Uploads and manual descriptions still work.';}
 }
 function photoAIControls(photo,box,caption,alt) {
@@ -88,7 +88,7 @@ async function suggestPhoto(photo,{automatic=false,blob}={}) {
   const state={loading:true};aiStates.set(photo.id,state);aiViews.get(photo.id)?.();
   try {
     if(!blob){const response=await fetch(pending.get(photo.id)?.preview||new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error('The image preview could not be read.');blob=await response.blob();}
-    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob));
+    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob),photo.aiContext);
     if(!photos.slides.includes(photo))return false;
     const filled=fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
     state.message=filled.length===2?'AI draft added. Edit either field before publishing.':'Your words are preserved. Review this suggestion below.';
@@ -124,6 +124,8 @@ function renderPhotos() {
   photos.slides.forEach((photo,index) => {
     const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
     const caption=field(card,'Caption',photo,'caption'),alt=field(card,'Image description',photo,'alt','textarea');
+    const context=field(card,'Known place or landmark (optional)',photo,'aiContext');context.maxLength=300;context.placeholder='e.g. Mississippi River · Minneapolis';
+    card.append(make('small','A confirmed name for AI to use. This note stays off the public page.'));
     const aiBox=make('div','','photo-ai');aiBox.setAttribute('aria-live','polite');photoAIControls(photo,aiBox,caption,alt);card.append(aiBox);
     field(card,'Month taken',photo,'taken','month');
     check(card,'Include in the projector',photo,'hidden',true);
@@ -214,7 +216,7 @@ async function load() {
     }else{
       const [cat,words,pictures,pubProjects,pubContent,head,places]=await Promise.all([github.read(PRIVATE,'catalog.json'),github.read(PRIVATE,'content.json',true),github.read(SITE,'slides.json'),github.read(SITE,'projects.json'),github.read(SITE,'content.json',true),github.head(),github.read(PRIVATE,'photo-locations.json',true)]);
       catalog=cat.data;content=words?.data||pubContent?.data||{version:1,intro:'',writing:[],playlists:[]};photos=pictures.data;
-      privateLocations=places?.data.locations||{};for(const photo of photos.slides)if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);
+      privateLocations=places?.data.locations||{};for(const photo of photos.slides){if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);photo.aiContext=cleanContext(places?.data.contexts?.[photo.id]);}
       revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha};
     }
     content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();aiStates.clear();aiViews.clear();
@@ -290,7 +292,7 @@ async function publish() {
     }else{
       photos.updated=new Date().toISOString().slice(0,10);photos.tray=+photos.tray;
       for(const photo of photos.slides){const place=safeLocation(photo.location);if(place)privateLocations[photo.id]=place;else delete privateLocations[photo.id];}
-      revisions.locations=await github.write(PRIVATE,'photo-locations.json',{version:1,locations:privateLocations},revisions.locations,'Save private photograph locations');
+      revisions.locations=await github.write(PRIVATE,'photo-locations.json',{version:1,locations:privateLocations,contexts:photoContexts(photos.slides)},revisions.locations,'Save private photograph locations and confirmed context');
       const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(publicSlides(photos))});
       revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
     }
