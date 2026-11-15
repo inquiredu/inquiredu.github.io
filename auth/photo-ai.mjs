@@ -1,4 +1,6 @@
 import {resolvePlace,placeClue} from './photo-places.mjs';
+import {permittedAIOrigin} from './studio-bridge.mjs';
+import {cleanAssistantInput,studioAssistant} from './studio-assistant.mjs';
 const MAX_BODY = 1500000;
 const MODEL = 'gpt-5.6-terra';
 const prompt = `Write two editable drafts for a personal photography portfolio. caption: a restrained, warm, concrete title of 2–8 words, at most 100 characters. alt: an accessible description of the visible scene, composition, light and relevant details in one or two plain sentences, at most 400 characters.
@@ -59,25 +61,30 @@ export function parseDraft(result) {
   return {caption:draft.caption.trim(),alt:draft.alt.trim(),...(placeClue(draft.place)?{place:draft.place}:{})};
 }
 export async function photoAI(request, env, transport=fetch) {
-  const origin=request.headers.get('Origin'),path=new URL(request.url).pathname;
-  if(!env.SITE_ORIGIN||origin!==env.SITE_ORIGIN)return reply({error:'This service is only available from the studio.'},403);
-  if(!['/ai/config','/ai/describe'].includes(path))return reply({error:'Not found.'},404,origin);
-  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Max-Age':'600','Vary':'Origin'}});
-  if(request.method!==(path==='/ai/config'?'GET':'POST'))return reply({error:'Method not allowed.'},405,origin);
+  const origin=permittedAIOrigin(request,env),path=new URL(request.url).pathname;
+  if(!env.SITE_ORIGIN||!origin)return reply({error:'This service is only available from the studio.'},403);
+  if(!['/ai/config','/ai/describe','/ai/assist','/ai/check'].includes(path))return reply({error:'Not found.'},404,origin);
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type, Cache-Control, Pragma','Access-Control-Max-Age':'600','Vary':'Origin'}});
+  if(!(request.method==='POST'||path==='/ai/config'&&request.method==='GET'))return reply({error:'Method not allowed.'},405,origin);
   const authorization=request.headers.get('Authorization');
   if(!authorization||!/^Bearer [A-Za-z0-9_]{10,255}$/.test(authorization))return reply({error:'Sign in to the studio first.'},401,origin);
   try{
     const profile=await transport('https://api.github.com/user',{headers:{Authorization:authorization,Accept:'application/vnd.github+json','User-Agent':'inquiredu-studio','X-GitHub-Api-Version':'2022-11-28'},signal:AbortSignal.timeout(10000)});
     if(!profile.ok||(await profile.json()).id!==Number(env.OWNER_ID))return reply({error:'Sign in as the owner of this studio.'},403,origin);
   }catch{return reply({error:'GitHub could not verify your sign-in. Try again.'},502,origin);}
-  if(path==='/ai/config')return reply({enabled:!!env.OPENAI_API_KEY,provider:'OpenAI',places:true},200,origin);
+  if(path==='/ai/config')return reply({enabled:!!env.OPENAI_API_KEY,provider:'OpenAI',places:true,studio:true,connection:'same-origin-bridge'},200,origin);
+  if(path==='/ai/check'){
+    try{const body=await readJSON(request);if(typeof body.probe!=='string'||body.probe.length>250000)throw Error();return reply({ok:true,receivedBytes:body.probe.length},200,origin);}
+    catch{return reply({error:'Invalid connection test.'},400,origin);}
+  }
   if(!env.OPENAI_API_KEY)return reply({error:'Connect an OpenAI API key in Cloudflare to enable descriptions.'},503,origin);
-  let image,context='';
-  try{const body=await readJSON(request);if(Object.keys(body).some(key=>!['image','context'].includes(key)))throw new Error('Unexpected fields.');image=cleanPreview(body.image);if(body.context!==undefined){if(typeof body.context!=='string'||body.context.length>300||/[\u0000-\u001f\u007f]/.test(body.context))throw new Error('Invalid context.');context=body.context.trim();}}
+  let image,context='',assistantBody;
+  try{const body=await readJSON(request);if(path==='/ai/assist')assistantBody=cleanAssistantInput(body);else{if(Object.keys(body).some(key=>!['image','context'].includes(key)))throw new Error('Unexpected fields.');image=cleanPreview(body.image);if(body.context!==undefined){if(typeof body.context!=='string'||body.context.length>300||/[\u0000-\u001f\u007f]/.test(body.context))throw new Error('Invalid context.');context=body.context.trim();}}}
   catch{return reply({error:'Send a JPEG preview up to 1024 pixels and an optional place name of up to 300 characters. GPS and metadata are not accepted.'},400,origin);}
   const now=Date.now(),attempts=(recent.get(env.OWNER_ID)||[]).filter(t=>now-t<60000);
   if(attempts.length>=20)return reply({error:'Pause for a minute before requesting more descriptions.'},429,origin);
   attempts.push(now);recent.set(env.OWNER_ID,attempts);
+  if(assistantBody){try{return reply(await studioAssistant(assistantBody,env,transport),200,origin);}catch(error){return reply({error:error.message||'The studio assistant could not finish. Try again.'},502,origin);}}
   try {
     const response=await transport('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},signal:AbortSignal.timeout(45000),body:JSON.stringify({
       model:env.OPENAI_MODEL||MODEL,store:false,reasoning:{effort:'none'},max_output_tokens:1000,instructions:prompt,

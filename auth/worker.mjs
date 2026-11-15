@@ -1,4 +1,5 @@
 import { photoAI } from './photo-ai.mjs';
+import {studioBridge} from './studio-bridge.mjs';
 /* Owner-only studio backend. No database, refresh tokens, or token logging. */
 const encode = value => btoa(String.fromCharCode(...new Uint8Array(value))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const decode = value => Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
@@ -26,6 +27,7 @@ function failure(message,status=400) {
 }
 export default {
   async fetch(request,env) {
+    if(request.method==='GET'&&['/studio-bridge','/studio-bridge.js'].includes(new URL(request.url).pathname))return studioBridge(request,env);
     if(new URL(request.url).pathname.startsWith('/ai/'))return photoAI(request,env);
     if(request.method!=='GET')return failure('Method not allowed.',405);
     const url=new URL(request.url);

@@ -23,12 +23,10 @@ test('a concurrent photo edit still prevents every write',async()=>{
   await assert.rejects(gh.commitFiles([{path:'slides.json',content:'{}'}],'loaded-head','loaded-photos'),/photo collection changed/);
   assert.deepEqual(calls,['GET','GET']);
 });
-test('AI network failure is actionable and does not repeat a potentially billable request',async()=>{
-  const original=globalThis.fetch;let calls=0;
-  try{globalThis.fetch=async()=>{calls++;throw new TypeError('Load failed');};
-    await assert.rejects(aiRequest('https://auth.example','test-token','/ai/describe','data:image/jpeg;base64,AA=='),/publish without a description/);
-    assert.equal(calls,1);
-  }finally{globalThis.fetch=original;}
+test('AI requests use the authenticated connection once without repeating a potentially billable request',async()=>{
+  let calls=0;
+  await assert.rejects(aiRequest('https://auth.example','test-token','/ai/describe','data:image/jpeg;base64,AA==','',async(origin,token,path,body)=>{calls++;assert.equal(path,'/ai/describe');assert.equal(body.image,'data:image/jpeg;base64,AA==');throw new Error('Connection interrupted');}),/Connection interrupted/);
+  assert.equal(calls,1);
 });
 test('preview generation reuses a decoded source and releases canvas memory',()=>{
   const original=globalThis.document;let dimensions;

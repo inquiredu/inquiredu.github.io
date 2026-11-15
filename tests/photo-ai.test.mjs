@@ -24,7 +24,7 @@ test('AI verifies owner before accepting a billable image request',async()=>{
 });
 test('missing key reports a disabled capability without exposing configuration',async()=>{
   const response=await photoAI(req('/ai/config'),{...env,OPENAI_API_KEY:''},async()=>ok({id:192934662}));
-  assert.deepEqual(await response.json(),{enabled:false,provider:'OpenAI',places:true});
+  assert.deepEqual(await response.json(),{enabled:false,provider:'OpenAI',places:true,studio:true,connection:'same-origin-bridge'});
 });
 test('JPEG previews discard EXIF, comments and trailing private data',()=>{
   const raw=Buffer.from(image.split(',')[1],'base64'),privateData=Buffer.from('Exif\0\0PRIVATE-GPS');

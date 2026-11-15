@@ -1,10 +1,11 @@
+import {openAssistant,testAIConnection} from './studio-assistant.mjs?v=20261115.12';
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
 import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.10';
-import { aiRequest, imagePreview, previewFromSource, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.11';
+import { aiRequest, imagePreview, previewFromSource, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.12';
 import { validatePhotoDraft } from './photo-publish.mjs?v=20261115.11';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.11';
 const $ = id => document.getElementById(id);
@@ -19,7 +20,7 @@ const placeViews=new Map();
 const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
-function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; $('reload').disabled=busy; $('signout').disabled=busy; }
+function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; $('reload').disabled=busy; $('signout').disabled=busy; $('aiHelp').disabled=busy||demo||!aiReady; $('aiTest').disabled=busy||demo; }
 function button(text, action, disabled = false) { const b = make('button', text); b.type = 'button'; b.disabled = disabled; b.onclick = action; return b; }
 function field(parent, label, obj, key, type = 'text', wide = false) {
   const wrap = make('label', label, wide ? 'wide' : '');
@@ -360,6 +361,8 @@ async function publish() {
 }
 $('tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b&&!busy){active=b.dataset.tab;render();}};
 $('publish').onclick=publish;
+$('aiHelp').onclick=()=>openAssistant({origin:config.authOrigin,token:github.token,active,data:{catalog,content},onApply:kind=>{dirty.add(kind==='projects'?'projects':'content');render();status('AI suggestion added to your draft. Review before publishing.');}});
+$('aiTest').onclick=()=>testAIConnection({origin:config.authOrigin,token:github.token,onResult:ok=>{aiReady=ok;render();status(ok?'AI connection passed all checks.':'AI connection test stopped at the failed step.');}});
 $('reload').onclick=()=>{if(!dirty.size||confirm('Discard the edits in this tab and reload the saved collection?'))load();};
 $('signout').onclick=()=>{if(!dirty.size||confirm('Sign out and discard unsaved changes?')){github.token='';github=null;location.reload();}};
 window.addEventListener('beforeunload',event=>{if(dirty.size){event.preventDefault();event.returnValue='';}});
