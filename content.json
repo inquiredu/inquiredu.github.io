@@ -87,7 +87,428 @@
       "note": "The Box Set Bob Marley’s Songs of Freedom 1-4",
       "url": "https://open.spotify.com/playlist/6uzBmVXb2KiVW5tCY6HLyO?si=YBLM-n7JSsm-EKXYbg3ynA&utm_source=copy-link&pi=HZ4-NPK9Tbe43",
       "published": true,
-      "tracks": []
+      "tracks": [
+        {
+          "title": "1.\t\"Judge Not\"\tBob Marley\tnon-album single (1962)\t2:26",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "2.\t\"One Cup of Coffee\"\tBill Brock, arr. B. Marley\tnon-album single (1962)\t2:34",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "3.\t\"Simmer Down\"\tB. Marley\tThe Wailing Wailers (1965)\t2:50",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "4.\t\"I'm Still Waiting\"\tB. Marley\tThe Wailing Wailers (1965)\t3:07",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "5.\t\"One Love/People Get Ready\" (original)\tB. Marley, Curtis Mayfield\tThe Wailing Wailers (1965)\t3:21",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "6.\t\"Put It On\"\tB. Marley\tThe Wailing Wailers (1965)\t3:08",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "7.\t\"Bus Dem Shut (Pyaka)\"\tB. Marley\tsingle (1967)\t2:47",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "8.\t\"Mellow Mood\" (original)\tB. Marley\tsingle (1967)\t3:31",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "9.\t\"Bend Down Low\"\tB. Marley\tsingle (1967)\t2:30",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "10.\t\"Hypocrites\"\tB. Marley\tsingle (1967)\t2:36",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "11.\t\"Stir It Up\" (original)\tB. Marley\tsingle (1967)\t3:13",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "12.\t\"Nice Time\"\tB. Marley\tsingle (1967)\t2:44",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "13.\t\"Thank You Lord\" (original)\tB. Marley\tsingle (1967)\t3:41",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "14.\t\"Hammer\"\tB. Marley\tpreviously unreleased demo (1968)\t2:57",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "15.\t\"Caution\"\tB. Marley\tThe Best of The Wailers (1970)\t2:45",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "16.\t\"Back Out\"\tB. Marley\tThe Best of The Wailers (1970)\t2:18",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "17.\t\"Soul Shake Down Party\"\tB. Marley\tThe Best of The Wailers (1970)\t3:06",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "18.\t\"Do It Twice\"\tB. Marley\tThe Best of The Wailers (1970)\t2:49",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "19.\t\"Soul Rebel\"\tB. Marley\tSoul Rebels (1970)\t3:19",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "20.\t\"Sun Is Shining\"\tB. Marley\tSoul Revolution Part II (1971)\t2:11",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "21.\t\"Don't Rock My Boat\"\tB. Marley\tSoul Revolution Part II (1971)\t4:32",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "22.\t\"Small Axe\"\tB. Marley\tsingle (1971)\t3:57",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "23.\t\"Duppy Conqueror\"\tB. Marley\tsingle (1971)\t3:39",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "24.\t\"Mr. Brown\"\tB. Marley\tsingle (1971)\t3:32",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "Disc two",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "No.\tTitle\tWriter(s)\tOriginal release\tLength",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "1.\t\"Screwface\"\tB. Marley\tsingle (1971)\t2:23",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "2.\t\"Lick Samba\"\tB. Marley\tsingle (1971)\t2:33",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "3.\t\"Trenchtown Rock\" (alternative mix)\tB. Marley\tsingle (1971)\t3:28",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "4.\t\"Craven Choke Puppy\"\tB. Marley\tsingle (1971)\t2:52",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "5.\t\"Guava Jelly\"\tB. Marley\tsingle (1971)\t2:18",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "6.\t\"Acoustic Medley\" (medley of \"Guava Jelly\", \"This Train\", \"Cornerstone\", \"Comma Comma\", \"Dew Drops\", \"Stir It Up\" and \"I'm Hurting Inside\")\tB. Marley\tpreviously unreleased JAD audition (1971)\t12:09",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "7.\t\"I'm Hurting Inside\" (alternative mix)\tB. Marley\tpreviously unreleased, from an unfinished JAD album (1971)\t3:29",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "8.\t\"High Tide or Low Tide\"\tB. Marley\tpreviously unreleased outtake from Catch a Fire (1972)\t4:09",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "9.\t\"Slave Driver\"\tB. Marley\tCatch a Fire (1972)\t2:51",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "10.\t\"No More Trouble\"\tB. Marley\tCatch a Fire (1972)\t3:59",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "11.\t\"Concrete Jungle\"\tB. Marley\tCatch a Fire (1972)\t4:11",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "12.\t\"Get Up, Stand Up\"\tB. Marley, Peter Tosh\tBurnin' (1973)\t3:14",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "13.\t\"Rastaman Chant\"\tTraditional, arr. The Wailers\tBurnin' (1973)\t3:51",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "14.\t\"Burnin' and Lootin'\"\tB. Marley\tBurnin' (1973)\t4:13",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "15.\t\"Iron Lion Zion\" (original)\tB. Marley\tpreviously unreleased recording for this release (1973)\t2:55",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "16.\t\"Lively Up Yourself\"\tB. Marley\tNatty Dread (1974)\t5:11",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "17.\t\"Natty Dread\"\tB. Marley\tNatty Dread (1974)\t3:34",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "18.\t\"I Shot the Sheriff\" (live)\tB. Marley\tLive! (1975)\t5:26",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "Disc three",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "No.\tTitle\tWriter(s)\tOriginal release\tLength",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "1.\t\"No Woman No Cry\" (live at The Roxy)\tVincent Ford\tpreviously unreleased at the time, though later appears on the live release Live at the Roxy (1976)\t5:22",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "2.\t\"Who the Cap Fit\"\tAston Barrett, Carlton Barrett\tRastaman Vibration (1976)\t4:41",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "3.\t\"Jah Live\"\tB. Marley, Lee Perry\tsingle (1975); later added to the remastered edition of Rastaman Vibration (1976)\t4:15",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "4.\t\"Crazy Baldheads\"\tR. Marley, Ford\tRastaman Vibration (1976)\t3:10",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "5.\t\"War\"\tCole, C. Barrett\tRastaman Vibration (1976)\t3:36",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "6.\t\"Johnny Was\"\tR. Marley\tRastaman Vibration (1976)\t3:46",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "7.\t\"Rat Race\"\tR. Marley\tRastaman Vibration (1976)\t2:49",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "8.\t\"Jamming\" (12-inch mix)\tB. Marley\tremix of track from Exodus (1977)\t5:45",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "9.\t\"Waiting in Vain\" (advert mix)\tB. Marley\tpreviously unreleased remix of track from Exodus (1977)\t3:59",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "10.\t\"Exodus\" (12-inch mix)\tB. Marley\tremix of track from Exodus (1977)\t7:25",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "11.\t\"Natural Mystic\"\tB. Marley\tExodus (1977)\t3:26",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "12.\t\"Three Little Birds\" (alternate mix)\tB. Marley\talternate version of track from Exodus (1977)\t2:56",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "13.\t\"Running Away\"\tB. Marley\tKaya (1978)\t4:14",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "14.\t\"Keep on Moving\" (London version)\tC. Mayfield\touttake from an unreleased Lee Perry album (1978), first released on the \"One Love/People Get Ready\" 12-inch single (1984)\t5:44",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "15.\t\"Easy Skanking\"\tB. Marley\tKaya (1978)\t2:55",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "16.\t\"Is This Love\" (horns mix)\tB. Marley\talternate mix of track from Kaya (1978)\t4:00",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "17.\t\"Smile Jamaica\"\tB. Marley, Perry\tnon-album single (1976); later added to deluxe edition of Rastaman Vibration (1976)\t3:13",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "18.\t\"Time Will Tell\"\tB. Marley\tKaya (1978)\t3:32",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "Disc four",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "No.\tTitle\tWriter(s)\tOriginal release\tLength",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "1.\t\"Africa Unite\"\tB. Marley\tSurvival (1979)\t2:54",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "2.\t\"Survival\"\tB. Marley\tSurvival (1979)\t3:52",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "3.\t\"One Drop\"\tB. Marley\tSurvival (1979)\t3:51",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "4.\t\"One Dub\"\tB. Marley\tSurvival (One Drop\" b-side) (1979)\t3:53",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "5.\t\"Zimbabwe\"\tB. Marley\tSurvival (1979)\t3:47",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "6.\t\"So Much Trouble in the World\"\tB. Marley\tSurvival (1979)\t3:57",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "7.\t\"Ride Natty Ride\" (12-inch mix)\tB. Marley\tremix of the track from Survival (1979)\t6:22",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "8.\t\"Babylon System\"\tB. Marley\tSurvival (1979)\t4:18",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "9.\t\"Coming in from the Cold\" (12-inch mix)\tB. Marley\tremix of the track from Uprising (1980)\t6:04",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "10.\t\"Real Situation\"\tB. Marley\tUprising (1980)\t3:08",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "11.\t\"Bad Card\"\tB. Marley\tUprising (1980)\t2:48",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "12.\t\"Could You Be Loved\" (12-inch mix)\tB. Marley\tremix of the track from Uprising (1980)\t5:26",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "13.\t\"Forever Loving Jah\"\tB. Marley\tUprising (1980)\t3:50",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "14.\t\"Rastaman Live Up\"\tB. Marley\tConfrontation (1983)\t5:21",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "15.\t\"Give Thanks and Praises\"\tB. Marley\tConfrontation (1983)\t3:14",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "16.\t\"One Love/People Get Ready\" (12-inch mix)\tB. Marley, Mayfield\tremix of track from Exodus (1977)\t7:08",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "17.\t\"Why Should I\"\tB. Marley\tpreviously unreleased recording, which The I-Threes were on the remix for this release. (1992)\t3:33",
+          "artist": "",
+          "url": ""
+        },
+        {
+          "title": "18.\t\"Redemption Song\" (live in Pittsburgh)\tB. Marley\tpreviously unreleased at the time, though later appears on the live release Live in Pittsburgh (1980)\t4:08",
+          "artist": "",
+          "url": ""
+        }
+      ]
     },
     {
       "id": "fbdc08ad-aa27-48ea-80b1-e0ae46286e4a",
