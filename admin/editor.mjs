@@ -88,13 +88,13 @@ function photoAIControls(photo,box,caption,alt) {
 async function suggestPhoto(photo,{automatic=false,blob,placeOnly=false}={}) {
   if(!aiReady||(!automatic&&busy))return false;
   if(!automatic){busy=true;updateButton();}
-  const before={caption:photo.caption,alt:photo.alt};
+  const before={caption:photo.caption,alt:photo.alt},confirmedContext=cleanContext(photo.aiContext);
   const state={loading:true};aiStates.set(photo.id,state);aiViews.get(photo.id)?.();
   try {
     if(!blob){const response=await fetch(pending.get(photo.id)?.preview||new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error('The image preview could not be read.');blob=await response.blob();}
-    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob),photo.aiContext);
+    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob),confirmedContext);
     if(!photos.slides.includes(photo))return false;
-    if(needsPlace(photo)){placeReviews[photo.id]={place:safeSuggestion(draft.place),message:draft.placeMessage||'No reliable place found.',status:'suggested',context:cleanContext(photo.aiContext),updated:new Date().toISOString()};}
+    if(needsPlace(photo)&&cleanContext(photo.aiContext)===confirmedContext){placeReviews[photo.id]={place:safeSuggestion(draft.place),message:draft.placeMessage||'No reliable place found.',status:'suggested',context:confirmedContext,updated:new Date().toISOString()};}
     const filled=placeOnly?[]:fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
     state.message=filled.length===2?'AI draft added. Edit either field before publishing.':'Your words are preserved. Review this suggestion below.';
     if(!placeOnly&&filled.length<2)state.draft=draft;
@@ -274,7 +274,7 @@ async function load() {
     objectURLs.forEach(URL.revokeObjectURL);objectURLs=[];
     $('gate').hidden=true;$('studio').hidden=false;$('signout').hidden=demo;
     $('sessionLabel').textContent=demo?'Preview · edits are not saved':'Signed in · inquiredu';
-    status(demo?'Preview mode. You can explore the editor; publishing is disabled.':'');render();
+    busy=false;status(demo?'Preview mode. You can explore the editor; publishing is disabled.':'');render();
     if(!sharedLinkHandled){sharedLinkHandled=true;const params=new URLSearchParams(location.search);if(params.has('share')){try{addSharedLink(params.get('share'),params.get('title')||'');}catch(error){status(error.message);}if(!demo)history.replaceState(null,'',location.pathname);}}
   }catch(error){status(error.message);}finally{busy=false;updateButton();}
 }
