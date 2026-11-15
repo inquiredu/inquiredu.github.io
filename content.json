@@ -9,6 +9,75 @@
     "youtubeChannelId": "UCc2XXAmBtbXsdjiZY9gFOqQ",
     "youtubeAuto": false
   },
+  "videos": [
+    {
+      "id": "youtube-i-eYMQ7wZGE",
+      "title": "Strengths Project",
+      "note": "",
+      "date": "2018-11-29",
+      "url": "https://www.youtube.com/watch?v=i-eYMQ7wZGE",
+      "published": true
+    },
+    {
+      "id": "youtube-JhTZY8B5-3A",
+      "title": "Fall Jet Skiing",
+      "note": "",
+      "date": "2018-09-30",
+      "url": "https://www.youtube.com/watch?v=JhTZY8B5-3A",
+      "published": true
+    },
+    {
+      "id": "youtube-Q4XEoih3QOc",
+      "title": "Google Teacher Academy Application Innovation",
+      "note": "",
+      "date": "2017-12-18",
+      "url": "https://www.youtube.com/watch?v=Q4XEoih3QOc",
+      "published": true
+    },
+    {
+      "id": "youtube-fGUFQTA_jTM",
+      "title": "Backyard Trail Riding with Dr. Dave",
+      "note": "",
+      "date": "2017-01-23",
+      "url": "https://www.youtube.com/watch?v=fGUFQTA_jTM",
+      "published": true
+    },
+    {
+      "id": "youtube-AVSWMK95VZA",
+      "title": "Canoe Paddling",
+      "note": "",
+      "date": "2017-01-23",
+      "url": "https://www.youtube.com/watch?v=AVSWMK95VZA",
+      "published": true
+    },
+    {
+      "id": "youtube-Kk3KWS4FQ-k",
+      "title": "First Rides",
+      "note": "",
+      "date": "2016-01-03",
+      "url": "https://www.youtube.com/watch?v=Kk3KWS4FQ-k",
+      "published": true
+    },
+    {
+      "id": "youtube-zAFW3OciaZI",
+      "title": "Ride around Vondelpark",
+      "note": "",
+      "date": "2015-07-19",
+      "url": "https://www.youtube.com/watch?v=zAFW3OciaZI",
+      "published": true
+    },
+    {
+      "id": "youtube-EhlOaUHUgBo",
+      "title": "Paddle Out - 2014",
+      "note": "",
+      "date": "2015-01-31",
+      "url": "https://www.youtube.com/watch?v=EhlOaUHUgBo",
+      "published": true
+    }
+  ],
+  "hiddenVideoIds": [
+    "8jHnQoU3xoM"
+  ],
   "writing": [],
   "playlists": [
     {
@@ -17,8 +86,8 @@
       "date": "2026-11-15",
       "note": "",
       "url": "https://open.spotify.com/playlist/6DB4Qf8vrDgM62TjmymEua?si=5Vt-e-x2Sga-vCuZe-yOHw",
-      "tracks": [],
-      "published": true
+      "published": true,
+      "tracks": []
     },
     {
       "id": "sean-soundcloud-recordings",
@@ -26,42 +95,8 @@
       "date": "",
       "note": "",
       "url": "https://soundcloud.com/sean-beaverson",
-      "tracks": [],
-      "published": true
-    }
-  ],
-  "videos": [
-    {
-      "id": "youtube-8jHnQoU3xoM",
-      "title": "Forms to Maps - Three Steps",
-      "url": "https://www.youtube.com/watch?v=8jHnQoU3xoM",
-      "date": "2019-07-30",
       "published": true,
-      "note": ""
-    },
-    {
-      "id": "youtube-i-eYMQ7wZGE",
-      "title": "Strengths Project",
-      "url": "https://www.youtube.com/watch?v=i-eYMQ7wZGE",
-      "date": "2018-11-29",
-      "published": true,
-      "note": ""
-    },
-    {
-      "id": "youtube-JhTZY8B5-3A",
-      "title": "Fall Jet Skiing",
-      "url": "https://www.youtube.com/watch?v=JhTZY8B5-3A",
-      "date": "2018-09-30",
-      "published": true,
-      "note": ""
-    },
-    {
-      "id": "youtube-Q4XEoih3QOc",
-      "title": "Google Teacher Academy Application Innovation",
-      "url": "https://www.youtube.com/watch?v=Q4XEoih3QOc",
-      "date": "2017-12-18",
-      "published": true,
-      "note": ""
+      "tracks": []
     }
   ]
 }
