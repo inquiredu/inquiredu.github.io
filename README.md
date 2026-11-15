@@ -14,7 +14,7 @@ Both are written together, private first, by either of the two ways below. Don't
 
 ## Choose projects in Site settings
 
-Site settings runs only on the owner's computer, at `http://127.0.0.1:8787/settings.html`. It is not on inquiredu.org: GitHub Pages can't put a login in front of a page, so the admin stays off the public site. Its files (`settings.html` and `assets/settings.*`) sit in a local copy of this repo, listed in `.git/info/exclude` so they are never committed. A small local server starts it (`start-settings.command`, kept beside the repo). Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. The key is held in the tab's memory only and is never saved in the browser.
+Site settings, and the light table below, run only on the owner's computer, at `http://127.0.0.1:8787/settings.html` and `http://127.0.0.1:8787/lighttable.html`. They are not on inquiredu.org: GitHub Pages can't put a login in front of a page, so the admin pages stay off the public site. Their files (`settings.html`, `lighttable.html`, `assets/settings.*` and `assets/lighttable.*`) sit in a local copy of this repo, listed in `.git/info/exclude` so they are never committed. A small local server starts them (`start-settings.command`, kept beside the repo). Log in with your publishing key and it lists every repository you own. Each one can be **Not listed**, **Hidden** or **Shown**. Drag cards into order, edit them, then publish. The key is held in the tab's memory only and is never saved in the browser.
 
 The repo list comes from `repos.json`, which the hourly sync keeps current. **Refresh list** in Settings runs the sync right away and reloads the list when it finishes, usually within a minute. It also picks up any card a `shelf` tag just added.
 
@@ -96,10 +96,10 @@ The slide projector next to the catalog plays the photographs listed in `slides.
 
 ### Add photos: the light table
 
-Open [inquiredu.org/lighttable.html](https://inquiredu.org/lighttable.html), or follow the link at the top of Site settings.
+Start it with `start-settings.command`, then open `http://127.0.0.1:8787/lighttable.html`, or follow the link at the top of Site settings. It runs only on the owner's computer.
 
 1. **Sign in** with your publishing key, the same one Site settings uses.
-2. **Load your film.** Drop photos on the page or press **Choose photos**. On a Mac or iPhone the chooser includes your Photos library. In your browser, each photo is shrunk to 1600 px on the long edge, turned the right way up, and stripped of camera and location data. The month it was taken is read when the photo carries it.
+2. **Load your film.** Drop photos on the page or press **Choose photos**. On a Mac the chooser includes your Photos library. In your browser, each photo is shrunk to 1600 px on the long edge, turned the right way up, and stripped of camera and location data. The month it was taken is read when the photo carries it.
 3. **Lay out the slides.** They sit in mounts on a lit table. Click one to look closer and write a caption (it goes on the projector's label tape), the month taken, and a description for screen readers. Untick **In projector** to set a slide aside, or remove it from the collection.
 4. **Publish.** One commit uploads the new slides and the updated `slides.json`. The projector picks it up in a minute or two.
 
