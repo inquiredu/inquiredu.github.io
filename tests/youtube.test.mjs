@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {youtubeVideo,youtubeProfile,mergeVideos} from '../assets/youtube-source.mjs';
 import {parseYouTubeFeed,fetchYouTubeFeed} from '../scripts/youtube-feed.mjs';
 import {publicContent} from '../admin/core.mjs';
+import {publicSources} from '../assets/creative-sources.mjs';
+import {videoChoices,selectVideos} from '../admin/video-picker.mjs';
 const channel='UCc2XXAmBtbXsdjiZY9gFOqQ',id='8jHnQoU3xoM';
 const xml=`<?xml version="1.0"?><feed><yt:channelId>${channel.slice(2)}</yt:channelId><title>Sean Beaverson</title><author><uri>https://www.youtube.com/channel/${channel}</uri></author><entry><yt:channelId>${channel}</yt:channelId><yt:videoId>${id}</yt:videoId><title>Forms &amp; Maps</title><published>2019-07-30T18:25:33Z</published><media:group><media:description>A map lesson.</media:description></media:group></entry></feed>`;
 test('YouTube links are canonicalized without accepting lookalike or arbitrary embed hosts',()=>{
@@ -23,4 +25,20 @@ test('curated video notes win over the live feed and hidden channels stay hidden
   assert.equal(mergeVideos(curated,feed).length,1);assert.equal(mergeVideos(curated,feed)[0].title,'My title');assert.deepEqual(mergeVideos([],feed,[id]),[]);
   const projected=publicContent({videos:[{url,title:'Draft secret',sourceDescription:'Private context',published:false},{url:'https://youtube.com/watch?v=i-eYMQ7wZGE',title:'Hidden channel item',fromFeed:true,published:false}]});
   assert.deepEqual(projected.videos,[]);assert.deepEqual(projected.hiddenVideoIds,['i-eYMQ7wZGE']);assert.doesNotMatch(JSON.stringify(projected),/Draft secret|Private context|Hidden channel item|8jHnQoU3xoM/);
+});
+test('video choices preserve edits and selection preserves ordering without importing unchecked videos',()=>{
+  const first={id:'one',url:'https://youtu.be/'+id,title:'My title',note:'My note',sourceDescription:'Private context',published:true};
+  const second={id:'two',url:'https://youtu.be/i-eYMQ7wZGE',title:'Second',published:false};
+  const third={id:'three',url:'https://youtu.be/JhTZY8B5-3A',title:'Third'};
+  const feed=[{...first,title:'Original title'},second,third];
+  assert.deepEqual(videoChoices([first,second],feed).map(x=>x.title),['My title','Second','Third']);
+  const selected=selectVideos([first,second],feed,['i-eYMQ7wZGE']);
+  assert.equal(selected.length,2);assert.equal(selected[0].note,'My note');assert.equal(first.published,true);
+  const published=publicContent({videos:selected});assert.deepEqual(published.videos.map(x=>x.title),['Second']);assert.doesNotMatch(JSON.stringify(published),/Private context/);
+  const appended=selectVideos([first,second],feed,[id,'JhTZY8B5-3A']);assert.deepEqual(appended.filter(x=>x.published).map(x=>x.id),['one','three']);assert.equal(appended[2].fromFeed,true);
+});
+test('channel refresh and legacy auto-include settings cannot publish unselected videos',()=>{
+  for(const youtubeAuto of [undefined,true,false])assert.equal(publicSources({youtube:'https://www.youtube.com/@SeanBeaverson',youtubeAuto}).youtubeAuto,false);
+  const url='https://youtu.be/'+id;
+  assert.deepEqual(publicContent({videos:selectVideos([{url,published:true}],[],[])}).videos,[]);
 });

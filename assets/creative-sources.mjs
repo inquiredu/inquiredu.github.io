@@ -1,4 +1,4 @@
-import {youtubeVideo,youtubeProfile,channelId} from './youtube-source.mjs?v=20261115.13';
+import {youtubeVideo,youtubeProfile,channelId} from './youtube-source.mjs?v=20261115.14';
 const clean = value => typeof value === 'string' ? value.trim() : '';
 export function musicSource(value) {
   try {
@@ -43,7 +43,7 @@ export function publicSources(value={}) {
   const sc=musicSource(value?.soundcloud);if(sc?.provider==='SoundCloud')out.soundcloud=sc.url;
   const yt=youtubeProfile(value?.youtube);if(yt)out.youtube=yt;
   const id=channelId(value?.youtubeChannelId);if(id)out.youtubeChannelId=id;
-  if(yt||id)out.youtubeAuto=value.youtubeAuto!==false;
+  if(yt||id)out.youtubeAuto=false;
   return out;
 }
 export function importLink(value, title='') {

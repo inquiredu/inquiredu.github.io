@@ -1,4 +1,4 @@
-import {youtubeVideo} from './youtube-source.mjs?v=20261115.13';
+import {youtubeVideo} from './youtube-source.mjs?v=20261115.14';
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
 const button=(text,label,run,cls)=>{const b=el('button',text,cls);b.type='button';b.setAttribute('aria-label',label);b.onclick=run;return b;};
 export function mountTubeTV(root,items,profile) {
@@ -10,10 +10,10 @@ export function mountTubeTV(root,items,profile) {
   const arrows=el('div','','tube-channel-buttons');arrows.append(button('−','Previous video channel',()=>select(index-1)),button('+','Next video channel',()=>select(index+1)));controls.append(arrows);
   const power=button('','Turn television on',()=>{on=!on;paint();},'tube-power'),lamp=el('span','','tube-power-led'),powerText=el('span','POWER');power.append(lamp,powerText);controls.append(power,el('div','','tube-speaker'),el('small','SOLID STATE · MODEL >0','tube-model'));
   bezel.append(screen);body.append(bezel,controls);cabinet.append(body,el('div','','tube-foot left'),el('div','','tube-foot right'));
-  const guide=el('aside','','tube-guide'),guideHead=el('div','','tube-guide-head');guideHead.append(el('span','THE CHANNEL GUIDE'),el('small',videos.length+' programmes'));guide.append(guideHead);
-  const title=el('h3'),note=el('p','','tube-note'),meta=el('p','','tube-video-meta'),watch=el('a','Watch on YouTube ↗','tube-watch');watch.target='_blank';watch.rel='noopener';guide.append(title,note,meta,watch);
-  const list=el('div','','tube-programmes');list.setAttribute('aria-label','Choose a video');
-  const choices=videos.map((video,i)=>{const b=button('','Channel '+(i+1)+': '+video.title,()=>select(i),'tube-programme');b.append(el('span',String(i+1).padStart(2,'0')),el('strong',video.title));list.append(b);return b;});guide.append(list);
+  const guide=el('aside','','tube-guide'),guideHead=el('div','','tube-guide-head');guideHead.append(el('span','TABLE OF CONTENTS'),el('small',videos.length+' selections'));guide.append(guideHead);
+  const list=el('nav','','tube-programmes');list.setAttribute('aria-label','Video table of contents');
+  const choices=videos.map((video,i)=>{const b=button('','Select video '+(i+1)+': '+video.title,()=>select(i),'tube-programme'),leader=el('i','','tube-leader');leader.setAttribute('aria-hidden','true');b.append(el('span',String(i+1).padStart(2,'0')),el('strong',video.title),leader,el('small',video.date?.slice(0,4)||''));list.append(b);return b;});guide.append(list);
+  const title=el('h3'),note=el('p','','tube-note'),meta=el('p','','tube-video-meta'),watch=el('a','Watch on YouTube ↗','tube-watch'),current=el('div','','tube-current');watch.target='_blank';watch.rel='noopener';current.append(el('p','ON THE SCREEN','tube-current-label'),title,note,meta,watch);guide.append(current);
   if(profile){const all=el('a','Visit the channel ↗','tube-all');all.href=profile;all.target='_blank';all.rel='noopener';guide.append(all);}
   room.append(cabinet,guide);root.append(room);
   function select(next){index=(next+videos.length)%videos.length;paint();}

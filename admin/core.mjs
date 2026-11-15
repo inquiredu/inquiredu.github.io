@@ -1,5 +1,5 @@
-import {publicSources} from '../assets/creative-sources.mjs?v=20261115.13';
-import {youtubeVideo} from '../assets/youtube-source.mjs?v=20261115.13';
+import {publicSources} from '../assets/creative-sources.mjs?v=20261115.14';
+import {youtubeVideo} from '../assets/youtube-source.mjs?v=20261115.14';
 export const OWNER = 'inquiredu';
 export const OWNER_ID = 192934662;
 export const SITE = 'inquiredu.github.io';

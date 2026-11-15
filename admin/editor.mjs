@@ -1,14 +1,15 @@
 import {openAssistant,testAIConnection} from './studio-assistant.mjs?v=20261115.12';
+import {openVideoPicker} from './video-picker.mjs?v=20261115.14';
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
-import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs?v=20261115.13';
-import {youtubeVideo,youtubeProfile,channelId} from '../assets/youtube-source.mjs?v=20261115.13';
+import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs?v=20261115.14';
+import {youtubeVideo,youtubeProfile,channelId} from '../assets/youtube-source.mjs?v=20261115.14';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
 import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.10';
 import { aiRequest, imagePreview, previewFromSource, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.12';
 import { validatePhotoDraft } from './photo-publish.mjs?v=20261115.11';
-import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.13';
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.14';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
@@ -19,6 +20,7 @@ const aiStates=new Map(), aiViews=new Map();
 let placeReviews={},refreshPlacesRunning=false,stopPlaceRefresh=false;
 const placeViews=new Map();
 let youtubeFeed=[];
+if(new URLSearchParams(location.search).get('section')==='videos')active='videos';
 const group = () => ['inbox','writing','playlists','videos','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
@@ -237,11 +239,13 @@ function renderWords() {
   });
 }
 function renderVideos() {
-  $('toolbar').append(make('p','The television lineup. Add videos, polish their notes, and choose which channel discoveries to feature.'),button('Add a video',()=>{content.videos.unshift({id:crypto.randomUUID(),title:'Untitled video',url:'',note:'',published:false});changed();render();}));
-  const available=youtubeFeed.filter(video=>!content.videos.some(item=>youtubeVideo(item.url)?.id===youtubeVideo(video.url)?.id));
-  if(available.length){const picker=make('select');picker.setAttribute('aria-label','Choose a channel video to edit');for(const [i,video] of available.entries())picker.append(new Option(video.title,String(i)));const row=make('div','','actions');row.append(picker,button('Edit channel video',()=>{content.videos.push({...available[+picker.value],fromFeed:true,published:true});changed();render();}));$('toolbar').append(row);}
-  if(content.sources.youtubeAuto!==false&&youtubeFeed.length)$('toolbar').append(make('small','Your public channel feed also appears automatically. Bring a channel video into this editor to rename it, add a note, or hide it.'));
-  content.videos.forEach((item,index)=>{const card=make('details','','item');card.open=index===0;card.append(make('summary',`${item.published?'Published':'Draft'} · ${item.title}`));const fields=make('div','','fields');field(fields,'Title',item,'title');field(fields,'Date',item,'date','date');field(fields,'YouTube video link',item,'url','url',true);field(fields,'A note about this video',item,'note','textarea',true);field(fields,'Context for the assistant (private)',item,'sourceDescription','textarea',true);fields.append(make('small','Describe what happens, or paste your own transcript excerpt, so AI can write an accurate introduction.','wide'));check(fields,'Publish on the public page',item,'published');card.append(fields);reorder(card,content.videos,index);$('items').append(card);});
+  $('toolbar').append(make('p','Your television lineup. Choose the videos, put them in order, and publish when ready.'),button('Choose videos',()=>openVideoPicker({items:content.videos,feed:youtubeFeed,onChoose:items=>{content.videos=items;content.sources.youtubeAuto=false;changed();render();status('Video selection updated. Review the order and notes, then Save & publish.');}})),button('Add a video',()=>{content.videos.unshift({id:crypto.randomUUID(),title:'Untitled video',url:'',note:'',published:false});changed();render();}));
+  const toc=make('nav','','video-lineup');toc.setAttribute('aria-label','Video table of contents');toc.append(make('p','TABLE OF CONTENTS','eyebrow'));let number=0;
+  const cards=[];
+  content.videos.forEach((item,index)=>{const card=make('details','','item');cards.push(card);card.open=index===0;card.append(make('summary',`${item.published?'Selected':'Not selected'} · ${item.title}`));
+    if(item.published){number++;const entry=button('',()=>{cards.forEach(n=>n.open=n===card);card.scrollIntoView({block:'start',behavior:'smooth'});card.querySelector('summary').focus();});entry.append(make('span',String(number).padStart(2,'0')),make('strong',item.title),make('small',item.date?.slice(0,4)||''));toc.append(entry);}
+    const fields=make('div','','fields');field(fields,'Title',item,'title');field(fields,'Date',item,'date','date');field(fields,'YouTube video link',item,'url','url',true);field(fields,'A note about this video',item,'note','textarea',true);field(fields,'Context for the assistant (private)',item,'sourceDescription','textarea',true);fields.append(make('small','Describe what happens, or paste your own transcript excerpt, so AI can write an accurate introduction.','wide'));check(fields,'Include in the television lineup',item,'published');fields.querySelector('input[type=checkbox]').addEventListener('change',render);card.append(fields);reorder(card,content.videos,index);$('items').append(card);});
+  if(!number)toc.append(make('p','Choose a few videos to start your lineup.','muted'));$('items').prepend(toc);
 }
 function addSharedLink(url,title='') {
   const result=importLink(url,title),duplicate=content[result.section].find(item=>item.url===result.item.url);
@@ -259,7 +263,7 @@ function renderInbox() {
   const drafts=make('div','','inbox-drafts');for(const [section,label] of [['writing','writing'],['playlists','listening'],['videos','video']]){const count=content[section].filter(x=>!x.published).length;if(count)drafts.append(button(`${count} ${label} draft${count===1?'':'s'} →`,()=>{active=section;render();}));}if(drafts.childElementCount)$('items').append(drafts);
   const sources=make('section','','item');sources.append(make('h2','Connected shelves'),make('p','Maintain a playlist at its source; keep the story and context here.','muted'));const fields=make('div','','fields');
   field(fields,'Medium profile or publication',content.sources,'medium','url',true);fields.append(make('p','Your latest published Medium stories join the writing shelf automatically. The first refresh can take up to an hour.','muted wide'));
-  field(fields,'Spotify profile',content.sources,'spotify','url');field(fields,'SoundCloud profile',content.sources,'soundcloud','url');field(fields,'YouTube channel',content.sources,'youtube','url');field(fields,'YouTube channel ID',content.sources,'youtubeChannelId');check(fields,'Automatically include public channel videos',content.sources,'youtubeAuto');sources.append(fields);$('items').append(sources);
+  field(fields,'Spotify profile',content.sources,'spotify','url');field(fields,'SoundCloud profile',content.sources,'soundcloud','url');field(fields,'YouTube channel',content.sources,'youtube','url');field(fields,'YouTube channel ID',content.sources,'youtubeChannelId');fields.append(make('p','Channel uploads refresh the video picker. Only videos you select in Videos appear on the public page.','muted wide'));sources.append(fields);$('items').append(sources);
   const help=make('details','','item');help.append(make('summary','From your photo library'));
   help.append(make('p','Apple Photos: select favorites, then File → Export → Export Unmodified Original. Add those originals here to recover capture locations. JPEG exports with location information work too.'));
   help.append(make('p','Google Photos: export or download your selected favorites, then add them here. If an image has no location, you can add a place. Google’s Picker API removes GPS; a shared album link cannot supply a live map.'));
