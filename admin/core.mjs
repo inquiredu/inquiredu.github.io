@@ -23,7 +23,7 @@ export function publicContent(data) {
   };
 }
 export class GitHub {
-  constructor(token, request = fetch) { this.token = token; this.request = request; }
+  constructor(token, request = (...args) => fetch(...args)) { this.token = token; this.request = request; }
   async api(path, method = 'GET', body) {
     const response = await this.request(`https://api.github.com${path}`, {
       method, headers: { Authorization: `Bearer ${this.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? {'Content-Type':'application/json'} : {}) },

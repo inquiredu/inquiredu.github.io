@@ -13,6 +13,18 @@ test('public projections exclude unpublished work and private bookkeeping',()=>{
   assert.equal(projects.projects.length,1);assert.doesNotMatch(JSON.stringify(projects),/hidden|secret|tagged|javascript/);
 });
 test('Unicode and long writing survives GitHub encoding',()=>{const text='🎵 café — 日本語\n'.repeat(12000);assert.equal(fromBase64(base64(text)),text);});
+test('the default API transport calls browser fetch with a valid receiver',async()=>{
+  const original=globalThis.fetch;
+  try{
+    globalThis.fetch=async function(url,options){
+      if(this!==undefined&&this!==globalThis)throw new TypeError('Illegal invocation');
+      assert.equal(url,'https://api.github.com/user');
+      assert.equal(options.headers.Authorization,'Bearer test-token');
+      return ok({id:192934662});
+    };
+    assert.deepEqual(await new GitHub('test-token').api('/user'),{id:192934662});
+  }finally{globalThis.fetch=original;}
+});
 test('a stale photo baseline is refused before creating any objects',async()=>{
   const calls=[];const gh=new GitHub('test-token',async(url,options)=>{calls.push(options.method);return ok({object:{sha:'new-head'}});});
   await assert.rejects(gh.commitFiles([{path:'slides.json',content:'{}'}],'old-head'),/changed/);assert.deepEqual(calls,['GET']);
