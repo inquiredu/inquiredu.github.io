@@ -1,7 +1,9 @@
+import {syncYouTube} from './youtube-feed.mjs';
 import {syncMedium} from './medium-feed.mjs';
 import {pathToFileURL} from 'node:url';
 
-export async function refreshMedium({token,repository,request=fetch,event='',sync=syncMedium}) {
+async function syncFeeds(options){let changed=false;for(const [name,sync] of [['Medium',syncMedium],['YouTube',syncYouTube]]){try{changed=(await sync(options))||changed;}catch(error){console.error(name+' refresh failed; its previous feed is kept. '+error.message);}}return changed;}
+export async function refreshMedium({token,repository,request=fetch,event='',sync=syncFeeds}) {
   if(!token||!/^[-\w.]+\/[-\w.]+$/.test(repository||''))throw Error('Missing workflow configuration');
   const prefix=`https://api.github.com/repos/${repository}`;
   async function api(path,method='GET',body) {

@@ -4,7 +4,10 @@
   "sources": {
     "medium": "https://medium.com/@smbeaverson",
     "spotify": "https://open.spotify.com/user/smbeaverson",
-    "soundcloud": "https://soundcloud.com/sean-beaverson"
+    "soundcloud": "https://soundcloud.com/sean-beaverson",
+    "youtube": "https://www.youtube.com/@SeanBeaverson",
+    "youtubeChannelId": "UCc2XXAmBtbXsdjiZY9gFOqQ",
+    "youtubeAuto": true
   },
   "writing": [],
   "playlists": [
@@ -25,6 +28,40 @@
       "url": "https://soundcloud.com/sean-beaverson",
       "tracks": [],
       "published": true
+    }
+  ],
+  "videos": [
+    {
+      "id": "youtube-8jHnQoU3xoM",
+      "title": "Forms to Maps - Three Steps",
+      "url": "https://www.youtube.com/watch?v=8jHnQoU3xoM",
+      "date": "2019-07-30",
+      "published": true,
+      "note": ""
+    },
+    {
+      "id": "youtube-i-eYMQ7wZGE",
+      "title": "Strengths Project",
+      "url": "https://www.youtube.com/watch?v=i-eYMQ7wZGE",
+      "date": "2018-11-29",
+      "published": true,
+      "note": ""
+    },
+    {
+      "id": "youtube-JhTZY8B5-3A",
+      "title": "Fall Jet Skiing",
+      "url": "https://www.youtube.com/watch?v=JhTZY8B5-3A",
+      "date": "2018-09-30",
+      "published": true,
+      "note": ""
+    },
+    {
+      "id": "youtube-Q4XEoih3QOc",
+      "title": "Google Teacher Academy Application Innovation",
+      "url": "https://www.youtube.com/watch?v=Q4XEoih3QOc",
+      "date": "2017-12-18",
+      "published": true,
+      "note": ""
     }
   ]
 }

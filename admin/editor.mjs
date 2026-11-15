@@ -1,13 +1,14 @@
 import {openAssistant,testAIConnection} from './studio-assistant.mjs?v=20261115.12';
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
-import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
+import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs?v=20261115.13';
+import {youtubeVideo,youtubeProfile,channelId} from '../assets/youtube-source.mjs?v=20261115.13';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
 import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.10';
 import { aiRequest, imagePreview, previewFromSource, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.12';
 import { validatePhotoDraft } from './photo-publish.mjs?v=20261115.11';
-import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.11';
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.13';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
@@ -17,7 +18,8 @@ let aiReady=false, autoDescribe=true, aiMessage='Checking the description servic
 const aiStates=new Map(), aiViews=new Map();
 let placeReviews={},refreshPlacesRunning=false,stopPlaceRefresh=false;
 const placeViews=new Map();
-const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
+let youtubeFeed=[];
+const group = () => ['inbox','writing','playlists','videos','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
 function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; $('reload').disabled=busy; $('signout').disabled=busy; $('aiHelp').disabled=busy||demo||!aiReady; $('aiTest').disabled=busy||demo; }
@@ -234,6 +236,13 @@ function renderWords() {
     card.append(fields);reorder(card,items,index);$('items').append(card);
   });
 }
+function renderVideos() {
+  $('toolbar').append(make('p','The television lineup. Add videos, polish their notes, and choose which channel discoveries to feature.'),button('Add a video',()=>{content.videos.unshift({id:crypto.randomUUID(),title:'Untitled video',url:'',note:'',published:false});changed();render();}));
+  const available=youtubeFeed.filter(video=>!content.videos.some(item=>youtubeVideo(item.url)?.id===youtubeVideo(video.url)?.id));
+  if(available.length){const picker=make('select');picker.setAttribute('aria-label','Choose a channel video to edit');for(const [i,video] of available.entries())picker.append(new Option(video.title,String(i)));const row=make('div','','actions');row.append(picker,button('Edit channel video',()=>{content.videos.push({...available[+picker.value],fromFeed:true,published:true});changed();render();}));$('toolbar').append(row);}
+  if(content.sources.youtubeAuto!==false&&youtubeFeed.length)$('toolbar').append(make('small','Your public channel feed also appears automatically. Bring a channel video into this editor to rename it, add a note, or hide it.'));
+  content.videos.forEach((item,index)=>{const card=make('details','','item');card.open=index===0;card.append(make('summary',`${item.published?'Published':'Draft'} · ${item.title}`));const fields=make('div','','fields');field(fields,'Title',item,'title');field(fields,'Date',item,'date','date');field(fields,'YouTube video link',item,'url','url',true);field(fields,'A note about this video',item,'note','textarea',true);field(fields,'Context for the assistant (private)',item,'sourceDescription','textarea',true);fields.append(make('small','Describe what happens, or paste your own transcript excerpt, so AI can write an accurate introduction.','wide'));check(fields,'Publish on the public page',item,'published');card.append(fields);reorder(card,content.videos,index);$('items').append(card);});
+}
 function addSharedLink(url,title='') {
   const result=importLink(url,title),duplicate=content[result.section].find(item=>item.url===result.item.url);
   if(duplicate){active=result.section;render();status('This link is already in your collection.');return;}
@@ -242,15 +251,15 @@ function addSharedLink(url,title='') {
 function renderInbox() {
   $('toolbar').append(make('p','A small doorway into the collection. Bring a link, a photograph, or a thought.'));
   const capture=make('section','','capture-box');capture.append(make('p','QUICK ADD','eyebrow'),make('h2','Found something worth keeping?'));
-  const entry={url:''};const input=field(capture,'Spotify, SoundCloud, or Medium link',entry,'url','url');input.placeholder='Paste a link…';
+  const entry={url:''};const input=field(capture,'YouTube, Spotify, SoundCloud, or Medium link',entry,'url','url');input.placeholder='Paste a link…';
   capture.append(button('Add to the collection',()=>{try{addSharedLink(entry.url);}catch(error){status(error.message);}}),button('Add photographs',()=>{active='photos';render();}));$('items').append(capture);
   const bookmark=make('a','Keep in my collection','capture-bookmark');
   bookmark.href="javascript:(()=>{const u=new URL('https://inquiredu.org/admin/');u.searchParams.set('share',location.href);u.searchParams.set('title',document.title);window.open(u.href,'_blank','noopener');})()";
   const shortcut=make('p','','muted');shortcut.append('On a computer, drag ',bookmark,' to your bookmarks bar. Use it on a Spotify, SoundCloud, or Medium page to bring that link here as a draft.');capture.append(shortcut);
-  const drafts=make('div','','inbox-drafts');for(const [section,label] of [['writing','writing'],['playlists','listening']]){const count=content[section].filter(x=>!x.published).length;if(count)drafts.append(button(`${count} ${label} draft${count===1?'':'s'} →`,()=>{active=section;render();}));}if(drafts.childElementCount)$('items').append(drafts);
+  const drafts=make('div','','inbox-drafts');for(const [section,label] of [['writing','writing'],['playlists','listening'],['videos','video']]){const count=content[section].filter(x=>!x.published).length;if(count)drafts.append(button(`${count} ${label} draft${count===1?'':'s'} →`,()=>{active=section;render();}));}if(drafts.childElementCount)$('items').append(drafts);
   const sources=make('section','','item');sources.append(make('h2','Connected shelves'),make('p','Maintain a playlist at its source; keep the story and context here.','muted'));const fields=make('div','','fields');
   field(fields,'Medium profile or publication',content.sources,'medium','url',true);fields.append(make('p','Your latest published Medium stories join the writing shelf automatically. The first refresh can take up to an hour.','muted wide'));
-  field(fields,'Spotify profile',content.sources,'spotify','url');field(fields,'SoundCloud profile',content.sources,'soundcloud','url');sources.append(fields);$('items').append(sources);
+  field(fields,'Spotify profile',content.sources,'spotify','url');field(fields,'SoundCloud profile',content.sources,'soundcloud','url');field(fields,'YouTube channel',content.sources,'youtube','url');field(fields,'YouTube channel ID',content.sources,'youtubeChannelId');check(fields,'Automatically include public channel videos',content.sources,'youtubeAuto');sources.append(fields);$('items').append(sources);
   const help=make('details','','item');help.append(make('summary','From your photo library'));
   help.append(make('p','Apple Photos: select favorites, then File → Export → Export Unmodified Original. Add those originals here to recover capture locations. JPEG exports with location information work too.'));
   help.append(make('p','Google Photos: export or download your selected favorites, then add them here. If an image has no location, you can add a place. Google’s Picker API removes GPS; a shared album link cannot supply a live map.'));
@@ -259,7 +268,7 @@ function renderInbox() {
 function render() {
   $('toolbar').replaceChildren();$('items').replaceChildren();
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===active)));
-  if(active==='inbox')renderInbox();else if(active==='projects')renderProjects(); else if(active==='photos')renderPhotos(); else if(active==='about'){
+  if(active==='inbox')renderInbox();else if(active==='projects')renderProjects(); else if(active==='photos')renderPhotos();else if(active==='videos')renderVideos(); else if(active==='about'){
     $('toolbar').append(make('p','The short introduction under your name.'));field($('items'),'Introduction',content,'intro','textarea');
   } else renderWords();
   updateButton();
@@ -276,7 +285,8 @@ async function load() {
       placeReviews=reviews?.data.reviews||{};privateLocations=places?.data.locations||{};for(const photo of photos.slides){if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);photo.aiContext=cleanContext(places?.data.contexts?.[photo.id]);}
       revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha,placeReviews:reviews?.sha};
     }
-    content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();aiStates.clear();aiViews.clear();
+    content.writing ||= [];content.playlists ||= [];content.videos ||= [];content.sources ||= {};dirty.clear();pending.clear();aiStates.clear();aiViews.clear();
+    youtubeFeed=[];try{const response=await fetch('../feeds/youtube.json',{cache:'no-cache'});if(response.ok){const feed=await response.json();if(feed.channelId===content.sources.youtubeChannelId)youtubeFeed=feed.entries||[];}}catch{}
     await checkAI();
     objectURLs.forEach(URL.revokeObjectURL);objectURLs=[];
     $('gate').hidden=true;$('studio').hidden=false;$('signout').hidden=demo;
@@ -325,11 +335,14 @@ function validate() {
   for(const input of $('studio').querySelectorAll('input[type=url]')) if(input.value && !safeURL(input.value))throw new Error('Use a complete https:// or http:// link.');
   if(group()==='photos')validatePhotoDraft(photos);
   if(group()==='content'){
+    if(content.sources?.youtube&&!youtubeProfile(content.sources.youtube))throw new Error('Use a full YouTube channel URL.');
+    if(content.sources?.youtubeChannelId&&!channelId(content.sources.youtubeChannelId))throw new Error('Use a YouTube channel ID beginning with UC.');
+    if(content.videos.some(item=>item.published&&!youtubeVideo(item.url)))throw new Error('Add a valid YouTube video link before publishing it.');
     if(content.sources?.medium&&!mediumSource(content.sources.medium))throw new Error('Use a Medium profile or publication URL, such as https://medium.com/@username.');
     const sources=publicSources(content.sources);for(const key of ['spotify','soundcloud'])if(content.sources?.[key]&&!sources[key])throw new Error(`Use a full public ${key==='spotify'?'Spotify profile':'SoundCloud'} URL.`);
     for(const item of content.playlists)if(item.published&&item.url&&/spotify|soundcloud/i.test(item.url)&&!musicSource(item.url))throw new Error('Use a full public Spotify selection or SoundCloud link. Private and short music links are not published.');
   }
-  const entries=group()==='projects'?catalog.projects:group()==='content'?[...content.writing,...content.playlists]:[];
+  const entries=group()==='projects'?catalog.projects:group()==='content'?[...content.writing,...content.playlists,...content.videos]:[];
   if(entries.some(x=>!x.title?.trim()))throw new Error('Give each entry a title before publishing.');
 }
 async function publish() {

@@ -1,5 +1,7 @@
 import {mountTapeDeck} from './tape-deck.mjs?v=20261115.7';
-import {musicSource,publicSources} from './creative-sources.mjs';
+import {musicSource,publicSources} from './creative-sources.mjs?v=20261115.13';
+import {mountTubeTV} from './tube-tv.mjs?v=20261115.13';
+import {mergeVideos} from './youtube-source.mjs?v=20261115.13';
 const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text)node.textContent=text;if(cls)node.className=cls;return node;};
 const safeLink=value=>{try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
 function link(text,url){const a=el('a',text);a.href=safeLink(url);a.target='_blank';a.rel='noopener';return a;}
@@ -24,6 +26,8 @@ export async function mountCollection(content,{loadFeed=true}={}) {
   if(loadFeed&&sources.medium){try{const response=await fetch('feeds/medium.json',{cache:'no-cache'});if(response.ok){const feed=await response.json();if(feed.source===sources.medium){const known=new Set(local.map(x=>safeLink(x.url)));writing.push(...(feed.entries||[]).filter(x=>x.published===true&&!known.has(safeLink(x.url))));}}}catch{}}
   writing.sort((a,b)=>(b.date||'').localeCompare(a.date||''));renderWriting(writing,sources.medium);
   const playlists=(content.playlists||[]).filter(x=>x.published===true);renderPlaylists(playlists,sources);
-  for(const [section,count] of [['writing',writing.length||sources.medium],['listening',playlists.length]]){document.getElementById(section).hidden=!count;document.getElementById(`${section}Nav`).hidden=!count;}
+  let feedVideos=[];if(loadFeed&&sources.youtubeAuto&&sources.youtubeChannelId){try{const response=await fetch('feeds/youtube.json',{cache:'no-cache'});if(response.ok){const feed=await response.json();if(feed.channelId===sources.youtubeChannelId)feedVideos=feed.entries||[];}}catch{}}
+  const videos=mergeVideos(content.videos,feedVideos,content.hiddenVideoIds);mountTubeTV(document.getElementById('videoItems'),videos,sources.youtube);
+  for(const [section,count] of [['writing',writing.length||sources.medium],['listening',playlists.length],['videos',videos.length]]){document.getElementById(section).hidden=!count;document.getElementById(`${section}Nav`).hidden=!count;}
 }
 if(document.getElementById('siteIntro'))try{const response=await fetch('content.json',{cache:'no-cache'});if(response.ok)await mountCollection(await response.json());}catch{}

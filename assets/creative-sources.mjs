@@ -1,3 +1,4 @@
+import {youtubeVideo,youtubeProfile,channelId} from './youtube-source.mjs?v=20261115.13';
 const clean = value => typeof value === 'string' ? value.trim() : '';
 export function musicSource(value) {
   try {
@@ -40,11 +41,15 @@ export function publicSources(value={}) {
   const out=medium?{medium:medium.url}:{};
   try{const u=new URL(value?.spotify);if(u.protocol==='https:'&&u.hostname==='open.spotify.com'&&!u.username&&!u.password&&!u.port&&/^\/user\/[a-zA-Z0-9_.-]+\/?$/.test(u.pathname))out.spotify=u.origin+u.pathname.replace(/\/$/,'');}catch{}
   const sc=musicSource(value?.soundcloud);if(sc?.provider==='SoundCloud')out.soundcloud=sc.url;
+  const yt=youtubeProfile(value?.youtube);if(yt)out.youtube=yt;
+  const id=channelId(value?.youtubeChannelId);if(id)out.youtubeChannelId=id;
+  if(yt||id)out.youtubeAuto=value.youtubeAuto!==false;
   return out;
 }
 export function importLink(value, title='') {
+  const video=youtubeVideo(value);if(video)return {section:'videos',item:{title:clean(title)||'A video from YouTube',url:video.url,note:'',source:'youtube',published:false}};
   const music=musicSource(value);
   if(music)return {section:'playlists',item:{title:clean(title)||`A selection from ${music.provider}`,url:music.url,note:'',tracks:[],source:music.provider.toLowerCase(),published:false}};
   if(isMediumStory(value)) {const u=new URL(value);u.search='';u.hash='';return {section:'writing',item:{title:clean(title)||'A piece from Medium',url:u.href,excerpt:'',body:'',source:'medium',published:false}};}
-  throw new Error('Use a public Spotify selection, a public SoundCloud link, or a Medium story. Short links should be opened and their full address copied.');
+  throw new Error('Use a YouTube video, Spotify selection, SoundCloud link, or Medium story. Short music links should be opened and their full address copied.');
 }

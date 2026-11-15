@@ -1,4 +1,4 @@
-name: Refresh Medium
+name: Refresh creative feeds
 on:
   schedule:
     - cron: '43 * * * *'
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Refresh public stories and publish Pages
+      - name: Refresh public stories and videos, then publish Pages
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/refresh-medium.mjs

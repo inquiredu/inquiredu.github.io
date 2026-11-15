@@ -66,3 +66,9 @@ The model can return a high-confidence public landmark or confirmed city, with e
 The public cassette deck uses official Spotify iFrame and SoundCloud Widget APIs, loaded only after Play. Reels follow actual playback events, while VU movement is decorative. Spotify seeking is enabled only for episodes where its API documents support; SoundCloud supports 15-second seek keys. Original provider players and source links remain available for browser/account playback restrictions.
 
 The public Afterimage and private heatmap preview render locally without map tiles. Place detail cards link directly to OpenStreetMap for optional geographic review. No map-provider key or embedded tile service is required.
+
+## Studio AI connection and assistant
+
+The private editor uses an iframe served by the existing authentication Worker. The frame sends AI requests to its own origin, avoiding cross-origin photo POSTs in Safari. Both sides verify the exact origin, parent/frame window, and random channel; the frame accepts only four fixed AI paths. Tokens stay in memory and are never included in responses or logs. The Worker still verifies the GitHub owner for every request. Its frame CSP permits embedding only by the portfolio. Existing CORS callers remain supported.
+
+**Test AI connection** verifies owner sign-in, a synthetic photo-sized upload, and a real OpenAI response without sending a photograph or private draft. **Studio assistant** sends only the selected project, writing item, listening note, video context, or introduction and the owner's request. Suggested edits require individual application and cannot overwrite edits made while waiting. The assistant does not fetch supplied URLs, watch videos, or publish. Photo descriptions and place suggestions retain their separate image-aware controls.

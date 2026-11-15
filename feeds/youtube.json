@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "channelId": "UCc2XXAmBtbXsdjiZY9gFOqQ",
+  "title": "Sean Beaverson",
+  "entries": [
+    {
+      "id": "youtube-8jHnQoU3xoM",
+      "title": "Forms to Maps - Three Steps",
+      "url": "https://www.youtube.com/watch?v=8jHnQoU3xoM",
+      "date": "2019-07-30",
+      "sourceDescription": "A quick video highlighting the steps to create a Google Map using information gathered in Google Forms.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-i-eYMQ7wZGE",
+      "title": "Strengths Project",
+      "url": "https://www.youtube.com/watch?v=i-eYMQ7wZGE",
+      "date": "2018-11-29",
+      "sourceDescription": "A quick reflection on strength for grad school",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-JhTZY8B5-3A",
+      "title": "Fall Jet Skiing",
+      "url": "https://www.youtube.com/watch?v=JhTZY8B5-3A",
+      "date": "2018-09-30",
+      "sourceDescription": "This video is about Fall Jet Skiing",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-Q4XEoih3QOc",
+      "title": "Google Teacher Academy Application Innovation",
+      "url": "https://www.youtube.com/watch?v=Q4XEoih3QOc",
+      "date": "2017-12-18",
+      "sourceDescription": "",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-bh9Q6Ml8dyI",
+      "title": "Libby's Eulogy",
+      "url": "https://www.youtube.com/watch?v=bh9Q6Ml8dyI",
+      "date": "2017-01-23",
+      "sourceDescription": "A heartfelt goodbye to an old friend.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-fGUFQTA_jTM",
+      "title": "Backyard Trail Riding with Dr. Dave",
+      "url": "https://www.youtube.com/watch?v=fGUFQTA_jTM",
+      "date": "2017-01-23",
+      "sourceDescription": "Rural suburban trail riding.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-AVSWMK95VZA",
+      "title": "Canoe Paddling",
+      "url": "https://www.youtube.com/watch?v=AVSWMK95VZA",
+      "date": "2017-01-23",
+      "sourceDescription": "With friends and a family of un wedded folk. The beauty of a canoe paddle. Somewhere in northern MN.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-Xqq5YsMZR6s",
+      "title": "Mount Snow 360 Kicker",
+      "url": "https://www.youtube.com/watch?v=Xqq5YsMZR6s",
+      "date": "2017-01-23",
+      "sourceDescription": "",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-TOxSfRBK3dY",
+      "title": "Where I work",
+      "url": "https://www.youtube.com/watch?v=TOxSfRBK3dY",
+      "date": "2017-01-23",
+      "sourceDescription": "Pre production test runs with a drone. Stitched together by Google Photos.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-L09GjOg4wbk",
+      "title": "Go Coach!",
+      "url": "https://www.youtube.com/watch?v=L09GjOg4wbk",
+      "date": "2016-02-18",
+      "sourceDescription": "I created this video with the YouTube Video Editor (https://www.youtube.com/editor)",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-Kk3KWS4FQ-k",
+      "title": "First Rides",
+      "url": "https://www.youtube.com/watch?v=Kk3KWS4FQ-k",
+      "date": "2016-01-03",
+      "sourceDescription": "M and E's first time on the slopes at Spirit Mountain.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-zAFW3OciaZI",
+      "title": "Ride around Vondelpark",
+      "url": "https://www.youtube.com/watch?v=zAFW3OciaZI",
+      "date": "2015-07-19",
+      "sourceDescription": "An evening ride exploring Vondelpark by bike.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-5CZf-4c_6uo",
+      "title": "#moonshot introduction",
+      "url": "https://www.youtube.com/watch?v=5CZf-4c_6uo",
+      "date": "2015-07-07",
+      "sourceDescription": "My 60 second hunch about what we might focus on to make education even better.",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-D9vz-295Bs8",
+      "title": "Live Video Example",
+      "url": "https://www.youtube.com/watch?v=D9vz-295Bs8",
+      "date": "2015-06-26",
+      "sourceDescription": "Recorded with ScreenCastify (https://www.screencastify.com), the screen video recorder for Chrome",
+      "source": "youtube",
+      "published": true
+    },
+    {
+      "id": "youtube-EhlOaUHUgBo",
+      "title": "Paddle Out - 2014",
+      "url": "https://www.youtube.com/watch?v=EhlOaUHUgBo",
+      "date": "2015-01-31",
+      "sourceDescription": "",
+      "source": "youtube",
+      "published": true
+    }
+  ]
+}

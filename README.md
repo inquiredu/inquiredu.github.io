@@ -108,6 +108,12 @@ Hiding an existing photo removes it from the tray, but its published image URL a
 
 `node scripts/darkroom.mjs` is still available for the original macOS folder/Google Photos ZIP workflow.
 
+## YouTube television and studio assistant
+
+The Moving pictures section uses a wooden tube-TV enclosure with working power and channel controls. The official YouTube player loads only after a visitor switches it on, supports inline playback, and keeps its native controls clear. Turning power off removes the player and stops playback. The public channel feed is cached in `feeds/youtube.json`; the existing hourly creative-feeds workflow refreshes it without a YouTube API key and keeps the previous feed on failure. Curated titles and notes take precedence. In **Studio → Videos**, bring a channel video into the editor to edit or hide it, or paste a YouTube link into Quick add. Private video context is omitted from published content.
+
+**Studio assistant** offers reviewable editorial suggestions across projects, writing, listening, videos, and the introduction. **Test AI connection** checks the service, upload path, and AI response. Every suggestion remains a draft until explicitly applied and published.
+
 ## Local preview and checks
 
 Serve this directory with a local static HTTP server, then open its address. `/admin/?preview=1` demonstrates the editor using public data, with publishing disabled. It never loads private content. Run:

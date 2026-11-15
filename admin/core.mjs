@@ -1,4 +1,5 @@
-import {publicSources} from '../assets/creative-sources.mjs';
+import {publicSources} from '../assets/creative-sources.mjs?v=20261115.13';
+import {youtubeVideo} from '../assets/youtube-source.mjs?v=20261115.13';
 export const OWNER = 'inquiredu';
 export const OWNER_ID = 192934662;
 export const SITE = 'inquiredu.github.io';
@@ -19,6 +20,8 @@ export function publicProjects(catalog) {
 export function publicContent(data) {
   return {
     version: 1, intro: data.intro || '', sources: publicSources(data.sources),
+    videos:(data.videos||[]).filter(x=>x.published===true&&youtubeVideo(x.url)).map(({id,title,note,date,url})=>({id,title,note:note||'',date:date||'',url:youtubeVideo(url).url,published:true})),
+    hiddenVideoIds:(data.videos||[]).filter(x=>x.fromFeed&&x.published===false).map(x=>youtubeVideo(x.url)?.id).filter(Boolean),
     writing: (data.writing || []).filter(x => x.published === true).map(({id, title, date, excerpt, body, url}) => ({id, title, date, excerpt, body, url: safeURL(url), published: true})),
     playlists: (data.playlists || []).filter(x => x.published === true).map(({id, title, date, note, url, tracks}) => ({id, title, date, note, url: safeURL(url), published: true, tracks: (tracks || []).map(({title, artist, url}) => ({title, artist, url: safeURL(url)}))}))
   };
