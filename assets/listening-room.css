@@ -544,3 +544,21 @@
     transition: none;
   }
 }
+
+/* The full stereo cassette deck (tape-deck.mjs). Its body, tape, meters, keys and shelf are styled in analog.css. */
+.deck-room .tape-deck { min-width: 0; }
+.deck-room .tape-shelf-head { margin-bottom: 0; }
+.deck-room .tape-shelf { margin-top: 13px; }
+.deck-room .listening-details { margin-top: 18px; }
+.deck-room .listening-details:empty { display: none; }
+.tape-keys button svg { fill: currentColor; }
+.tape-deck .vu-meter { color: #2a1d12; }
+.tape-spine .spine-color, .tape-spine:nth-child(even) .spine-color { background: #EFE6D3; }
+.tape-spine.ivory .spine-color { background: #20384F; }
+.analog-tape .tape-title { transition: opacity 200ms ease-out; }
+/* The provider's own player runs out of sight, behind the tape in the well: the deck's keys drive it. */
+.deck-provider { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+.deck-provider iframe, .deck-provider > div { display: block; width: 100%; height: 100%; border: 0; }
+.focus-view[data-focus-kind="music"]:modal .tape-deck { padding: 24px; }
+.focus-view[data-focus-kind="music"]:modal .music-visualizer { margin-top: 16px; }
+@media (prefers-reduced-motion: reduce) { .analog-tape .tape-title { transition: none; } }

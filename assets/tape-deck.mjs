@@ -2,6 +2,9 @@ import {musicSource} from './creative-sources.mjs';
 import {createFocusView} from './focus-view.mjs?v=20261115.16';
 import {mountMusicVisualizer} from './music-visualizer.mjs?v=20261115.16';
 
+/* The stereo cassette deck. The provider's own player (Spotify or SoundCloud) runs out of sight
+   inside the tape well; the deck's keys drive it, and the tape label shows the track that is playing. */
+
 const mounts = new WeakMap();
 const scripts = new Map();
 const playerTimeout = 18000;
@@ -71,6 +74,30 @@ function spotify() {
   return spotifyAPI;
 }
 
+/* Spotify reports which item is playing as a URI; its public oEmbed endpoint gives the name. */
+const spotifyNames = new Map();
+function spotifyName(uri) {
+  const match = /^spotify:(track|episode):([A-Za-z0-9]{22})$/.exec(uri || '');
+  if (!match) return Promise.resolve('');
+  if (!spotifyNames.has(uri)) {
+    const page = `https://open.spotify.com/${match[1]}/${match[2]}`;
+    spotifyNames.set(uri, fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(page), {credentials: 'omit', referrerPolicy: 'no-referrer'})
+      .then(response => response.ok ? response.json() : {})
+      .then(data => typeof data.title === 'string' ? data.title.trim().slice(0, 200) : '')
+      .catch(() => {
+        spotifyNames.delete(uri);
+        return '';
+      }));
+  }
+  return spotifyNames.get(uri);
+}
+
+function hideFrame(iframe, title) {
+  iframe.title = title;
+  iframe.tabIndex = -1;
+  iframe.setAttribute('aria-hidden', 'true');
+}
+
 async function connectSpotify(player, source, title, signal, update) {
   const api = await spotify();
   signal.throwIfAborted();
@@ -90,6 +117,7 @@ async function connectSpotify(player, source, title, signal, update) {
     signal.addEventListener('abort', () => controller.destroy(), {once: true});
 
     let started = false;
+    let nowPlaying = '';
     controller.addListener('playback_update', ({data}) => {
       if (!data || signal.aborted) return;
       started ||= !data.isPaused || Number(data.position) > 0;
@@ -99,11 +127,18 @@ async function connectSpotify(player, source, title, signal, update) {
         playing: !data.isPaused,
         buffering: Boolean(data.isBuffering)
       });
+      const uri = data.playingURI || (['track', 'episode'].includes(source.kind) ? 'spotify:' + source.kind + ':' + id : '');
+      if (uri && uri !== nowPlaying) {
+        nowPlaying = uri;
+        spotifyName(uri).then(name => {
+          if (!signal.aborted && nowPlaying === uri && name) update({track: name});
+        });
+      }
     });
     controller.addListener('ready', () => {
       if (signal.aborted) return;
       const iframe = player.querySelector('iframe');
-      if (iframe) iframe.title = title + ' — Spotify player';
+      if (iframe) hideFrame(iframe, title + ' — Spotify player');
       resolve({
         play: () => started ? controller.resume() : controller.play(),
         pause: () => controller.pause(),
@@ -119,15 +154,18 @@ async function connectSoundCloud(player, source, title, signal, update) {
   signal.throwIfAborted();
   const iframe = element('iframe');
   iframe.src = source.embed;
-  iframe.title = title + ' — SoundCloud player';
   iframe.height = source.height;
   iframe.allow = 'autoplay';
+  hideFrame(iframe, title + ' — SoundCloud player');
   player.replaceChildren(iframe);
 
   const widget = window.SC.Widget(iframe);
   const events = window.SC.Widget.Events;
   const measure = () => widget.getDuration(duration => {
     if (!signal.aborted) update({duration: Number(duration) || 0});
+  });
+  const name = () => widget.getCurrentSound(sound => {
+    if (!signal.aborted && sound && typeof sound.title === 'string') update({track: sound.title.trim().slice(0, 200)});
   });
 
   return new Promise((resolve, reject) => {
@@ -144,6 +182,7 @@ async function connectSoundCloud(player, source, title, signal, update) {
       [events.PLAY, () => {
         update({playing: true});
         measure();
+        name();
       }],
       [events.PAUSE, () => update({playing: false})],
       [events.FINISH, () => update({playing: false})],
@@ -158,11 +197,6 @@ async function connectSoundCloud(player, source, title, signal, update) {
   });
 }
 
-function clock(ms) {
-  const seconds = Math.floor(Math.max(0, ms) / 1000);
-  return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
-}
-
 export function tapeAppearance(source, ownerProfile) {
   if (source?.provider === 'Spotify' && source.kind === 'album') return 'album';
   if (source?.provider === 'SoundCloud' && ownerProfile?.provider === 'SoundCloud') {
@@ -173,55 +207,67 @@ export function tapeAppearance(source, ownerProfile) {
   return 'mix';
 }
 
+const meterMarkup = channel => `<svg viewBox="0 0 180 96" aria-hidden="true"><path d="M36.4 55 A70 70 0 0 1 119.6 36.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M119.6 36.6 A70 70 0 0 1 143.6 55" fill="none" stroke="#8A2F1C" stroke-width="3.2"/><g stroke="currentColor" stroke-width="1.4"><path d="M36.4 55l-6.2-5.1M55 39.4l-4-6.9M71.9 32.4l-2.1-7.7M90 30v-8M108.1 32.4l2.1-7.7M119.6 36.6l3.4-7.3M130.2 42.7l4.5-6.6M143.6 55l6.2-5.1"/></g><g fill="currentColor" font-family="IBM Plex Mono, monospace" font-size="8.5" text-anchor="middle"><text x="24" y="45">-20</text><text x="47" y="25">-10</text><text x="90" y="17">-3</text><text x="126" y="22">0</text><text x="157" y="45">+3</text><text x="90" y="72" font-size="11" font-weight="600">VU</text><text x="20" y="88" font-size="9" font-weight="600">${channel}</text></g></svg><i class="vu-needle"></i>`;
+
+const keyGlyphs = {
+  rew: '<svg width="22" height="12" viewBox="0 0 22 12" aria-hidden="true"><path d="M11 0v12L0 6zM22 0v12L11 6z"/></svg>',
+  play: '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 0v12l11-6z"/></svg>',
+  ff: '<svg width="22" height="12" viewBox="0 0 22 12" aria-hidden="true"><path d="M0 0v12l11-6zM11 0v12l11-6z"/></svg>',
+  stop: '<svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><rect width="11" height="11"/></svg>',
+  eject: '<svg width="14" height="12" viewBox="0 0 14 12" aria-hidden="true"><path d="M7 0l7 8H0z M0 10h14v2H0z"/></svg>'
+};
+
 export function mountTapeDeck(container, items, sources = {}) {
   mounts.get(container)?.();
   container.replaceChildren();
   if (!items.length) return;
 
   const ownerProfile = musicSource(sources.soundcloud);
-  const entries = items.map(item => {
+  const entries = items.map((item, i) => {
     const source = musicSource(item.url);
     const appearance = tapeAppearance(source, ownerProfile);
-    let providerLabel = source?.provider || 'Track list';
+    let providerLabel = source?.provider || 'Song list';
     if (appearance === 'diy') providerLabel += ' · Original recordings';
     if (appearance === 'album') providerLabel += ' · Album';
     if (source?.provider === 'Spotify' && source.kind === 'playlist') providerLabel += ' · Mixtape';
-    return {item, source, appearance, providerLabel};
+    return {item, source, appearance, providerLabel, side: i % 2 ? 'B' : 'A', ivory: source?.provider === 'SoundCloud'};
   });
-  const room = element('div', 'listening-room');
-  const shelf = element('ul', 'listening-library');
-  shelf.setAttribute('role', 'list');
-  shelf.setAttribute('aria-label', 'Listening selections');
-  const dock = element('div', 'listening-dock');
-  room.append(shelf, dock);
-  container.append(room);
 
-  const focus = createFocusView({
-    container: dock,
-    label: 'Listening player',
-    kind: 'music',
-    buttonLabel: 'Player'
-  });
+  const room = element('div', 'listening-room deck-room');
+  container.append(room);
+  const focus = createFocusView({container: room, label: 'Listening room', kind: 'music', buttonLabel: 'Focus view'});
   const actions = element('div', 'listening-actions');
   actions.append(focus.button);
-  dock.prepend(actions);
+  room.prepend(actions);
 
-  const playerBody = element('div', 'listening-player');
+  /* the deck */
+  const deck = element('div', 'tape-deck');
   for (const corner of ['ds1', 'ds2', 'ds3', 'ds4']) {
     const screw = element('i', 'deck-screw ' + corner);
     screw.setAttribute('aria-hidden', 'true');
-    playerBody.append(screw);
+    deck.append(screw);
   }
-  const well = element('div', 'tape-well listening-well');
-  well.setAttribute('aria-hidden', 'true');
-  const tape = element('div', 'analog-tape listening-tape');
+  const header = element('div', 'tape-header');
+  const plate = element('div', 'tape-plate');
+  plate.setAttribute('aria-hidden', 'true');
+  plate.append(element('span', '', 'Stereo cassette deck'), element('span', '', 'Model >0'));
+  const status = element('span', 'tape-status', 'Stop');
+  header.append(plate, status);
+
+  const body = element('div', 'tape-body');
+  const well = element('div', 'tape-well');
+  const empty = element('span', 'empty-well', 'No tape');
+  empty.setAttribute('aria-hidden', 'true');
+  const player = element('div', 'source-player deck-provider');
+  player.setAttribute('aria-hidden', 'true');
+  const tape = element('div', 'analog-tape');
+  tape.setAttribute('aria-hidden', 'true');
   tape.innerHTML = `
-    <i class="tape-screw ts1"></i><i class="tape-screw ts2"></i>
-    <i class="tape-screw ts3"></i><i class="tape-screw ts4"></i><i class="tape-screw ts5"></i>
+    <i class="tape-screw ts1"></i><i class="tape-screw ts2"></i><i class="tape-screw ts3"></i><i class="tape-screw ts4"></i><i class="tape-screw ts5"></i>
     <div class="tape-label">
-      <div class="tape-label-top"><span class="tape-title"></span></div>
+      <div class="tape-label-top"><b class="tape-side">A</b><span class="tape-title"></span><small>C-90</small></div>
       <div class="tape-stripes"><i></i><i></i></div>
-      <div class="tape-label-bottom"><span class="tape-provider"></span></div>
+      <div class="tape-label-bottom"><span class="tape-provider"></span><span>Normal · Type I</span></div>
       <div class="tape-window">
         <i class="tape-pack pack-left"></i><i class="tape-pack pack-right"></i>
         <i class="tape-hub hub-left"></i><i class="tape-hub hub-right"></i><i class="tape-ticks"></i>
@@ -229,103 +275,129 @@ export function mountTapeDeck(container, items, sources = {}) {
     </div>
     <div class="tape-head"><i></i><i></i><i></i><i></i><i></i></div>`;
   const tapeTitle = tape.querySelector('.tape-title');
+  const tapeSide = tape.querySelector('.tape-side');
   const tapeProvider = tape.querySelector('.tape-provider');
-  well.append(tape, element('div', 'tape-door'));
+  well.append(player, empty, tape, element('div', 'tape-door'));
 
-  const readout = element('div', 'listening-readout');
-  const metadata = element('div', 'listening-metadata');
-  const title = element('h3', 'listening-title');
-  const provider = element('span', 'listening-provider');
-  metadata.append(title, provider);
-  readout.append(metadata);
-
-  const transport = element('div', 'listening-transport');
-  transport.setAttribute('role', 'group');
-  transport.setAttribute('aria-label', 'Playback controls');
-  const back = button('−15s', 'listening-seek');
-  back.setAttribute('aria-label', 'Back 15 seconds');
-  const play = button('Play', 'listening-play');
-  const forward = button('+15s', 'listening-seek');
-  forward.setAttribute('aria-label', 'Forward 15 seconds');
-  const progress = element('progress', 'listening-progress');
-  progress.setAttribute('aria-label', 'Playback progress');
-  const time = element('span', 'listening-time');
-  transport.append(play, back, forward, progress, time);
-
-  const status = element('p', 'listening-status');
-  status.setAttribute('role', 'status');
-  const player = element('div', 'source-player listening-provider-player');
-  const details = element('div', 'listening-details');
-
-  const playerInterface = element('div', 'listening-interface');
-  const playerPanel = element('div', 'listening-panel');
-  const meters = element('div', 'vu-pair listening-meters');
+  const panel = element('div', 'tape-panel');
+  const meters = element('div', 'vu-pair');
   meters.setAttribute('aria-hidden', 'true');
-  for (const side of ['L', 'R']) {
+  for (const channel of ['L', 'R']) {
     const meter = element('div', 'vu-meter');
-    meter.innerHTML = `<svg viewBox="0 0 180 96"><path d="M36 55 A70 70 0 0 1 144 55" fill="none" stroke="#412e20" stroke-width="1.6"/>
-      <path d="M120 37 A70 70 0 0 1 144 55" fill="none" stroke="#8a3e2c" stroke-width="3.2"/>
-      <path d="M36 55l-6-5m25-11l-4-7m21 0l-2-8m18 6v-8m18 10l2-8m17 15l4-7m15 21l6-5" fill="none" stroke="#412e20" stroke-width="1.4"/>
-      <text x="22" y="83" fill="#412e20" text-anchor="middle" font-family="monospace" font-size="11">${side}</text></svg><i class="vu-needle"></i>`;
+    meter.innerHTML = meterMarkup(channel);
     meters.append(meter);
   }
-  playerPanel.append(readout, meters, transport, status);
-  playerInterface.append(well, playerPanel);
-  playerBody.append(playerInterface);
-  focus.body.append(playerBody);
-  const visualizer = mountMusicVisualizer(playerBody);
-  playerBody.append(player, details);
+  const counterRow = element('div', 'counter-row');
+  const counter = element('div', 'tape-counter');
+  counter.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 3; i++) counter.append(element('span', '', '0'));
+  const readout = element('div', 'tape-readout');
+  const readoutLabel = element('small', '', 'Tape counter');
+  const nowPlaying = element('span', 'tape-now');
+  readout.append(readoutLabel, nowPlaying);
+  counterRow.append(counter, readout);
 
-  const profiles = element('div', 'listening-profiles');
-  for (const [key, label] of [['spotify', 'Spotify'], ['soundcloud', 'SoundCloud']]) {
-    if (sources[key]) profiles.append(link(label + ' profile ↗', sources[key]));
+  const keys = element('div', 'tape-keys');
+  keys.setAttribute('role', 'group');
+  keys.setAttribute('aria-label', 'Transport');
+  const buttons = {};
+  for (const [key, text, label] of [['rew', 'REW', 'Rewind 15 seconds'], ['play', 'PLAY', 'Play'], ['ff', 'F.FWD', 'Forward 15 seconds'], ['stop', 'STOP', 'Stop'], ['eject', 'EJECT', 'Eject tape']]) {
+    const key_ = button('', '');
+    key_.dataset.key = key;
+    key_.setAttribute('aria-label', label);
+    if (key !== 'stop' && key !== 'eject') key_.setAttribute('aria-pressed', 'false');
+    key_.innerHTML = keyGlyphs[key];
+    key_.append(text);
+    buttons[key] = key_;
+    keys.append(key_);
   }
-  if (profiles.childElementCount) container.append(profiles);
+  const hint = element('p', 'tape-hint');
+  hint.setAttribute('role', 'status');
+  panel.append(meters, counterRow, keys, hint);
+  body.append(well, panel);
+  deck.append(header, body);
+
+  /* the shelf */
+  const shelfHead = element('div', 'tape-shelf-head');
+  shelfHead.append(element('span', '', 'ON THE SHELF'), element('span', '', 'Pick a tape to load it.'));
+  const shelf = element('div', 'tape-shelf');
+  shelf.setAttribute('role', 'group');
+  shelf.setAttribute('aria-label', 'Tapes on the shelf');
+  const spines = entries.map(({item, source, ivory}, i) => {
+    const spine = button('', 'tape-spine' + (ivory ? ' ivory' : ''));
+    spine.setAttribute('aria-pressed', 'false');
+    spine.setAttribute('aria-label', 'Load ' + item.title);
+    spine.append(element('i', 'spine-color'), element('small', '', String(i + 1).padStart(2, '0')), element('span', 'spine-title', item.title),
+      element('small', '', source?.provider || 'Song list'), element('span', 'shelf-state'));
+    spine.addEventListener('click', () => choose(i));
+    shelf.append(spine);
+    return spine;
+  });
+
+  const details = element('div', 'listening-details');
+  focus.body.append(deck, shelfHead, shelf);
+  const visualizer = mountMusicVisualizer(focus.body);
+  focus.body.append(details);
+
+  const profiles = element('div', 'deck-footer');
+  profiles.append(element('span', '', 'Selected here. Kept alive at the source.'));
+  for (const [key, label] of [['spotify', 'Spotify'], ['soundcloud', 'SoundCloud']]) {
+    if (sources[key]) profiles.append(link(label + ' ↗', sources[key]));
+  }
+  container.append(profiles);
 
   let index = -1;
   let session = null;
   let playRequested = false;
-  let state = {playing: false, buffering: false, position: 0, duration: 0};
+  let state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
   const lifecycle = new AbortController();
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  let insertion;
 
   function paint() {
-    const source = entries[index].source;
+    const entry = entries[index];
+    const loaded = Boolean(entry);
     const pending = Boolean(session && !session.controls && playRequested);
-    const canSeek = Boolean(session?.controls?.canSeek && state.duration);
-    transport.hidden = !source;
-    play.disabled = pending;
-    const label = state.playing ? 'Pause' : pending ? 'Opening…' : 'Play';
-    if (play.textContent !== label) play.textContent = label;
-    back.hidden = forward.hidden = !canSeek;
-    progress.hidden = time.hidden = !state.duration;
-    if (state.duration) {
-      progress.max = state.duration;
-      progress.value = state.position;
-      const elapsed = clock(state.position) + ' / ' + clock(state.duration);
-      if (time.textContent !== elapsed) time.textContent = elapsed;
-    }
     const moving = state.playing && !state.buffering;
+    const canSeek = Boolean(session?.controls?.canSeek && state.duration);
+    const label = !loaded ? 'Empty' : pending || state.buffering ? 'Loading' : state.playing ? 'Play' : 'Stop';
+    if (status.textContent !== label) status.textContent = label;
+    deck.classList.toggle('playing', moving);
+    buttons.play.setAttribute('aria-pressed', String(state.playing));
+    buttons.play.disabled = !loaded || !entry.source || pending;
+    buttons.stop.disabled = !loaded;
+    buttons.rew.disabled = buttons.ff.disabled = !canSeek;
+    const seconds = Math.min(999, Math.floor(state.position / 1000));
+    const digits = String(seconds).padStart(3, '0');
+    [...counter.children].forEach((digit, i) => {
+      if (digit.textContent !== digits[i]) digit.textContent = digits[i];
+    });
     const played = state.duration ? Math.min(1, Math.max(0, state.position / state.duration)) : 0;
     tape.style.setProperty('--pack-left', (23 + 39 * Math.sqrt(1 - played)) / 2.52 + '%');
     tape.style.setProperty('--pack-right', (23 + 39 * Math.sqrt(played)) / 2.52 + '%');
-    playerBody.classList.toggle('is-playing', moving);
+    /* once a track is known, its name goes on the tape */
+    const onTape = loaded ? state.track || entry.item.title : '';
+    if (tapeTitle.textContent !== onTape) tapeTitle.textContent = onTape;
+    tape.classList.toggle('has-track', Boolean(state.track));
+    const line = loaded ? 'Side ' + entry.side + ' · ' + (state.track || entry.item.title) : 'Load a tape from the shelf';
+    if (nowPlaying.textContent !== line) nowPlaying.textContent = line;
+    readoutLabel.textContent = state.track ? 'Now playing' : 'Tape counter';
     visualizer.setPlaying(moving);
   }
 
   function announce(message) {
-    if (status.textContent !== message) status.textContent = message;
+    if (hint.textContent !== message) hint.textContent = message;
   }
 
   function updatePlayback(attempt, update) {
     if (session !== attempt || attempt.load.signal.aborted) return;
+    const was = state.track;
     Object.assign(state, update);
     paint();
-    if (!attempt.controls || !('playing' in update)) return;
-    if (state.buffering) announce('Buffering…');
-    else if (state.playing) announce('Playing on ' + entries[index].source.provider + '.');
-    else announce('');
+    if (update.track && update.track !== was) announce('Now playing: ' + update.track + '.');
+    else if (attempt.controls && 'playing' in update) {
+      if (state.buffering) announce('Buffering…');
+      else if (!state.playing) announce('Stopped.');
+    }
   }
 
   function discardPlayer() {
@@ -334,16 +406,14 @@ export function mountTapeDeck(container, items, sources = {}) {
     playRequested = false;
     previous?.load.abort();
     player.replaceChildren();
-    player.hidden = true;
   }
 
   function ensurePlayer() {
-    const {item, source} = entries[index];
+    const {item, source} = entries[index] || {};
     if (!source || session) return;
     const load = new AbortController();
     const attempt = {load, controls: null};
     session = attempt;
-    player.hidden = false;
     announce('Opening ' + source.provider + '…');
     paint();
 
@@ -365,36 +435,17 @@ export function mountTapeDeck(container, items, sources = {}) {
     }).catch(error => {
       if (session !== attempt) return;
       discardPlayer();
-      state = {playing: false, buffering: false, position: 0, duration: 0};
-      announce(error.message + ' Try Play again or open the source link.');
+      state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
+      announce(error.message + ' Try Play again, or open it at the source.');
       paint();
     }).finally(() => clearTimeout(timeout));
   }
 
-  function choose(nextIndex) {
-    if (index === nextIndex) return;
-    const alreadyLoaded = index >= 0;
-    discardPlayer();
-    index = nextIndex;
-    state = {playing: false, buffering: false, position: 0, duration: 0};
-    const {item, source, appearance, providerLabel} = entries[index];
-    title.textContent = item.title;
-    provider.textContent = providerLabel;
-    tape.dataset.tapeStyle = appearance;
-    tapeTitle.textContent = item.title;
-    if (appearance === 'diy') tapeProvider.textContent = item.note?.trim().replace(/\s+/g, ' ') || item.date || 'Original recordings';
-    else tapeProvider.textContent = providerLabel;
-    insertion?.cancel();
-    if (alreadyLoaded && !reducedMotion.matches) {
-      insertion = tape.animate([
-        {transform: 'translateY(-14px)', opacity: 0.3},
-        {transform: 'translateY(0)', opacity: 1}
-      ], {duration: 250, easing: 'ease-out'});
-    }
-    for (const [i, selection] of selections.entries()) {
-      selection.setAttribute('aria-pressed', String(i === index));
-    }
+  function showDetails() {
     details.replaceChildren();
+    const entry = entries[index];
+    if (!entry) return;
+    const {item, source} = entry;
     if (item.note) details.append(element('p', 'listening-note', item.note));
     if (source) details.append(link('Open in ' + source.provider + ' ↗', source.url));
     if (item.tracks?.length) {
@@ -407,37 +458,69 @@ export function mountTapeDeck(container, items, sources = {}) {
       }
       details.append(tracks);
     }
-    announce('');
-    paint();
-    if (focus.isFocused()) ensurePlayer();
   }
 
-  const selections = entries.map(({item, appearance, providerLabel}, i) => {
-    const row = element('li');
-    const selection = button('', 'listening-choice');
-    selection.dataset.tapeStyle = appearance;
-    const name = element('strong', '', item.title);
-    const label = element('span', 'listening-choice-provider', providerLabel);
-    selection.append(name, label);
-    selection.addEventListener('click', () => choose(i));
-    row.append(selection);
-    shelf.append(row);
-    return selection;
-  });
+  function markShelf() {
+    spines.forEach((spine, i) => {
+      const inDeck = i === index;
+      spine.setAttribute('aria-pressed', String(inDeck));
+      spine.querySelector('.shelf-state').textContent = inDeck ? 'In the deck' : '';
+    });
+  }
 
-  play.addEventListener('click', () => {
+  function choose(nextIndex) {
+    if (index === nextIndex) return;
+    discardPlayer();
+    const reload = index >= 0 || tape.classList.contains('ejected');
+    index = nextIndex;
+    state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
+    const {side, ivory, appearance, providerLabel, item} = entries[index];
+    tape.dataset.tapeStyle = appearance;
+    tape.classList.toggle('ivory', ivory);
+    tapeSide.textContent = side;
+    tapeProvider.textContent = appearance === 'diy' ? (item.note?.trim().replace(/\s+/g, ' ') || providerLabel) : providerLabel;
+    empty.hidden = true;
+    tape.classList.remove('ejected');
+    if (reload && !reducedMotion.matches) {
+      tape.classList.add('loading');
+      requestAnimationFrame(() => requestAnimationFrame(() => tape.classList.remove('loading')));
+    }
+    markShelf();
+    showDetails();
+    announce(entries[index].source ? 'Press Play to start ' + item.title + '.' : 'Choose a tape with a source to play it.');
+    paint();
+  }
+
+  function eject() {
+    discardPlayer();
+    index = -1;
+    state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
+    tape.classList.add('ejected');
+    empty.hidden = false;
+    markShelf();
+    showDetails();
+    announce('No tape loaded.');
+    paint();
+  }
+
+  buttons.play.addEventListener('click', () => {
+    if (index < 0) return;
     if (session?.controls) {
-      if (state.playing) session.controls.pause();
-      else session.controls.play();
+      if (!state.playing) session.controls.play();
     } else {
       playRequested = true;
       if (session) paint();
       else ensurePlayer();
     }
   });
-
-  for (const [control, offset] of [[back, -15000], [forward, 15000]]) {
-    control.addEventListener('click', () => {
+  buttons.stop.addEventListener('click', () => {
+    playRequested = false;
+    session?.controls?.pause();
+    paint();
+  });
+  buttons.eject.addEventListener('click', eject);
+  for (const [key, offset] of [['rew', -15000], ['ff', 15000]]) {
+    buttons[key].addEventListener('click', () => {
       if (session?.controls?.canSeek && state.duration) {
         session.controls.seek(Math.max(0, Math.min(state.duration, state.position + offset)));
       }
@@ -446,17 +529,24 @@ export function mountTapeDeck(container, items, sources = {}) {
 
   window.addEventListener('focusview:change', event => {
     if (event.detail.kind !== 'music') return;
-    const active = focus.isFocused();
-    visualizer.setActive(active);
-    if (active) ensurePlayer();
+    visualizer.setActive(focus.isFocused());
   }, {signal: lifecycle.signal});
+
+  /* the needles ride the music while it plays */
+  const meterTimer = setInterval(() => {
+    if (!container.isConnected) return;
+    const live = deck.classList.contains('playing') && !reducedMotion.matches && !document.hidden;
+    for (const needle of meters.querySelectorAll('.vu-needle')) {
+      needle.style.transform = `rotate(${live ? -28 + Math.random() * 52 : -48}deg)`;
+    }
+  }, 250);
 
   choose(0);
   mounts.set(container, () => {
     lifecycle.abort();
+    clearInterval(meterTimer);
     focus.close();
     discardPlayer();
-    insertion?.cancel();
     visualizer.dispose();
     mounts.delete(container);
   });

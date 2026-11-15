@@ -1,7 +1,7 @@
 /* Early winter, from the inquiredu analog design system. Loaded last, over the autumn materials.
    Winter is the default season. The original autumn palette stays available: add data-season="autumn" to <html>.
    The desk changes with the lamp: slate night (off), snow (on). Lit things glow ice.
-   Objects keep their own materials: the tube TV's wood cabinet and each source's cassette are left as they are. */
+   Objects keep their own materials where they have them: the tube TV's cabinet stays wood. */
 
 /* ---------- desk ---------- */
 :root:not([data-season="autumn"])[data-theme="dark"]{
@@ -89,15 +89,24 @@
 :root:not([data-season="autumn"]) .television-room button:focus-visible,
 :root:not([data-season="autumn"]) .television-room a:focus-visible{outline-color:#A9D3E0}
 
-/* the listening room's player: a charcoal chassis, cream piano keys, ice meters */
-:root:not([data-season="autumn"]) .listening-player{border-color:#42464b; background:#262b30; box-shadow:inset 0 1px 1px #5a5e63, 0 14px 25px -20px var(--desk-shadow)}
-:root:not([data-season="autumn"]) .focus-view:not(:modal) .listening-player{--bg:#232930; --fg-1:#E3E9EE; --fg-2:#9DAEBC; --accent-text:#9CC3D0; --line:#3a4651; --sun:#A9D3E0}
-:root:not([data-season="autumn"]) .listening-meters .vu-meter{background:radial-gradient(ellipse at 50% 115%,#E2F3F8,#A9D3E0 55%,#6E9FB2)}
-:root:not([data-season="autumn"]) .focus-view:not(:modal) .listening-transport button{border-color:#4a5058; background:linear-gradient(#4a4f55,#24282c); box-shadow:0 3px #0b0c0d, inset 0 1px rgba(255,255,255,.16)}
-:root:not([data-season="autumn"]) .focus-view:not(:modal) .listening-transport .listening-play{border-color:#6f695e; background:linear-gradient(#ECE8E0,#C3BCAF); color:#26282a}
-:root:not([data-season="autumn"]) .focus-view:not(:modal) .listening-transport button:active{box-shadow:0 1px #0b0c0d}
+/* the cassette: smoke or ivory shell, cool label, ice-over-lake stripes */
+:root:not([data-season="autumn"]) .analog-tape{background:linear-gradient(#3a4148,#252b31)}
+:root:not([data-season="autumn"]) .analog-tape.ivory{background:linear-gradient(#e3e8eb,#c3ccd2)}
+:root:not([data-season="autumn"]) .analog-tape .tape-label{background:#E9EEF0; color:#20384F}
+:root:not([data-season="autumn"]) .analog-tape.ivory .tape-label{background:#20384F; color:#EEF2F4}
+:root:not([data-season="autumn"]) .tape-stripes i{background:#A9D3E0}
+:root:not([data-season="autumn"]) .tape-stripes i + i{background:#608C9B}
+:root:not([data-season="autumn"]) .tape-hub{background:#e3e8ea}
+:root:not([data-season="autumn"]) .tape-hub::before{background:repeating-conic-gradient(#e3e8ea 0deg 16deg,#141210 16deg 60deg)}
+:root:not([data-season="autumn"]) .tape-deck .vu-meter{color:#14222c}
+:root:not([data-season="autumn"]) .tape-spine .spine-color{background:#E9EEF0}
+:root:not([data-season="autumn"]) .tape-spine.ivory .spine-color{background:#20384F}
+:root:not([data-season="autumn"]) .tape-shelf-head{color:var(--accent-text)}
+
+/* focus view's ambient visualizer, cooled to sit under the deck */
 :root:not([data-season="autumn"]) .music-visualizer{border-color:#343c44; background:#1e252c; color:#E3E9EE}
 :root:not([data-season="autumn"]) .music-visualizer-control{color:#9DAEBC}
 :root:not([data-season="autumn"]) .music-visualizer-control input{accent-color:#8FD8E8}
 :root:not([data-season="autumn"]) .music-visualizer-control select{background:#262e36; color:#E3E9EE}
 :root:not([data-season="autumn"]) .music-visualizer-canvas{background:repeating-linear-gradient(0deg,#2b3540 0 1px,transparent 1px 12px),#141b22}
+:root:not([data-season="autumn"]) .deck-room .listening-actions .focus-view-launch{background:color-mix(in srgb, #A9D3E0 11%, var(--bg))}
