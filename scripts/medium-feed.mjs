@@ -36,11 +36,12 @@ export async function fetchMediumFeed(profile,request=fetch) {
 }
 export async function syncMedium({read,write,dry=false}) {
   const config=JSON.parse((await read('content.json')).text),profile=config.sources?.medium;
-  if(!mediumSource(profile))return;
+  if(!mediumSource(profile))return false;
   const feed=await fetchMediumFeed(profile);let old=null;
   try{old=await read('feeds/medium.json');}catch(error){if(error.status!==404)throw error;}
   const text=JSON.stringify(feed,null,2)+'\n';
-  if(old?.text===text){console.log('Medium shelf: unchanged.');return;}
+  if(old?.text===text){console.log('Medium shelf: unchanged.');return false;}
   if(!dry)await write('feeds/medium.json',text,old?.sha,'Refresh the Medium writing shelf');
   console.log(`Medium shelf: ${feed.entries.length} public stories${dry?' (dry run)':''}.`);
+  return true;
 }
