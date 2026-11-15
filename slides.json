@@ -119,6 +119,21 @@
         "label": "",
         "precision": "approximate"
       }
+    },
+    {
+      "id": "ded0988f404b021860ee",
+      "src": "assets/slides/ded0988f404b021860ee.jpg",
+      "thumb": "assets/slides/ded0988f404b021860ee-thumb.jpg",
+      "width": 1452,
+      "height": 829,
+      "taken": "2022-10",
+      "caption": "Shared laughter in close-up",
+      "alt": "High-contrast black-and-white close-up of two adults in hooded outerwear. The person on the left wears dark sunglasses and has a beard, while the person on the right smiles broadly with their mouth open.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "date": "2022-10-19"
+      }
     }
   ]
 }
