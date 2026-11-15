@@ -26,10 +26,11 @@ export function publicContent(data) {
 export class GitHub {
   constructor(token, request = (...args) => fetch(...args)) { this.token = token; this.request = request; }
   async api(path, method = 'GET', body) {
-    const response = await this.request(`https://api.github.com${path}`, {
+    let response;
+    try{response = await this.request(`https://api.github.com${path}`, {
       method, headers: { Authorization: `Bearer ${this.token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? {'Content-Type':'application/json'} : {}) },
       ...(body ? {body: JSON.stringify(body)} : {}), cache: 'no-store'
-    });
+    });}catch{throw new Error('GitHub could not be reached. Your edits are still in this tab; check the connection and try saving again.');}
     if (!response.ok) {
       const error = new Error(response.status === 401 ? 'Your session expired. Sign out and sign in again.' : [409, 422].includes(response.status) ? 'The collection changed on GitHub. Reload before publishing; your edits have not overwritten the newer version.' : response.status === 403 ? 'GitHub refused access. Check the app’s repository permissions.' : `GitHub request failed (${response.status}). Try again.`);
       error.status = response.status; throw error;
@@ -56,18 +57,25 @@ export class GitHub {
     return result.content.sha;
   }
   async head() { return (await this.api(`/repos/${OWNER}/${SITE}/git/ref/heads/main`)).object.sha; }
-  async commitFiles(files, expectedHead) {
+  async commitFiles(files, expectedHead, expectedManifestSha) {
     const prefix = `/repos/${OWNER}/${SITE}`;
-    if (await this.head() !== expectedHead) throw new Error('The site changed on GitHub. Reload the editor before publishing.');
-    const head = await this.api(`${prefix}/git/commits/${expectedHead}`);
-    const tree = [];
+    const currentHead=await this.head();
+    if(currentHead!==expectedHead){
+      if(!expectedManifestSha)throw new Error('The site changed on GitHub. Your edits are still in this tab.');
+      const manifest=await this.api(`${prefix}/contents/slides.json?ref=${encodeURIComponent(currentHead)}`);
+      if(manifest.sha!==expectedManifestSha)throw new Error('The photo collection changed in another session. Your draft is still here; review the saved collection before publishing.');
+    }
+    // Preserve unrelated code/content updates while protecting the photo baseline.
+    const head = await this.api(`${prefix}/git/commits/${currentHead}`);
+    const tree = [];let manifestSha;
     for (const file of files) {
       const blob = await this.api(`${prefix}/git/blobs`, 'POST', {content: file.content, encoding: file.encoding || 'utf-8'});
       tree.push({path: file.path, mode: '100644', type: 'blob', sha: blob.sha});
+      if(file.path==='slides.json')manifestSha=blob.sha;
     }
     const createdTree = await this.api(`${prefix}/git/trees`, 'POST', {base_tree: head.tree.sha, tree});
-    const commit = await this.api(`${prefix}/git/commits`, 'POST', {message: 'Publish photograph collection', tree: createdTree.sha, parents: [expectedHead]});
+    const commit = await this.api(`${prefix}/git/commits`, 'POST', {message: 'Publish photograph collection', tree: createdTree.sha, parents: [currentHead]});
     await this.api(`${prefix}/git/refs/heads/main`, 'PATCH', {sha: commit.sha, force: false});
-    return commit.sha;
+    return {head:commit.sha,manifestSha};
   }
 }

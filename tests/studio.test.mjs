@@ -32,7 +32,7 @@ test('a stale photo baseline is refused before creating any objects',async()=>{
 test('photo batch moves the branch once, only after all blobs and a tree exist',async()=>{
   const calls=[];const responses=[{object:{sha:'old'}},{tree:{sha:'base'}},{sha:'image'},{sha:'manifest'},{sha:'tree'},{sha:'commit'},{object:{sha:'commit'}}];
   const gh=new GitHub('test-token',async(url,opts)=>{calls.push({url,method:opts.method,body:opts.body&&JSON.parse(opts.body)});return ok(responses.shift());});
-  assert.equal(await gh.commitFiles([{path:'assets/slides/a.jpg',content:'AA==',encoding:'base64'},{path:'slides.json',content:'{}'}],'old'),'commit');
+  assert.deepEqual(await gh.commitFiles([{path:'assets/slides/a.jpg',content:'AA==',encoding:'base64'},{path:'slides.json',content:'{}'}],'old'),{head:'commit',manifestSha:'manifest'});
   assert.equal(calls.filter(c=>c.method==='PATCH').length,1);assert.deepEqual(calls.at(-1).body,{sha:'commit',force:false});assert.deepEqual(calls[5].body.parents,['old']);assert.equal(calls[4].body.tree.length,2);
 });
 test('failed blob upload never updates the live branch',async()=>{

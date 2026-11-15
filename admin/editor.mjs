@@ -4,8 +4,9 @@ import { importLink, musicSource, mediumSource, publicSources } from '../assets/
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import {safeSuggestion,needsPlace,reviewPhotos,applyPlaceSuggestion} from './photo-places.mjs?v=20261115.7';
 import {drawGeoArt,publicMapPhotos} from '../assets/geo-art.mjs?v=20261115.10';
-import { aiRequest, imagePreview, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.7';
-import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
+import { aiRequest, imagePreview, previewFromSource, fillEmptyDraft, cleanContext, photoContexts } from './photo-ai.mjs?v=20261115.11';
+import { validatePhotoDraft } from './photo-publish.mjs?v=20261115.11';
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.11';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
@@ -91,8 +92,13 @@ async function suggestPhoto(photo,{automatic=false,blob,placeOnly=false}={}) {
   const before={caption:photo.caption,alt:photo.alt},confirmedContext=cleanContext(photo.aiContext);
   const state={loading:true};aiStates.set(photo.id,state);aiViews.get(photo.id)?.();
   try {
-    if(!blob){const response=await fetch(pending.get(photo.id)?.preview||new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error('The image preview could not be read.');blob=await response.blob();}
-    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob),confirmedContext);
+    const upload=pending.get(photo.id);let preview=upload?.aiPreview;
+    if(!preview){
+      blob ||= upload?.blob;
+      if(!blob){try{const response=await fetch(new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error();blob=await response.blob();}catch{throw new Error('The saved photo could not be loaded for AI. Your edits are kept; try again when the connection returns.');}}
+      preview=await imagePreview(blob);if(upload)upload.aiPreview=preview;
+    }
+    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',preview,confirmedContext);
     if(!photos.slides.includes(photo))return false;
     if(needsPlace(photo)&&cleanContext(photo.aiContext)===confirmedContext){placeReviews[photo.id]={place:safeSuggestion(draft.place),message:draft.placeMessage||'No reliable place found.',status:'suggested',context:confirmedContext,updated:new Date().toISOString()};}
     const filled=placeOnly?[]:fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
@@ -101,7 +107,7 @@ async function suggestPhoto(photo,{automatic=false,blob,placeOnly=false}={}) {
     if(placeOnly)state.message='Location refresh finished. Existing words are preserved.';
     if(!automatic)try{await savePlaceReviews();}catch{state.message+=' Private save failed; suggestions remain in this tab.';}
     return true;
-  }catch(error){state.message=error.name==='TimeoutError'?'This took too long. Try again, or write your own description.':error.message;return false;}
+  }catch(error){state.message=['TimeoutError','AbortError'].includes(error.name)?'AI took too long. You can publish this photo now and add a description later.':error.message;return false;}
   finally{state.loading=false;if(!automatic)busy=false;updateButton();for(const refresh of [...aiViews.values(),...placeViews.values()])refresh();}
 }
 async function savePlaceReviews() {
@@ -171,7 +177,8 @@ function renderPhotos() {
   const grid = make('div','','photos');
   photos.slides.forEach((photo,index) => {
     const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
-    const caption=field(card,'Caption',photo,'caption'),alt=field(card,'Image description',photo,'alt','textarea');
+    const caption=field(card,'Caption',photo,'caption'),alt=field(card,'Image description (optional)',photo,'alt','textarea');
+    alt.placeholder='Describe the scene, or add this after publishing.';
     const context=field(card,'Known place or landmark (optional)',photo,'aiContext');context.maxLength=300;context.placeholder='e.g. Mississippi River · Minneapolis';
     card.append(make('small','A confirmed name for AI to use. This note stays off the public page.'));
     const aiBox=make('div','','photo-ai');aiBox.setAttribute('aria-live','polite');photoAIControls(photo,aiBox,caption,alt);card.append(aiBox);
@@ -303,7 +310,9 @@ async function importPhotos(files) {
       const thumb=document.createElement('canvas');const scale=Math.min(1,360/Math.max(canvas.width,canvas.height));thumb.width=Math.round(canvas.width*scale);thumb.height=Math.round(canvas.height*scale);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
       const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
       photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true,...(place?{location:{...place,precision:'approximate'}}:{})});
-      pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;if(place)located++;
+      let aiPreview;try{aiPreview=previewFromSource(canvas);}catch{}
+      pending.set(id,{preview,blob,aiPreview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;if(place)located++;
+      bitmap.close();bitmap=null;canvas.width=canvas.height=thumb.width=thumb.height=1;
       dirty.add('photos');
       if(aiReady&&autoDescribe){render();status(`Drafting words for photograph ${added}…`);if(await suggestPhoto(photos.slides.at(-1),{automatic:true,blob}))described++;else aiFailed++;}
     }catch{failed.push(file.name);}finally{bitmap?.close();}
@@ -313,11 +322,7 @@ async function importPhotos(files) {
 }
 function validate() {
   for(const input of $('studio').querySelectorAll('input[type=url]')) if(input.value && !safeURL(input.value))throw new Error('Use a complete https:// or http:// link.');
-  if(group()==='photos'){
-    if(!Number.isInteger(+photos.tray)||+photos.tray<1||+photos.tray>80)throw new Error('Choose between 1 and 80 slides per tray.');
-    for(const slide of photos.slides)if(pending.has(slide.id)&&!slide.hidden&&!slide.alt?.trim())throw new Error('Add an image description to each new photo before publishing.');
-    for(const slide of photos.slides)if(slide.location?.precision!=='hidden'&&slide.location&&!safeLocation(slide.location))throw new Error('Enter valid latitude and longitude, or keep that location private.');
-  }
+  if(group()==='photos')validatePhotoDraft(photos);
   if(group()==='content'){
     if(content.sources?.medium&&!mediumSource(content.sources.medium))throw new Error('Use a Medium profile or publication URL, such as https://medium.com/@username.');
     const sources=publicSources(content.sources);for(const key of ['spotify','soundcloud'])if(content.sources?.[key]&&!sources[key])throw new Error(`Use a full public ${key==='spotify'?'Spotify profile':'SoundCloud'} URL.`);
@@ -343,7 +348,7 @@ async function publish() {
       for(const photo of photos.slides){const place=safeLocation(photo.location);if(place)privateLocations[photo.id]=place;else delete privateLocations[photo.id];}
       revisions.locations=await github.write(PRIVATE,'photo-locations.json',{version:1,locations:privateLocations,contexts:photoContexts(photos.slides)},revisions.locations,'Save private photograph locations and confirmed context');
       const files=[...pending.values()].flatMap(x=>x.files);files.push({path:'slides.json',content:json(publicSlides(photos))});
-      revisions.head=await github.commitFiles(files,revisions.head);pending.clear();
+      const published=await github.commitFiles(files,revisions.head,revisions.photos);revisions.head=published.head;revisions.photos=published.manifestSha;pending.clear();
       for(const photo of photos.slides)if(safeLocation(photo.location)&&placeReviews[photo.id]?.status==='suggested')placeReviews[photo.id].status='published';
       try{await savePlaceReviews();}catch{}
     }
