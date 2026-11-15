@@ -20,14 +20,6 @@
   margin: 0 0 9px;
 }
 
-.viewfinder-head .focus-view-launch {
-  margin-inline-start: auto;
-}
-
-.photo-collection:has(.photo-player[hidden]) .focus-view-launch {
-  display: none;
-}
-
 .photo-player {
   --aperture-inset: 4px;
   --echo-opacity: .36;
@@ -231,27 +223,6 @@
   color: #ded1be;
 }
 
-.focus-view[data-focus-kind="photos"]:modal {
-  --focus-view-padding: clamp(12px, 2vw, 16px);
-  --photo-focus-header: 61px;
-  --photo-focus-rail: 84px;
-  --photo-focus-height: max(108px, calc(100dvh - var(--photo-focus-header) - var(--photo-focus-rail)
-    - 2 * (var(--focus-view-gutter) + var(--focus-view-padding) + 1px)));
-}
-
-.focus-view[data-focus-kind="photos"]:modal .photo-player {
-  width: min(100%, max(420px, calc(var(--photo-focus-height) * 4 / 3)), 1080px);
-  margin-inline: auto;
-}
-
-.focus-view[data-focus-kind="photos"]:modal .focus-body {
-  overflow: clip;
-}
-
-.focus-view[data-focus-kind="photos"]:modal .viewfinder-flip {
-  max-height: var(--photo-focus-height);
-}
-
 @media (max-width: 720px) {
   .introduction {
     grid-template-columns: minmax(0, 1fr);
@@ -264,11 +235,6 @@
 }
 
 @media (max-width: 480px) {
-  .focus-view[data-focus-kind="photos"]:modal {
-    --photo-focus-header: 72px;
-    --photo-focus-rail: 136px;
-  }
-
   .photo-collection .photo-player .projector-deck {
     padding-inline: 8px;
   }

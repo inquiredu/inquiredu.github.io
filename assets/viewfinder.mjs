@@ -1,11 +1,6 @@
 import { metadataRows, paletteFromPixels } from './photo-notes.mjs?v=20261115.2';
-import { createFocusView } from './focus-view.mjs?v=20261115.16';
 const $ = id => document.getElementById(id);
 const wall=$('wall'), flip=$('viewfinderFlip'), canvas=$('kaleidoscopeCanvas'), toggle=$('kaleidoscopeToggle');
-const player=$('photoPlayer'), collection=$('photographs');
-const focus=createFocusView({container:collection,label:$('photoHeading').textContent,kind:'photos'});
-focus.body.append(player);
-collection.querySelector('.viewfinder-head').append(focus.button);
 const context=canvas.getContext('2d');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
 let image, slide={}, active=false, visible=true, request=0, lastTime=0, phase=0, pointer={x:0,y:0}, size={width:0,height:0};
@@ -88,7 +83,6 @@ wall.addEventListener('pointermove',event=>{
 });
 wall.addEventListener('pointerleave',()=>{pointer={x:0,y:0};draw();});
 window.addEventListener('viewfinder:photo',event=>update(event.detail));
-window.addEventListener('focusview:change',event=>{if(event.detail.kind==='photos'){resize();sync();}});
 document.addEventListener('visibilitychange',sync);
 motion.addEventListener('change',()=>{pointer={x:0,y:0};sync();});
 new MutationObserver(sync).observe(flip,{attributes:true,attributeFilter:['class']});

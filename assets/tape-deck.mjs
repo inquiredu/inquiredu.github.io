@@ -163,14 +163,34 @@ function clock(ms) {
   return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
 }
 
+export function tapeAppearance(source, ownerProfile) {
+  if (source?.provider === 'Spotify' && source.kind === 'album') return 'album';
+  if (source?.provider === 'SoundCloud' && ownerProfile?.provider === 'SoundCloud') {
+    const username = source.url.split('/')[3].toLowerCase();
+    const owner = ownerProfile.url.split('/')[3].toLowerCase();
+    if (username === owner) return 'diy';
+  }
+  return 'mix';
+}
+
 export function mountTapeDeck(container, items, sources = {}) {
   mounts.get(container)?.();
   container.replaceChildren();
   if (!items.length) return;
 
-  const entries = items.map(item => ({item, source: musicSource(item.url)}));
+  const ownerProfile = musicSource(sources.soundcloud);
+  const entries = items.map(item => {
+    const source = musicSource(item.url);
+    const appearance = tapeAppearance(source, ownerProfile);
+    let providerLabel = source?.provider || 'Track list';
+    if (appearance === 'diy') providerLabel += ' · Original recordings';
+    if (appearance === 'album') providerLabel += ' · Album';
+    if (source?.provider === 'Spotify' && source.kind === 'playlist') providerLabel += ' · Mixtape';
+    return {item, source, appearance, providerLabel};
+  });
   const room = element('div', 'listening-room');
   const shelf = element('ul', 'listening-library');
+  shelf.setAttribute('role', 'list');
   shelf.setAttribute('aria-label', 'Listening selections');
   const dock = element('div', 'listening-dock');
   room.append(shelf, dock);
@@ -187,15 +207,37 @@ export function mountTapeDeck(container, items, sources = {}) {
   dock.prepend(actions);
 
   const playerBody = element('div', 'listening-player');
+  for (const corner of ['ds1', 'ds2', 'ds3', 'ds4']) {
+    const screw = element('i', 'deck-screw ' + corner);
+    screw.setAttribute('aria-hidden', 'true');
+    playerBody.append(screw);
+  }
+  const well = element('div', 'tape-well listening-well');
+  well.setAttribute('aria-hidden', 'true');
+  const tape = element('div', 'analog-tape listening-tape');
+  tape.innerHTML = `
+    <i class="tape-screw ts1"></i><i class="tape-screw ts2"></i>
+    <i class="tape-screw ts3"></i><i class="tape-screw ts4"></i><i class="tape-screw ts5"></i>
+    <div class="tape-label">
+      <div class="tape-label-top"><span class="tape-title"></span></div>
+      <div class="tape-stripes"><i></i><i></i></div>
+      <div class="tape-label-bottom"><span class="tape-provider"></span></div>
+      <div class="tape-window">
+        <i class="tape-pack pack-left"></i><i class="tape-pack pack-right"></i>
+        <i class="tape-hub hub-left"></i><i class="tape-hub hub-right"></i><i class="tape-ticks"></i>
+      </div>
+    </div>
+    <div class="tape-head"><i></i><i></i><i></i><i></i><i></i></div>`;
+  const tapeTitle = tape.querySelector('.tape-title');
+  const tapeProvider = tape.querySelector('.tape-provider');
+  well.append(tape, element('div', 'tape-door'));
+
   const readout = element('div', 'listening-readout');
-  const artwork = element('span', 'listening-cassette');
-  artwork.setAttribute('aria-hidden', 'true');
-  artwork.append(element('i'), element('i'));
   const metadata = element('div', 'listening-metadata');
   const title = element('h3', 'listening-title');
   const provider = element('span', 'listening-provider');
   metadata.append(title, provider);
-  readout.append(artwork, metadata);
+  readout.append(metadata);
 
   const transport = element('div', 'listening-transport');
   transport.setAttribute('role', 'group');
@@ -216,7 +258,19 @@ export function mountTapeDeck(container, items, sources = {}) {
   const details = element('div', 'listening-details');
 
   const playerInterface = element('div', 'listening-interface');
-  playerInterface.append(readout, transport, status);
+  const playerPanel = element('div', 'listening-panel');
+  const meters = element('div', 'vu-pair listening-meters');
+  meters.setAttribute('aria-hidden', 'true');
+  for (const side of ['L', 'R']) {
+    const meter = element('div', 'vu-meter');
+    meter.innerHTML = `<svg viewBox="0 0 180 96"><path d="M36 55 A70 70 0 0 1 144 55" fill="none" stroke="#412e20" stroke-width="1.6"/>
+      <path d="M120 37 A70 70 0 0 1 144 55" fill="none" stroke="#8a3e2c" stroke-width="3.2"/>
+      <path d="M36 55l-6-5m25-11l-4-7m21 0l-2-8m18 6v-8m18 10l2-8m17 15l4-7m15 21l6-5" fill="none" stroke="#412e20" stroke-width="1.4"/>
+      <text x="22" y="83" fill="#412e20" text-anchor="middle" font-family="monospace" font-size="11">${side}</text></svg><i class="vu-needle"></i>`;
+    meters.append(meter);
+  }
+  playerPanel.append(readout, meters, transport, status);
+  playerInterface.append(well, playerPanel);
   playerBody.append(playerInterface);
   focus.body.append(playerBody);
   const visualizer = mountMusicVisualizer(playerBody);
@@ -233,6 +287,8 @@ export function mountTapeDeck(container, items, sources = {}) {
   let playRequested = false;
   let state = {playing: false, buffering: false, position: 0, duration: 0};
   const lifecycle = new AbortController();
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let insertion;
 
   function paint() {
     const source = entries[index].source;
@@ -251,6 +307,9 @@ export function mountTapeDeck(container, items, sources = {}) {
       if (time.textContent !== elapsed) time.textContent = elapsed;
     }
     const moving = state.playing && !state.buffering;
+    const played = state.duration ? Math.min(1, Math.max(0, state.position / state.duration)) : 0;
+    tape.style.setProperty('--pack-left', (23 + 39 * Math.sqrt(1 - played)) / 2.52 + '%');
+    tape.style.setProperty('--pack-right', (23 + 39 * Math.sqrt(played)) / 2.52 + '%');
     playerBody.classList.toggle('is-playing', moving);
     visualizer.setPlaying(moving);
   }
@@ -314,12 +373,24 @@ export function mountTapeDeck(container, items, sources = {}) {
 
   function choose(nextIndex) {
     if (index === nextIndex) return;
+    const alreadyLoaded = index >= 0;
     discardPlayer();
     index = nextIndex;
     state = {playing: false, buffering: false, position: 0, duration: 0};
-    const {item, source} = entries[index];
+    const {item, source, appearance, providerLabel} = entries[index];
     title.textContent = item.title;
-    provider.textContent = source?.provider || 'Track list';
+    provider.textContent = providerLabel;
+    tape.dataset.tapeStyle = appearance;
+    tapeTitle.textContent = item.title;
+    if (appearance === 'diy') tapeProvider.textContent = item.note?.trim().replace(/\s+/g, ' ') || item.date || 'Original recordings';
+    else tapeProvider.textContent = providerLabel;
+    insertion?.cancel();
+    if (alreadyLoaded && !reducedMotion.matches) {
+      insertion = tape.animate([
+        {transform: 'translateY(-14px)', opacity: 0.3},
+        {transform: 'translateY(0)', opacity: 1}
+      ], {duration: 250, easing: 'ease-out'});
+    }
     for (const [i, selection] of selections.entries()) {
       selection.setAttribute('aria-pressed', String(i === index));
     }
@@ -341,11 +412,12 @@ export function mountTapeDeck(container, items, sources = {}) {
     if (focus.isFocused()) ensurePlayer();
   }
 
-  const selections = entries.map(({item, source}, i) => {
+  const selections = entries.map(({item, appearance, providerLabel}, i) => {
     const row = element('li');
     const selection = button('', 'listening-choice');
+    selection.dataset.tapeStyle = appearance;
     const name = element('strong', '', item.title);
-    const label = element('span', 'listening-choice-provider', source?.provider || 'Track list');
+    const label = element('span', 'listening-choice-provider', providerLabel);
     selection.append(name, label);
     selection.addEventListener('click', () => choose(i));
     row.append(selection);
@@ -384,6 +456,7 @@ export function mountTapeDeck(container, items, sources = {}) {
     lifecycle.abort();
     focus.close();
     discardPlayer();
+    insertion?.cancel();
     visualizer.dispose();
     mounts.delete(container);
   });
