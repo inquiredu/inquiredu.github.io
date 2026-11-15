@@ -1,0 +1,112 @@
+/* Early winter, from the inquiredu analog design system. Loaded last, over the autumn materials.
+   Winter is the default season. The original autumn palette stays available: add data-season="autumn" to <html>.
+   The desk changes with the lamp: slate night (off), snow (on). Lit things glow ice.
+   Objects keep their own materials where they have them: the tube TV's cabinet stays wood. */
+
+/* ---------- desk ---------- */
+:root:not([data-season="autumn"])[data-theme="dark"]{
+  --bg:#1A222B; --fg-1:#E3E9EE; --fg-2:#9DAEBC; --accent-text:#9CC3D0; --line:#2E3B48;
+  --sun:#A9D3E0; --water:#608C9B; --desk-shadow:rgba(0,0,0,.7); --grain:.22;
+  --selection-bg:#2F6F86; --selection-fg:#F3F6F7;
+  --screen:#0D1219; --ph:#8FD8E8; --ph-glow:rgba(143,216,232,.55); --ph-dim:rgba(143,216,232,.34); --ph-faint:rgba(143,216,232,.13);
+}
+:root:not([data-season="autumn"])[data-theme="light"]{
+  --bg:#EEF2F4; --fg-1:#20384F; --fg-2:#45627D; --accent-text:#2F6F86; --line:#D3DCE2;
+  --sun:#608C9B; --water:#608C9B; --desk-shadow:rgba(20,36,52,.45); --grain:.09;
+  --selection-bg:#A9D3E0; --selection-fg:#142434;
+  --screen:#0D1219; --ph:#8FD8E8; --ph-glow:rgba(143,216,232,.55); --ph-dim:rgba(143,216,232,.34); --ph-faint:rgba(143,216,232,.13);
+}
+:root:not([data-season="autumn"])[data-phosphor="green"]{
+  --screen:#020A02; --ph:#1AFF40; --ph-glow:rgba(26,255,64,.6); --ph-dim:rgba(26,255,64,.34); --ph-faint:rgba(26,255,64,.13);
+}
+:root:not([data-season="autumn"]) a{text-decoration-color:#A9D3E0}
+:root:not([data-season="autumn"]) a:hover{color:#4F8EA6}
+:root:not([data-season="autumn"]) .lamp[aria-checked="true"] .pilot{background:#8FD8E8; box-shadow:0 0 8px rgba(143,216,232,.9)}
+
+/* the horizon: ice over lake */
+:root:not([data-season="autumn"]) .horizon{gap:4px}
+:root:not([data-season="autumn"]) .horizon span{height:4px; background:#A9D3E0}
+:root:not([data-season="autumn"]) .horizon span + span{display:block; height:2px; background:#608C9B}
+
+/* ---------- the projector ---------- */
+:root:not([data-season="autumn"]) .photo-collection .wall{border-color:#343c44; background:#0b0d10}
+:root:not([data-season="autumn"]) .photo-collection .wall.lit{box-shadow:0 0 90px -30px rgba(143,216,232,.55)}
+:root:not([data-season="autumn"]) .photo-collection .projector-deck{background:#262b31; border-color:#343c44; color:#a3adb6}
+:root:not([data-season="autumn"]) .photo-collection .contact-sheet{background:#1e262e; border-color:#343c44}
+:root:not([data-season="autumn"]) .photo-collection .pj-label{background:linear-gradient(#86AEBD,#5E8597); color:#F4F8FA; text-shadow:0 1px 0 rgba(0,0,0,.35)}
+:root:not([data-season="autumn"]) .photo-collection .pj-key{background:linear-gradient(#4a4f55,#24282c); border-color:#343c44; color:#c9cdd1}
+:root:not([data-season="autumn"]) .pj-count b{color:#8FD8E8; text-shadow:0 0 6px rgba(143,216,232,.45)}
+:root:not([data-season="autumn"]) .pj-switch[aria-pressed="false"] .opt.man,
+:root:not([data-season="autumn"]) .pj-switch[aria-pressed="true"] .opt.auto,
+:root:not([data-season="autumn"]) .photo-collection .pj-switch[aria-pressed="true"] .opt.auto{color:#8FD8E8; text-shadow:0 0 6px rgba(143,216,232,.45)}
+:root:not([data-season="autumn"]) .pj-led.on{background:#8FD8E8; box-shadow:0 0 8px rgba(143,216,232,.7), 0 0 2px #8FD8E8}
+:root:not([data-season="autumn"]) .dwell i{background:#8FD8E8; box-shadow:0 0 8px rgba(143,216,232,.8)}
+:root:not([data-season="autumn"]) .photo-collection .mount{background:linear-gradient(160deg,#E6EBEE,#C9D2D8)}
+:root:not([data-season="autumn"]) .photo-collection .mount[aria-current="true"]{box-shadow:0 0 0 2px #A9D3E0}
+
+/* ---------- the catalog terminal ---------- */
+:root:not([data-season="autumn"]) .chassis{
+  background-image:radial-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(135deg,#2c3034,#131619 55%,#202428);
+  background-size:3px 3px, 100% 100%;
+}
+:root:not([data-season="autumn"]) .crt{border-color:#0a0a0a; box-shadow:inset 0 0 60px #000, 0 0 10px rgba(0,0,0,.8)}
+:root:not([data-season="autumn"]) .engrave .model{color:#8FBFCF}
+
+/* ---------- paper: catalog card and index cards ---------- */
+:root:not([data-season="autumn"]) .paper-catalog .card,
+:root:not([data-season="autumn"]) .index-note{background:#F3F6F7}
+:root:not([data-season="autumn"]) .paper-catalog .card-top > span:last-child{border-color:#3D6E8A; color:#3D6E8A}
+:root:not([data-season="autumn"]) .paper-catalog a,
+:root:not([data-season="autumn"]) .note-card-link,
+:root:not([data-season="autumn"]) .index-note a:not(.index-note-body){color:#2F6F86}
+
+/* ---------- the cassette deck (the deck itself; each source's tape keeps its own design) ---------- */
+:root:not([data-season="autumn"]) .tape-deck{background:#262b30; color:#E3E9EE}
+:root:not([data-season="autumn"]) .tape-header,
+:root:not([data-season="autumn"]) .tape-readout small{color:#8d9298}
+:root:not([data-season="autumn"]) .tape-plate span + span{color:#8FBFCF}
+:root:not([data-season="autumn"]) .playing .tape-status::after{background:#8FD8E8; box-shadow:0 0 9px rgba(143,216,232,.8)}
+:root:not([data-season="autumn"]) .tape-well{background:#10151a}
+:root:not([data-season="autumn"]) .vu-meter{background:radial-gradient(ellipse at 50% 115%,#E2F3F8,#A9D3E0 55%,#6E9FB2)}
+:root:not([data-season="autumn"]) .vu-needle{background:#0f1a22}
+:root:not([data-season="autumn"]) .tape-readout > span,
+:root:not([data-season="autumn"]) .shelf-state{color:#8FD8E8}
+:root:not([data-season="autumn"]) .tape-hint{color:#9DAEBC}
+:root:not([data-season="autumn"]) .tape-spine{background:linear-gradient(#3f464d,#2a3037); color:#e6ecf0}
+:root:not([data-season="autumn"]) .tape-spine small{color:#b7c3cc}
+
+/* ---------- the tube television: the cabinet is wood; its lights and the guide go cold ---------- */
+:root:not([data-season="autumn"]) .tube-cabinet.is-on .tube-power-led{background:#8FD8E8; box-shadow:0 0 5px rgba(143,216,232,.9)}
+:root:not([data-season="autumn"]) .tube-channel{color:#8FD8E8; text-shadow:0 0 4px rgba(143,216,232,.55)}
+:root:not([data-season="autumn"]) .tube-osd{color:#CDEFF6; text-shadow:0 0 4px rgba(143,216,232,.8)}
+:root:not([data-season="autumn"]) .tube-guide,
+:root:not([data-season="autumn"]) .tube-guide-head{color:var(--fg-2)}
+:root:not([data-season="autumn"]) .tube-guide-head{border-bottom-color:var(--line)}
+:root:not([data-season="autumn"]) .tube-programmes{border-color:var(--line)}
+:root:not([data-season="autumn"]) .tube-programme{border-bottom-color:var(--line)}
+:root:not([data-season="autumn"]) .tube-programme .tube-leader{border-bottom-color:var(--line)}
+:root:not([data-season="autumn"]) .tube-programme[aria-pressed="true"]{background:rgba(143,216,232,.08); box-shadow:inset 2px 0 #A9D3E0}
+:root:not([data-season="autumn"]) .television-room button:focus-visible,
+:root:not([data-season="autumn"]) .television-room a:focus-visible{outline-color:#A9D3E0}
+
+/* the cassette: smoke or ivory shell, cool label, ice-over-lake stripes */
+:root:not([data-season="autumn"]) .analog-tape{background:linear-gradient(#3a4148,#252b31)}
+:root:not([data-season="autumn"]) .analog-tape.ivory{background:linear-gradient(#e3e8eb,#c3ccd2)}
+:root:not([data-season="autumn"]) .analog-tape .tape-label{background:#E9EEF0; color:#20384F}
+:root:not([data-season="autumn"]) .analog-tape.ivory .tape-label{background:#20384F; color:#EEF2F4}
+:root:not([data-season="autumn"]) .tape-stripes i{background:#A9D3E0}
+:root:not([data-season="autumn"]) .tape-stripes i + i{background:#608C9B}
+:root:not([data-season="autumn"]) .tape-hub{background:#e3e8ea}
+:root:not([data-season="autumn"]) .tape-hub::before{background:repeating-conic-gradient(#e3e8ea 0deg 16deg,#141210 16deg 60deg)}
+:root:not([data-season="autumn"]) .tape-deck .vu-meter{color:#14222c}
+:root:not([data-season="autumn"]) .tape-spine .spine-color{background:#E9EEF0}
+:root:not([data-season="autumn"]) .tape-spine.ivory .spine-color{background:#20384F}
+:root:not([data-season="autumn"]) .tape-shelf-head{color:var(--accent-text)}
+
+/* focus view's ambient visualizer, cooled to sit under the deck */
+:root:not([data-season="autumn"]) .music-visualizer{border-color:#343c44; background:#1e252c; color:#E3E9EE}
+:root:not([data-season="autumn"]) .music-visualizer-control{color:#9DAEBC}
+:root:not([data-season="autumn"]) .music-visualizer-control input{accent-color:#8FD8E8}
+:root:not([data-season="autumn"]) .music-visualizer-control select{background:#262e36; color:#E3E9EE}
+:root:not([data-season="autumn"]) .music-visualizer-canvas{background:repeating-linear-gradient(0deg,#2b3540 0 1px,transparent 1px 12px),#141b22}
+:root:not([data-season="autumn"]) .deck-room .listening-actions .focus-view-launch{background:color-mix(in srgb, #A9D3E0 11%, var(--bg))}
