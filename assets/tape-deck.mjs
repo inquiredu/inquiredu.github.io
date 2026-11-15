@@ -1,39 +1,390 @@
 import {musicSource} from './creative-sources.mjs';
-const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text)n.textContent=text;if(cls)n.className=cls;return n;};
-const link=(text,url)=>{const a=el('a',text);a.href=url;a.target='_blank';a.rel='noopener';return a;};
-const scripts=new Map();
-function sdk(url){if(!scripts.has(url))scripts.set(url,new Promise((resolve,reject)=>{const s=el('script');s.src=url;s.onload=resolve;s.onerror=()=>{scripts.delete(url);s.remove();reject(Error('Player could not load. Try the source link below.'));};document.head.append(s);}));return scripts.get(url);}
-let spotifyAPI;
-function spotify(){if(!spotifyAPI)spotifyAPI=new Promise((resolve,reject)=>{window.onSpotifyIframeApiReady=resolve;sdk('https://open.spotify.com/embed/iframe-api/v1').catch(error=>{spotifyAPI=null;reject(error);});});return spotifyAPI;}
-const meterMarkup=channel=>`<svg viewBox="0 0 180 96" aria-hidden="true"><path d="M36 55 A70 70 0 0 1 120 37" fill="none" stroke="#2a1d12" stroke-width="1.6"/><path d="M120 37 A70 70 0 0 1 144 55" fill="none" stroke="#8a2f1c" stroke-width="3.2"/><g stroke="#2a1d12" stroke-width="1.4"><path d="M36 55l-6-5m25-11l-4-7m21 0l-2-8m20 6v-8m18 10l2-8m10 13l3-8m7 14l5-7m9 19l6-5"/></g><g fill="#2a1d12" font-family="monospace" font-size="8.5" text-anchor="middle"><text x="24" y="45">-20</text><text x="47" y="25">-10</text><text x="90" y="17">-3</text><text x="126" y="22">0</text><text x="157" y="45">+3</text><text x="90" y="72" font-size="11">VU</text><text x="20" y="88">${channel}</text></g></svg><i class="vu-needle"></i>`;
-export function mountTapeDeck(container,items,sources={}) {
-  container.replaceChildren();if(!items.length)return;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const deck=el('div','','tape-deck');deck.innerHTML='<i class="deck-screw ds1"></i><i class="deck-screw ds2"></i><i class="deck-screw ds3"></i><i class="deck-screw ds4"></i>';
-  const header=el('div','','tape-header'),plate=el('div','','tape-plate'),status=el('span','STOP','tape-status');status.setAttribute('role','status');plate.append(el('span','Stereo cassette deck'),el('span','Model >0'));header.append(plate,status);deck.append(header);
-  const body=el('div','','tape-body'),well=el('div','','tape-well'),tape=el('div','','analog-tape');well.append(el('span','No tape','empty-well'));
-  tape.innerHTML='<i class="tape-screw ts1"></i><i class="tape-screw ts2"></i><i class="tape-screw ts3"></i><i class="tape-screw ts4"></i><i class="tape-screw ts5"></i><div class="tape-label"><div class="tape-label-top"><b class="tape-side">A</b><span class="tape-title"></span><small>C-90</small></div><div class="tape-stripes"><i></i><i></i></div><div class="tape-label-bottom"><span class="tape-provider"></span><span>Normal · Type I</span></div><div class="tape-window"><i class="tape-pack pack-left"></i><i class="tape-pack pack-right"></i><i class="tape-hub hub-left"></i><i class="tape-hub hub-right"></i><i class="tape-ticks"></i></div></div><div class="tape-head"><i></i><i></i><i></i><i></i><i></i></div>';
-  well.append(tape,el('div','','tape-door'));body.append(well);
-  const panel=el('div','','tape-panel'),meters=el('div','','vu-pair');meters.setAttribute('aria-label','Decorative playback meters');for(const channel of ['L','R']){const m=el('div','','vu-meter');m.innerHTML=meterMarkup(channel);meters.append(m);}panel.append(meters);
-  const counterRow=el('div','','counter-row'),counter=el('div','','tape-counter');counter.setAttribute('aria-label','Playback position in seconds');for(let i=0;i<3;i++)counter.append(el('span','0'));const readout=el('div','','tape-readout'),name=el('span');readout.append(el('small','Tape counter'),name);counterRow.append(counter,readout);panel.append(counterRow);
-  const keys=el('div','','tape-keys'),buttons={};for(const [key,text,symbol,label] of [['rew','REW','◀◀','Rewind 15 seconds'],['play','PLAY','▶','Play selection'],['ff','F.FWD','▶▶','Forward 15 seconds'],['stop','STOP','■','Stop playback'],['eject','EJECT','⏏','Eject tape']]){const b=el('button');b.type='button';b.setAttribute('aria-label',label);b.setAttribute('aria-pressed','false');b.append(el('span',symbol),document.createTextNode(text));b.dataset.key=key;buttons[key]=b;keys.append(b);}panel.append(keys);
-  const hint=el('p','Press Play to open the player.','tape-hint');hint.setAttribute('role','status');panel.append(hint);body.append(panel);deck.append(body);container.append(deck);
-  const shelfHead=el('div','','tape-shelf-head');shelfHead.append(el('span','ON THE SHELF'),el('span','Pick a tape to load it.'));const shelf=el('div','','tape-shelf');shelf.setAttribute('role','group');shelf.setAttribute('aria-label','Listening selections');container.append(shelfHead,shelf);
-  const player=el('div','','source-player');player.hidden=true;const note=el('div','','tape-selection-note');container.append(note,player);
-  const footer=el('div','','deck-footer');footer.append(el('span','Selected here. Kept alive at the source.'));for(const [key,label] of [['spotify','Spotify'],['soundcloud','SoundCloud']])if(sources[key])footer.append(link(label+' ↗',sources[key]));container.append(footer);
-  let index=-1,controller=null,generation=0,position=0,duration=0,playing=false,opening=false,playRequested=false;
-  function paint(state){playing=state==='PLAY';status.textContent=state;deck.classList.toggle('playing',playing);buttons.play.setAttribute('aria-pressed',String(playing));buttons.stop.setAttribute('aria-pressed',String(state==='STOP'));buttons.rew.disabled=buttons.ff.disabled=!controller||!duration||!controller.canSeek;buttons.play.disabled=index<0||opening;buttons.stop.disabled=index<0;const digits=String(Math.min(999,Math.floor(position/1000))).padStart(3,'0');[...counter.children].forEach((n,i)=>n.textContent=digits[i]);counter.setAttribute('aria-label',`Playback position ${Math.floor(position/1000)} seconds`);const progress=duration?Math.min(1,Math.max(0,position/duration)):0;tape.style.setProperty('--pack-left',`${(23+39*Math.sqrt(1-progress))/2.52}%`);tape.style.setProperty('--pack-right',`${(23+39*Math.sqrt(progress))/2.52}%`);}
-  function unload(){generation++;playRequested=false;controller?.pause();controller?.destroy?.();controller=null;player.replaceChildren();player.hidden=true;opening=false;position=duration=0;paint('STOP');}
-  function choose(i){unload();index=i;well.querySelector('.empty-well').hidden=true;tape.classList.add('loading');tape.classList.toggle('ivory',i%2===1);const item=items[i],source=musicSource(item.url);tape.querySelector('.tape-title').textContent=item.title;tape.querySelector('.tape-provider').textContent=source?.provider||'Personal selection';tape.querySelector('.tape-side').textContent=i%2?'B':'A';name.textContent=`Side ${i%2?'B':'A'} · ${item.title}`;hint.textContent=source?'Press Play to open '+source.provider+'. Playback availability depends on the source.':'Choose a track below.';tape.classList.remove('ejected');requestAnimationFrame(()=>tape.classList.remove('loading'));for(const [j,b] of [...shelf.children].entries()){b.setAttribute('aria-pressed',String(j===i));b.querySelector('.shelf-state').textContent=j===i?'In the deck':'';}note.replaceChildren();if(item.note)note.append(el('p',item.note));if(source)note.append(link('Open in '+source.provider+' ↗',source.url));if(item.tracks?.length){const list=el('ol','','tracks');for(const t of item.tracks){const li=el('li',[t.title,t.artist].filter(Boolean).join(' — '));if(/^https?:\/\//.test(t.url||''))li.replaceChildren(link(li.textContent,t.url));list.append(li);}note.append(list);}paint('STOP');}
-  function state(update,stamp){if(stamp!==generation)return;position=Number(update.position)||0;duration=Number(update.duration)||0;paint(update.isBuffering?'LOADING':update.isPaused?'STOP':'PLAY');if(playing)hint.textContent='Playing from '+musicSource(items[index].url).provider+'.';}
-  async function openPlayer(){if(index<0||opening)return;playRequested=true;if(controller){controller.play();return;}const source=musicSource(items[index].url);if(!source)return;const stamp=generation;opening=true;player.hidden=false;hint.textContent='Opening '+source.provider+'…';paint('LOADING');
-    const timeout=setTimeout(()=>{if(stamp===generation&&!controller){opening=false;paint('STOP');hint.textContent='The player is taking longer to load. Use the source link or try Play again.';}},18000);
-    try{if(source.provider==='Spotify'){const api=await spotify();if(stamp!==generation)return;const mount=el('div');player.replaceChildren(mount);await new Promise(resolve=>api.createController(mount,{uri:'spotify:'+source.kind+':'+source.url.split('/').at(-1),width:'100%',height:source.height},c=>{if(stamp!==generation){c.destroy();resolve();return;}controller={play:()=>c.resume(),pause:()=>c.pause(),seek:ms=>c.seek(Math.round(ms/1000)),canSeek:source.kind==='episode',destroy:()=>c.destroy()};c.addListener('playback_update',e=>state(e.data,stamp));c.addListener('ready',()=>{if(stamp!==generation)return;opening=false;paint('STOP');hint.textContent='Use Play here or in the Spotify player below.';if(playRequested)c.play();});resolve();}));}
-      else{await sdk('https://w.soundcloud.com/player/api.js');if(stamp!==generation)return;const iframe=el('iframe');iframe.src=source.embed;iframe.title=items[index].title+' — SoundCloud player';iframe.height=source.height;iframe.allow='autoplay';player.replaceChildren(iframe);const w=window.SC.Widget(iframe),events=window.SC.Widget.Events;controller={play:()=>w.play(),pause:()=>w.pause(),seek:ms=>w.seekTo(ms),canSeek:true,destroy:()=>{for(const e of [events.PLAY,events.PAUSE,events.FINISH,events.PLAY_PROGRESS,events.READY])w.unbind(e);}};w.bind(events.READY,()=>{if(stamp!==generation)return;opening=false;w.getDuration(d=>{if(stamp===generation){duration=d;paint('STOP');}});hint.textContent='Use Play here or in the SoundCloud player below.';if(playRequested)w.play();});w.bind(events.PLAY,()=>{if(stamp===generation){paint('PLAY');w.getDuration(d=>{if(stamp===generation)duration=d;});}});w.bind(events.PAUSE,()=>{if(stamp===generation)paint('STOP');});w.bind(events.FINISH,()=>{if(stamp===generation)paint('STOP');});w.bind(events.PLAY_PROGRESS,e=>{if(stamp===generation){position=e.currentPosition;paint('PLAY');}});}
-    }catch(error){if(stamp===generation){hint.textContent=error.message;opening=false;paint('STOP');}}finally{clearTimeout(timeout);if(stamp===generation){opening=false;buttons.play.disabled=false;}}
+import {createFocusView} from './focus-view.mjs?v=20261115.16';
+import {mountMusicVisualizer} from './music-visualizer.mjs?v=20261115.16';
+
+const mounts = new WeakMap();
+const scripts = new Map();
+const playerTimeout = 18000;
+const sdkTimeout = 12000;
+const spotifySdk = 'https://open.spotify.com/embed/iframe-api/v1';
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  return node;
+}
+
+function button(text, className) {
+  const node = element('button', className, text);
+  node.type = 'button';
+  return node;
+}
+
+function link(text, url) {
+  const node = element('a', '', text);
+  node.href = url;
+  node.target = '_blank';
+  node.rel = 'noopener';
+  return node;
+}
+
+function sdk(url) {
+  if (!scripts.has(url)) {
+    const script = element('script');
+    script.src = url;
+    const ready = new Promise((resolve, reject) => {
+      const fail = () => {
+        clearTimeout(timeout);
+        if (scripts.get(url)?.script === script) scripts.delete(url);
+        script.remove();
+        reject(Error('The player could not load.'));
+      };
+      const timeout = setTimeout(fail, sdkTimeout);
+      script.onload = () => {
+        clearTimeout(timeout);
+        resolve();
+      };
+      script.onerror = fail;
+      document.head.append(script);
+    });
+    scripts.set(url, {script, ready});
   }
-  buttons.play.onclick=openPlayer;buttons.stop.onclick=()=>{playRequested=false;controller?.pause();paint('STOP');};buttons.eject.onclick=()=>{unload();index=-1;well.querySelector('.empty-well').hidden=false;tape.classList.add('ejected');name.textContent='Choose a tape from the shelf';hint.textContent='No tape loaded.';for(const b of shelf.children){b.setAttribute('aria-pressed','false');b.querySelector('.shelf-state').textContent='';}note.replaceChildren();paint('EMPTY');};
-  for(const [key,amount] of [['rew',-15000],['ff',15000]])buttons[key].onclick=()=>{if(!controller||!duration)return;controller.seek(Math.max(0,Math.min(duration,position+amount)));};
-  items.forEach((item,i)=>{const b=el('button','','tape-spine');b.type='button';b.setAttribute('aria-pressed','false');b.setAttribute('aria-label','Load '+item.title);b.append(el('i','','spine-color'),el('small',String(i+1).padStart(2,'0')),el('span',item.title,'spine-title'),el('small',musicSource(item.url)?.provider||'Song list'),el('span','','shelf-state'));b.onclick=()=>choose(i);shelf.append(b);});choose(0);
-  const meterTimer=setInterval(()=>{if(!container.isConnected){clearInterval(meterTimer);return;}for(const needle of meters.querySelectorAll('.vu-needle'))needle.style.transform=`rotate(${playing&&!reduced.matches&&!document.hidden?-28+Math.random()*52:-48}deg)`;},250);
+  return scripts.get(url).ready;
+}
+
+let spotifyAPI;
+function spotify() {
+  if (!spotifyAPI) {
+    let timeout;
+    spotifyAPI = new Promise((resolve, reject) => {
+      timeout = setTimeout(() => reject(Error('Spotify did not respond.')), sdkTimeout + 1000);
+      window.onSpotifyIframeApiReady = resolve;
+      sdk(spotifySdk).catch(reject);
+    }).catch(error => {
+      spotifyAPI = null;
+      scripts.get(spotifySdk)?.script.remove();
+      scripts.delete(spotifySdk);
+      throw error;
+    }).finally(() => clearTimeout(timeout));
+  }
+  return spotifyAPI;
+}
+
+async function connectSpotify(player, source, title, signal, update) {
+  const api = await spotify();
+  signal.throwIfAborted();
+  const mount = element('div');
+  player.replaceChildren(mount);
+  const id = source.url.split('/').at(-1);
+
+  return new Promise(resolve => api.createController(mount, {
+    uri: 'spotify:' + source.kind + ':' + id,
+    width: '100%',
+    height: source.height
+  }, controller => {
+    if (signal.aborted) {
+      controller.destroy();
+      return;
+    }
+    signal.addEventListener('abort', () => controller.destroy(), {once: true});
+
+    let started = false;
+    controller.addListener('playback_update', ({data}) => {
+      if (!data || signal.aborted) return;
+      started ||= !data.isPaused || Number(data.position) > 0;
+      update({
+        position: Number(data.position) || 0,
+        duration: Number(data.duration) || 0,
+        playing: !data.isPaused,
+        buffering: Boolean(data.isBuffering)
+      });
+    });
+    controller.addListener('ready', () => {
+      if (signal.aborted) return;
+      const iframe = player.querySelector('iframe');
+      if (iframe) iframe.title = title + ' — Spotify player';
+      resolve({
+        play: () => started ? controller.resume() : controller.play(),
+        pause: () => controller.pause(),
+        seek: ms => controller.seek(Math.round(ms / 1000)),
+        canSeek: source.kind === 'episode'
+      });
+    });
+  }));
+}
+
+async function connectSoundCloud(player, source, title, signal, update) {
+  await sdk('https://w.soundcloud.com/player/api.js');
+  signal.throwIfAborted();
+  const iframe = element('iframe');
+  iframe.src = source.embed;
+  iframe.title = title + ' — SoundCloud player';
+  iframe.height = source.height;
+  iframe.allow = 'autoplay';
+  player.replaceChildren(iframe);
+
+  const widget = window.SC.Widget(iframe);
+  const events = window.SC.Widget.Events;
+  const measure = () => widget.getDuration(duration => {
+    if (!signal.aborted) update({duration: Number(duration) || 0});
+  });
+
+  return new Promise((resolve, reject) => {
+    const listeners = [
+      [events.READY, () => {
+        measure();
+        resolve({
+          play: () => widget.play(),
+          pause: () => widget.pause(),
+          seek: ms => widget.seekTo(ms),
+          canSeek: true
+        });
+      }],
+      [events.PLAY, () => {
+        update({playing: true});
+        measure();
+      }],
+      [events.PAUSE, () => update({playing: false})],
+      [events.FINISH, () => update({playing: false})],
+      [events.PLAY_PROGRESS, event => update({position: Number(event.currentPosition) || 0})]
+    ];
+    if (events.ERROR) listeners.push([events.ERROR, () => reject(Error('The player could not load.'))]);
+    for (const [event, callback] of listeners) widget.bind(event, callback);
+    signal.addEventListener('abort', () => {
+      widget.pause();
+      for (const [event] of listeners) widget.unbind(event);
+    }, {once: true});
+  });
+}
+
+function clock(ms) {
+  const seconds = Math.floor(Math.max(0, ms) / 1000);
+  return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
+}
+
+export function mountTapeDeck(container, items, sources = {}) {
+  mounts.get(container)?.();
+  container.replaceChildren();
+  if (!items.length) return;
+
+  const entries = items.map(item => ({item, source: musicSource(item.url)}));
+  const room = element('div', 'listening-room');
+  const shelf = element('ul', 'listening-library');
+  shelf.setAttribute('aria-label', 'Listening selections');
+  const dock = element('div', 'listening-dock');
+  room.append(shelf, dock);
+  container.append(room);
+
+  const focus = createFocusView({
+    container: dock,
+    label: 'Listening player',
+    kind: 'music',
+    buttonLabel: 'Player'
+  });
+  const actions = element('div', 'listening-actions');
+  actions.append(focus.button);
+  dock.prepend(actions);
+
+  const playerBody = element('div', 'listening-player');
+  const readout = element('div', 'listening-readout');
+  const artwork = element('span', 'listening-cassette');
+  artwork.setAttribute('aria-hidden', 'true');
+  artwork.append(element('i'), element('i'));
+  const metadata = element('div', 'listening-metadata');
+  const title = element('h3', 'listening-title');
+  const provider = element('span', 'listening-provider');
+  metadata.append(title, provider);
+  readout.append(artwork, metadata);
+
+  const transport = element('div', 'listening-transport');
+  transport.setAttribute('role', 'group');
+  transport.setAttribute('aria-label', 'Playback controls');
+  const back = button('−15s', 'listening-seek');
+  back.setAttribute('aria-label', 'Back 15 seconds');
+  const play = button('Play', 'listening-play');
+  const forward = button('+15s', 'listening-seek');
+  forward.setAttribute('aria-label', 'Forward 15 seconds');
+  const progress = element('progress', 'listening-progress');
+  progress.setAttribute('aria-label', 'Playback progress');
+  const time = element('span', 'listening-time');
+  transport.append(play, back, forward, progress, time);
+
+  const status = element('p', 'listening-status');
+  status.setAttribute('role', 'status');
+  const player = element('div', 'source-player listening-provider-player');
+  const details = element('div', 'listening-details');
+
+  const playerInterface = element('div', 'listening-interface');
+  playerInterface.append(readout, transport, status);
+  playerBody.append(playerInterface);
+  focus.body.append(playerBody);
+  const visualizer = mountMusicVisualizer(playerBody);
+  playerBody.append(player, details);
+
+  const profiles = element('div', 'listening-profiles');
+  for (const [key, label] of [['spotify', 'Spotify'], ['soundcloud', 'SoundCloud']]) {
+    if (sources[key]) profiles.append(link(label + ' profile ↗', sources[key]));
+  }
+  if (profiles.childElementCount) container.append(profiles);
+
+  let index = -1;
+  let session = null;
+  let playRequested = false;
+  let state = {playing: false, buffering: false, position: 0, duration: 0};
+  const lifecycle = new AbortController();
+
+  function paint() {
+    const source = entries[index].source;
+    const pending = Boolean(session && !session.controls && playRequested);
+    const canSeek = Boolean(session?.controls?.canSeek && state.duration);
+    transport.hidden = !source;
+    play.disabled = pending;
+    const label = state.playing ? 'Pause' : pending ? 'Opening…' : 'Play';
+    if (play.textContent !== label) play.textContent = label;
+    back.hidden = forward.hidden = !canSeek;
+    progress.hidden = time.hidden = !state.duration;
+    if (state.duration) {
+      progress.max = state.duration;
+      progress.value = state.position;
+      const elapsed = clock(state.position) + ' / ' + clock(state.duration);
+      if (time.textContent !== elapsed) time.textContent = elapsed;
+    }
+    const moving = state.playing && !state.buffering;
+    playerBody.classList.toggle('is-playing', moving);
+    visualizer.setPlaying(moving);
+  }
+
+  function announce(message) {
+    if (status.textContent !== message) status.textContent = message;
+  }
+
+  function updatePlayback(attempt, update) {
+    if (session !== attempt || attempt.load.signal.aborted) return;
+    Object.assign(state, update);
+    paint();
+    if (!attempt.controls || !('playing' in update)) return;
+    if (state.buffering) announce('Buffering…');
+    else if (state.playing) announce('Playing on ' + entries[index].source.provider + '.');
+    else announce('');
+  }
+
+  function discardPlayer() {
+    const previous = session;
+    session = null;
+    playRequested = false;
+    previous?.load.abort();
+    player.replaceChildren();
+    player.hidden = true;
+  }
+
+  function ensurePlayer() {
+    const {item, source} = entries[index];
+    if (!source || session) return;
+    const load = new AbortController();
+    const attempt = {load, controls: null};
+    session = attempt;
+    player.hidden = false;
+    announce('Opening ' + source.provider + '…');
+    paint();
+
+    const connector = source.provider === 'Spotify' ? connectSpotify : connectSoundCloud;
+    const timeout = setTimeout(() => load.abort(Error('The player is taking longer to load.')), playerTimeout);
+    const cancelled = new Promise((resolve, reject) => {
+      load.signal.addEventListener('abort', () => reject(load.signal.reason), {once: true});
+    });
+    const connected = connector(player, source, item.title, load.signal, update => updatePlayback(attempt, update));
+    Promise.race([connected, cancelled]).then(controls => {
+      if (session !== attempt || load.signal.aborted) return;
+      attempt.controls = controls;
+      announce('');
+      if (playRequested) {
+        controls.play();
+        playRequested = false;
+      }
+      paint();
+    }).catch(error => {
+      if (session !== attempt) return;
+      discardPlayer();
+      state = {playing: false, buffering: false, position: 0, duration: 0};
+      announce(error.message + ' Try Play again or open the source link.');
+      paint();
+    }).finally(() => clearTimeout(timeout));
+  }
+
+  function choose(nextIndex) {
+    if (index === nextIndex) return;
+    discardPlayer();
+    index = nextIndex;
+    state = {playing: false, buffering: false, position: 0, duration: 0};
+    const {item, source} = entries[index];
+    title.textContent = item.title;
+    provider.textContent = source?.provider || 'Track list';
+    for (const [i, selection] of selections.entries()) {
+      selection.setAttribute('aria-pressed', String(i === index));
+    }
+    details.replaceChildren();
+    if (item.note) details.append(element('p', 'listening-note', item.note));
+    if (source) details.append(link('Open in ' + source.provider + ' ↗', source.url));
+    if (item.tracks?.length) {
+      const tracks = element('ol', 'tracks');
+      for (const track of item.tracks) {
+        const trackName = [track.title, track.artist].filter(Boolean).join(' — ');
+        const row = element('li', '', trackName);
+        if (/^https?:\/\//.test(track.url || '')) row.replaceChildren(link(trackName, track.url));
+        tracks.append(row);
+      }
+      details.append(tracks);
+    }
+    announce('');
+    paint();
+    if (focus.isFocused()) ensurePlayer();
+  }
+
+  const selections = entries.map(({item, source}, i) => {
+    const row = element('li');
+    const selection = button('', 'listening-choice');
+    const name = element('strong', '', item.title);
+    const label = element('span', 'listening-choice-provider', source?.provider || 'Track list');
+    selection.append(name, label);
+    selection.addEventListener('click', () => choose(i));
+    row.append(selection);
+    shelf.append(row);
+    return selection;
+  });
+
+  play.addEventListener('click', () => {
+    if (session?.controls) {
+      if (state.playing) session.controls.pause();
+      else session.controls.play();
+    } else {
+      playRequested = true;
+      if (session) paint();
+      else ensurePlayer();
+    }
+  });
+
+  for (const [control, offset] of [[back, -15000], [forward, 15000]]) {
+    control.addEventListener('click', () => {
+      if (session?.controls?.canSeek && state.duration) {
+        session.controls.seek(Math.max(0, Math.min(state.duration, state.position + offset)));
+      }
+    });
+  }
+
+  window.addEventListener('focusview:change', event => {
+    if (event.detail.kind !== 'music') return;
+    const active = focus.isFocused();
+    visualizer.setActive(active);
+    if (active) ensurePlayer();
+  }, {signal: lifecycle.signal});
+
+  choose(0);
+  mounts.set(container, () => {
+    lifecycle.abort();
+    focus.close();
+    discardPlayer();
+    visualizer.dispose();
+    mounts.delete(container);
+  });
 }

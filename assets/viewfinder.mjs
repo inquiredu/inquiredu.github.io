@@ -1,6 +1,11 @@
 import { metadataRows, paletteFromPixels } from './photo-notes.mjs?v=20261115.2';
+import { createFocusView } from './focus-view.mjs?v=20261115.16';
 const $ = id => document.getElementById(id);
 const wall=$('wall'), flip=$('viewfinderFlip'), canvas=$('kaleidoscopeCanvas'), toggle=$('kaleidoscopeToggle');
+const player=$('photoPlayer'), collection=$('photographs');
+const focus=createFocusView({container:collection,label:$('photoHeading').textContent,kind:'photos'});
+focus.body.append(player);
+collection.querySelector('.viewfinder-head').append(focus.button);
 const context=canvas.getContext('2d');
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
 let image, slide={}, active=false, visible=true, request=0, lastTime=0, phase=0, pointer={x:0,y:0}, size={width:0,height:0};
@@ -16,20 +21,27 @@ function notes(current,imageElement) {
     const ctx=sample.getContext('2d',{willReadFrequently:true});ctx.drawImage(imageElement,0,0,48,48);
     const colors=paletteFromPixels(ctx.getImageData(0,0,48,48).data);
     for(const color of colors){const swatch=make('span');swatch.style.backgroundColor=color;swatch.title=color;swatch.setAttribute('aria-label',color);swatch.setAttribute('role','img');$('photoPalette').append(swatch);}
-    if(colors.length)wall.style.setProperty('--frame-color',colors[Math.floor(colors.length/2)]);
   }catch { /* Camera notes are still useful if a remote image cannot be sampled. */ }
   $('photoPalette').parentElement.hidden=!$('photoPalette').childElementCount;
 }
 function update(detail) {
-  image=detail.image;slide=detail.slide;notes(slide,image);phase=0;draw();sync();
+  image=detail.image;slide=detail.slide;notes(slide,image);phase=0;describe();sync();
 }
 function resize(){
-  const rect=wall.getBoundingClientRect();size={width:Math.max(1,rect.width-24),height:Math.max(1,rect.height-44)};
-  const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(size.width*dpr);canvas.height=Math.round(size.height*dpr);
-  context.setTransform(dpr,0,0,dpr,0,0);draw();
+  if(!active||!context)return;
+  const width=canvas.clientWidth,height=canvas.clientHeight;
+  if(!width||!height)return;
+  size={width,height};
+  const dpr=Math.min(devicePixelRatio||1,2);
+  const pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
+  if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){
+    canvas.width=pixelWidth;canvas.height=pixelHeight;
+    context.setTransform(dpr,0,0,dpr,0,0);
+  }
+  draw();
 }
 function draw(){
-  if(!active||!image?.naturalWidth||!context)return;
+  if(!active||!wall.classList.contains('lit')||!image?.naturalWidth||!context)return;
   const {width,height}=size;if(!width||!height)return;
   context.clearRect(0,0,width,height);context.fillStyle='#191a17';context.fillRect(0,0,width,height);
   const radius=Math.hypot(width,height)/2+2,segments=12,angle=Math.PI*2/segments;
@@ -45,7 +57,7 @@ function draw(){
 }
 let atlasOpen=false;
 window.addEventListener('viewfinder:atlas',event=>{atlasOpen=!!event.detail.open;sync();});
-function shouldRun(){return active&&visible&&!atlasOpen&&!document.hidden&&!flip.classList.contains('is-flipped')&&!motion.matches;}
+function shouldRun(){return active&&wall.classList.contains('lit')&&visible&&!atlasOpen&&!document.hidden&&!flip.classList.contains('is-flipped')&&!motion.matches;}
 function tick(time){
   request=0;if(!shouldRun())return;
   if(time-lastTime>40){phase+=Math.min(time-lastTime,80)*.00006;lastTime=time;draw();}
@@ -59,21 +71,29 @@ $('frameNotesToggle').addEventListener('click',()=>{
   const open=$('frameNotes').hidden;$('frameNotes').hidden=!open;$('frameNotesToggle').setAttribute('aria-expanded',String(open));
   $('frameNotesToggle').querySelector('span').textContent=open?'−':'＋';
 });
+function describe(){
+  const description=active?'Kaleidoscope made from this photograph.':wall.querySelector('.frame.on .photo')?.alt;
+  if(description&&wall.classList.contains('lit'))wall.setAttribute('aria-description',description);
+  else wall.removeAttribute('aria-description');
+}
 toggle.addEventListener('click',()=>{
+  if(!context)return;
   active=!active;toggle.setAttribute('aria-pressed',String(active));canvas.hidden=!active;wall.classList.toggle('kaleidoscope-on',active);
-  wall.setAttribute('aria-description',active?'Kaleidoscope made from this photograph. Open the contact sheet to choose another.':'Click the frame to browse the contact sheet.');
-  if(active)resize();sync();
+  describe();resize();sync();
 });
 wall.addEventListener('pointermove',event=>{
-  if(!active)return;const rect=wall.getBoundingClientRect();pointer={x:(event.clientX-rect.left)/rect.width-.5,y:(event.clientY-rect.top)/rect.height-.5};
+  if(!active||motion.matches||!wall.classList.contains('lit'))return;
+  const rect=canvas.getBoundingClientRect();pointer={x:(event.clientX-rect.left)/rect.width-.5,y:(event.clientY-rect.top)/rect.height-.5};
   draw();
 });
-wall.addEventListener('pointerleave',()=>{pointer={x:0,y:0};if(motion.matches)draw();});
+wall.addEventListener('pointerleave',()=>{pointer={x:0,y:0};draw();});
 window.addEventListener('viewfinder:photo',event=>update(event.detail));
+window.addEventListener('focusview:change',event=>{if(event.detail.kind==='photos'){resize();sync();}});
 document.addEventListener('visibilitychange',sync);
-motion.addEventListener('change',sync);
+motion.addEventListener('change',()=>{pointer={x:0,y:0};sync();});
 new MutationObserver(sync).observe(flip,{attributes:true,attributeFilter:['class']});
-if('ResizeObserver' in window)new ResizeObserver(resize).observe(wall);else window.addEventListener('resize',resize);
+new MutationObserver(()=>{describe();resize();sync();}).observe(wall,{attributes:true,attributeFilter:['class']});
+if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);else window.addEventListener('resize',resize);
 if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;sync();},{threshold:.05}).observe(wall);
 // Handle a cached slide that loaded before this module finished loading.
 if(wall.dataset.slide){

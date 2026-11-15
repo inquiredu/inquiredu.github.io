@@ -114,6 +114,14 @@ The Moving pictures section uses a wooden tube-TV enclosure with working power a
 
 **Studio assistant** offers reviewable editorial suggestions across projects, writing, listening, videos, and the introduction. **Test AI connection** checks the service, upload path, and AI response. Every suggestion remains a draft until explicitly applied and published.
 
+## Media and focus views
+
+Photographs use a larger, uncropped aperture with an image-derived glow behind the frame and compact controls beneath. The contact sheet, Places, camera notes, and kaleidoscope remain available. The glow follows successfully loaded slides and dims with the projector lamp.
+
+Each medium has a focus view that dims the surrounding page. The shared focus helper promotes a persistent inline dialog, so provider iframes stay mounted while opening and closing it. Close restores the launcher focus. Escape works from page controls; an embedded provider may handle Escape inside its own frame, so the Close button remains visible. The television keeps its complete YouTube player inside a curved black surround, with no overlays over playback or native controls.
+
+The listening shelf puts playlist choices before the compact cassette transport. Player opens music focus without starting playback. The adjustable bars/wave visualizer is an ambient animation driven by playback state, not an analysis of the audio: Spotify and SoundCloud embeds do not expose an audio signal. It stops animating when paused, hidden, disabled, outside focus, or under reduced motion.
+
 ## Local preview and checks
 
 Serve this directory with a local static HTTP server, then open its address. `/admin/?preview=1` demonstrates the editor using public data, with publishing disabled. It never loads private content. Run:

@@ -1,0 +1,99 @@
+.focus-host {
+  min-inline-size: 0;
+}
+
+.focus-view {
+  box-sizing: border-box;
+  position: static;
+  inset: auto;
+  inline-size: 100%;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  color: inherit;
+}
+
+.focus-body {
+  display: flow-root;
+  min-inline-size: 0;
+}
+
+.focus-view-header {
+  display: none;
+}
+
+.focus-view-control {
+  box-sizing: border-box;
+  min-block-size: 40px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--accent-text);
+  font: 500 11px/1.3 var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.focus-view-control:hover {
+  border-color: var(--sun);
+  color: var(--fg-1);
+}
+
+.focus-view-control:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.focus-view:modal {
+  --focus-view-gutter: clamp(8px, 3vw, 32px);
+  --focus-view-padding: clamp(14px, 3vw, 30px);
+  position: fixed;
+  inset: 0;
+  inline-size: min(70rem, calc(100% - 2 * var(--focus-view-gutter)));
+  max-block-size: calc(100dvb - 2 * var(--focus-view-gutter));
+  margin: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--fg-1);
+  box-shadow: 0 24px 70px var(--desk-shadow);
+}
+
+.focus-view:modal::backdrop {
+  background: rgb(20 17 14 / 75%);
+}
+
+html:has(.focus-view:modal) {
+  overflow-y: hidden;
+  scrollbar-gutter: stable;
+}
+
+.focus-view:modal .focus-view-header {
+  position: sticky;
+  z-index: 2;
+  inset-block-start: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px var(--focus-view-padding);
+  border-block-end: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.focus-view-header h2 {
+  margin: 0;
+  font: 400 clamp(21px, 3vw, 30px)/1.2 var(--font-serif);
+}
+
+.focus-view:modal .focus-body {
+  padding: var(--focus-view-padding);
+}

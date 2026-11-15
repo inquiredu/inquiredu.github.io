@@ -1,6 +1,6 @@
-import {mountTapeDeck} from './tape-deck.mjs?v=20261115.7';
+import {mountTapeDeck} from './tape-deck.mjs?v=20261115.16';
 import {musicSource,publicSources} from './creative-sources.mjs?v=20261115.14';
-import {mountTubeTV} from './tube-tv.mjs?v=20261115.14';
+import {mountTubeTV} from './tube-tv.mjs?v=20261115.16';
 import {mergeVideos} from './youtube-source.mjs?v=20261115.14';
 const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text)node.textContent=text;if(cls)node.className=cls;return node;};
 const safeLink=value=>{try{const u=new URL(value);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};

@@ -419,7 +419,10 @@ noscript ul{font-family:var(--font-sans)}
 <link rel="stylesheet" href="assets/collection.css?v=20261115.2">
 <link rel="stylesheet" href="assets/portfolio.css?v=20261115.2">
 <link rel="stylesheet" href="assets/analog.css?v=20261115.9">
-<link rel="stylesheet" href="assets/tube-tv.css?v=20261115.14">
+<link rel="stylesheet" href="assets/focus-view.css?v=20261115.16">
+<link rel="stylesheet" href="assets/photo-player.css?v=20261115.16">
+<link rel="stylesheet" href="assets/listening-room.css?v=20261115.16">
+<link rel="stylesheet" href="assets/tube-tv.css?v=20261115.17">
 </head>
 <body>
 <a class="skip-link" href="#projects">Skip to the collection</a>
@@ -465,36 +468,31 @@ noscript ul{font-family:var(--font-sans)}
       </div>
     <section id="photographs" class="photo-collection" aria-labelledby="photoHeading">
       <div class="viewfinder-head"><h2 id="photoHeading">Through the viewfinder</h2><span>Photographs by Sean</span></div>
-    <!-- Compact viewfinder; the reverse face is a contact sheet. -->
-    <div class="viewfinder-flip" id="viewfinderFlip">
-    <section class="wall lit" id="wall" tabindex="0" role="button" aria-label="Open photo contact sheet" aria-expanded="false" aria-controls="tray" hidden>
-      <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
-      <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
-      <canvas id="kaleidoscopeCanvas" class="kaleidoscope-canvas" aria-hidden="true" hidden></canvas>
-      <div class="photo-shutter" aria-hidden="true"></div><div class="pj-glow" aria-hidden="true"></div>
-      <div class="pj-dust" aria-hidden="true"></div>
-      <div class="pj-falloff" aria-hidden="true"></div>
-      <div class="pj-off-note" aria-hidden="true">Projector lamp off</div>
-      <div class="band">
-        <span class="pj-label" id="pjLabel" aria-live="polite"></span>
-        <span class="dwell" id="dwell" aria-hidden="true"><i></i></span>
-        <span class="wall-no" id="wallNo" aria-hidden="true"></span>
-      </div>
-    </section>
-    <section class="tray contact-sheet" id="tray" aria-labelledby="trayHead" aria-hidden="true" inert hidden>
-      <div class="tray-head">
-        <h2 class="eyebrow" id="trayHead">Contact sheet</h2>
-        <button id="closeSheet" type="button" aria-label="Return to slideshow">↩ Back</button><p id="slidesNote" hidden>Loading the tray.</p>
-      </div>
-      <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
-    </section>
-    </div>
-
-    <div class="projector-deck">
-          <div class="deck-group" id="pjGroup" role="group" aria-label="Projector" hidden>
-            <div class="pj-tray">
-              <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
-              <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
+      <div class="photo-player" id="photoPlayer" hidden>
+        <div class="photo-ambient" aria-hidden="true">
+          <img class="photo-echo" alt="">
+          <img class="photo-echo" alt="">
+        </div>
+        <div class="viewfinder-flip" id="viewfinderFlip">
+          <section class="wall lit" id="wall" tabindex="0" role="button" aria-label="Open photo contact sheet" aria-expanded="false" aria-controls="tray" hidden>
+            <figure class="frame" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+            <figure class="frame" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+            <canvas id="kaleidoscopeCanvas" class="kaleidoscope-canvas" aria-hidden="true" hidden></canvas>
+            <div class="pj-off-note" aria-hidden="true">Projector lamp off</div>
+          </section>
+          <section class="tray contact-sheet" id="tray" aria-labelledby="trayHead" aria-hidden="true" inert hidden>
+            <div class="tray-head">
+              <h2 class="eyebrow" id="trayHead">Contact sheet</h2>
+              <button id="closeSheet" type="button" aria-label="Return to slideshow">↩ Back</button>
+            </div>
+            <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
+          </section>
+        </div>
+        <div class="projector-deck" id="photoDeck" hidden>
+          <div class="deck-group" id="pjGroup" role="group" aria-label="Projector">
+            <div class="photo-readout">
+              <span class="pj-label" id="pjLabel" aria-live="polite"></span>
+              <span class="wall-no" id="wallNo" aria-hidden="true"></span>
             </div>
             <div class="ctl">
               <span>Rev · Fwd</span>
@@ -513,7 +511,7 @@ noscript ul{font-family:var(--font-sans)}
             </div>
             <div class="ctl">
               <span>Bulb</span>
-              <div style="display:flex; align-items:center; gap:10px">
+              <div class="photo-lamp">
                 <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
                 <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
@@ -521,8 +519,9 @@ noscript ul{font-family:var(--font-sans)}
               </div>
             </div>
           </div>
-          <span id="deckSep" hidden></span>
+          <span class="dwell" id="dwell" aria-hidden="true"><i></i></span>
           <div class="viewfinder-tools">
+            <button id="contactSheetToggle" type="button" aria-expanded="false" aria-controls="tray">Contact sheet</button>
             <button id="placesToggle" type="button">Places <span aria-hidden="true">↗</span></button>
             <button id="frameNotesToggle" type="button" aria-expanded="false" aria-controls="frameNotes">Frame notes <span aria-hidden="true">＋</span></button>
             <button id="kaleidoscopeToggle" type="button" aria-pressed="false"><span aria-hidden="true">✺</span> Kaleidoscope</button>
@@ -531,9 +530,8 @@ noscript ul{font-family:var(--font-sans)}
             <dl id="photoMetadata"></dl>
             <div class="palette-row"><span>Colors in this frame</span><div id="photoPalette" class="photo-palette" aria-label="Colors sampled from this photograph"></div></div>
           </div>
-
-</div>
-
+        </div>
+      </div>
     </section>
 
     </div>
@@ -801,16 +799,17 @@ noscript ul{font-family:var(--font-sans)}
    A compact viewfinder flips to a contact sheet; motion pauses while the sheet is open. */
 (function(){
   var $ = function(id){ return document.getElementById(id); };
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var room = $('room'), wall = $('wall'), frames = wall.querySelectorAll('.frame');
-  var label = $('pjLabel'), num = $('pjNum'), wallNo = $('wallNo'), dwellEl = $('dwell'), trayEl = $('pjTray');
+  var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var room = $('room'), wall = $('wall'), player = $('photoPlayer'), frames = wall.querySelectorAll('.frame');
+  var echoes = player.querySelectorAll('.photo-echo'), sheetToggle = $('contactSheetToggle');
+  var label = $('pjLabel'), wallNo = $('wallNo'), dwellEl = $('dwell');
   var autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed'), mountsEl = $('mounts');
-  var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 9000;
+  var DWELL = 9000;
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var slides = [], at = -1, angle = 0, spin = null, front = 0, want = 0, slots = 24, filmTimer;
-  var sheetOpen = false;
-  var lit = true, auto = !reduce, visible = false, hovering = false, timer = null;
+  var slides = [], at = -1, front = 0, want = 0, loadRequest = 0;
+  var sheetOpen = false, sheetTrigger = wall;
+  var lit = true, auto = !motion.matches, visible = false, hovering = false, timer = null;
   var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
 
   /* the same shuffle for everyone on the same day */
@@ -861,31 +860,7 @@ noscript ul{font-family:var(--font-sans)}
     } catch (e) { return null; }   /* a cross-origin image can't be read; keep the last color */
   }
 
-  /* the round tray, seen from above; the lit slot is the one in the gate */
-  function drawTray(n){
-    trayEl.innerHTML = '';
-    var mk = function(tag, attrs, parent){ var el = document.createElementNS(SVGNS, tag); for (var k in attrs) el.setAttribute(k, attrs[k]); (parent || trayEl).appendChild(el); return el; };
-    mk('circle', { r: 47, fill: '#0a0b0c' });
-    spin = mk('g', {});
-    spin.style.transition = reduce ? 'none' : 'transform 650ms cubic-bezier(.4,1.5,.5,1)';
-    mk('circle', { r: 45, fill: '#1d2124', stroke: '#2f3439', 'stroke-width': 1 }, spin);
-    for (var k = 0; k < slots; k++){
-      var a = (k * 360 / slots - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
-      mk('line', { x1: (c * 21).toFixed(2), y1: (s * 21).toFixed(2), x2: (c * 41).toFixed(2), y2: (s * 41).toFixed(2),
-        stroke: k < n ? '#d9d0be' : '#11120f', 'stroke-width': slots > 40 ? 2 : 3, 'stroke-linecap': 'round', 'data-k': k }, spin);
-    }
-    mk('circle', { r: 15, fill: '#2a2e33', stroke: '#0b0c0d', 'stroke-width': 1.5 }, spin);
-    mk('circle', { r: 4, fill: '#0b0c0d' }, spin);
-    mk('path', { d: 'M-4 -49 L4 -49 L0 -43 Z', fill: '#F4AE72' });   /* fixed pointer at the gate */
-  }
-  function markSlot(){
-    if (!spin) return;
-    Array.prototype.forEach.call(spin.querySelectorAll('line'), function(l){
-      l.setAttribute('stroke', +l.getAttribute('data-k') === at ? '#F4AE72' : (+l.getAttribute('data-k') < slides.length ? '#d9d0be' : '#11120f'));
-    });
-  }
-
-  /* today's tray as a row of mounts; a mount fills in once its slide has loaded */
+  /* Today’s contact sheet. */
   function drawMounts(){
     mountsEl.innerHTML = slides.map(function(s, i){
       return '<li><button class="mount' + (isPortrait(s) ? ' port' : '') + '" type="button" data-k="' + i + '" aria-label="Slide ' + (i + 1) +
@@ -897,65 +872,50 @@ noscript ul{font-family:var(--font-sans)}
     if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].thumb || slides[i].src; }
   }
   function markMount(){
-    var cur = null;
     Array.prototype.forEach.call(mountsEl.querySelectorAll('.mount'), function(b){
-      var on = +b.dataset.k === at; b.setAttribute('aria-current', on ? 'true' : 'false'); if (on) cur = b;
+      b.setAttribute('aria-current', String(+b.dataset.k === at));
     });
-    if (cur && !sheetOpen && mountsEl.scrollWidth > mountsEl.clientWidth){
-      var left = cur.parentNode.offsetLeft - (mountsEl.clientWidth - cur.offsetWidth) / 2;
-      mountsEl.scrollTo({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' });
-    }
   }
 
   function preload(i){
     var k = (i + slides.length) % slides.length, s = slides[k]; if (!s) return;
     var p = new Image(); p.onload = function(){ fillMount(k); }; p.src = s.src;
   }
-  /* load the slide off-screen, then cross-fade it in on the back frame */
+  /* Commit the photograph and its echo together after the source loads. */
   function show(i){
     var k = (i + slides.length) % slides.length, s = slides[k];
+    var request = ++loadRequest;
     want = k;
     var im = new Image();
     im.onload = function(){
-      if (want !== k) return;   /* a newer request has arrived since */
-      clearTimeout(filmTimer);if(!reduce)wall.classList.add('advancing');
-      filmTimer=setTimeout(function(){if(want!==k)return;
+      if (loadRequest !== request) return;
       at = k;
       var f = frames[front = 1 - front], other = frames[1 - front], photo = f.querySelector('.photo');
-      f.querySelector('.spill').src = s.src;
       photo.src = s.src; photo.alt = altText(s);
-      wall.dataset.slide = JSON.stringify(s);
-      window.dispatchEvent(new CustomEvent('viewfinder:photo', { detail:{ slide:s, image:im } }));
       if (s.width && s.height){ photo.width = s.width; photo.height = s.height; }
-      var rnd = seeded(s.id || s.src);                     /* each slide drifts toward its own corner */
-      photo.style.setProperty('--kx', Math.round(20 + rnd() * 60) + '%');
-      photo.style.setProperty('--ky', Math.round(25 + rnd() * 50) + '%');
-      f.classList.remove('on'); void f.offsetWidth;
-      f.classList.add('on');if(!reduce)f.classList.add('film-enter');other.classList.remove('on');
-      wall.classList.remove('advancing');setTimeout(function(){f.classList.remove('film-enter');},40);
-      other.setAttribute('aria-hidden', 'true'); f.removeAttribute('aria-hidden');
+      else { photo.removeAttribute('width'); photo.removeAttribute('height'); }
+      echoes[front].src = s.src;
+      echoes[front].classList.add('on');
+      echoes[1 - front].classList.remove('on');
+      f.classList.add('on'); other.classList.remove('on');
+      other.setAttribute('aria-hidden', 'true'); f.setAttribute('aria-hidden', String(!lit));
+      wall.dataset.slide = JSON.stringify(s);
       var amb = ambientOf(im); if (amb) room.style.setProperty('--ambient', amb);
       label.textContent = labelText(s);
-      num.textContent = pad(k + 1);
       wallNo.textContent = pad(k + 1) + ' / ' + pad(slides.length);
-      fillMount(k); markSlot(); markMount(); preload(k + 1);
+      fillMount(k); markMount();
+      if (slides.length > 1) preload(k + 1);
       schedule();
-      },reduce?0:170);
+      window.dispatchEvent(new CustomEvent('viewfinder:photo', { detail:{ slide:s, image:im } }));
     };
-    im.onerror = function(){ if (want === k && slides.length > 1){ slides.splice(k, 1); drawTray(slides.length); drawMounts(); show(k); } };
+    im.onerror = function(){ if (loadRequest === request && slides.length > 1){ slides.splice(k, 1); drawMounts(); show(k); } };
     im.src = s.src;
   }
   function step(dir){
-    if (slides.length < 2) return;
-    angle -= dir * 360 / slots;
-    if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
-    show(want + dir);
+    if (slides.length > 1) show(want + dir);
   }
   function jump(k){
-    if (k === want) return;
-    var d = k - want; angle -= d * 360 / slots;
-    if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
-    show(k);
+    if (k !== want) show(k);
   }
 
   /* automatic advance: only while the wall is on screen, lit, and not being looked at closely */
@@ -969,21 +929,24 @@ noscript ul{font-family:var(--font-sans)}
     var run = running();
     dwellEl.classList.remove('run');
     if (run){
-      if (!reduce){ void dwellEl.offsetWidth; dwellEl.classList.add('run'); }
+      if (!motion.matches){ void dwellEl.offsetWidth; dwellEl.classList.add('run'); }
       timer = setTimeout(function(){ step(1); }, DWELL);
     }
   }
   function manual(dir){ step(dir); }
 
-  function flipSheet(open){
+  function flipSheet(open, trigger){
     sheetOpen = open;
+    if (open) sheetTrigger = trigger || wall;
     $('viewfinderFlip').classList.toggle('is-flipped', open);
     wall.inert = open; wall.setAttribute('aria-hidden', String(open)); wall.setAttribute('aria-expanded', String(open));
     $('tray').inert = !open; $('tray').setAttribute('aria-hidden', String(!open));
-    if (open) $('closeSheet').focus({ preventScroll:true }); else wall.focus({ preventScroll:true });
+    sheetToggle.setAttribute('aria-expanded', String(open));
+    if (open) $('closeSheet').focus({ preventScroll:true }); else sheetTrigger.focus({ preventScroll:true });
     schedule();
   }
   wall.addEventListener('click', function(){ flipSheet(true); });
+  sheetToggle.addEventListener('click', function(){ flipSheet(!sheetOpen, sheetToggle); });
   $('closeSheet').addEventListener('click', function(){ flipSheet(false); });
   $('tray').addEventListener('keydown', function(e){ if (e.key === 'Escape'){ e.preventDefault(); flipSheet(false); } });
   $('pjFwd').addEventListener('click', function(){ manual(1); });
@@ -1005,10 +968,14 @@ noscript ul{font-family:var(--font-sans)}
     lit = !lit;
     wall.classList.toggle('lit', lit); led.classList.toggle('on', lit);
     lampBtn.setAttribute('aria-pressed', String(lit));
-    Array.prototype.forEach.call(frames, function(f){ f.querySelector('.photo').setAttribute('aria-hidden', String(!lit)); });
+    frames[front].setAttribute('aria-hidden', String(!lit || at < 0));
     schedule();
   });
   document.addEventListener('visibilitychange', schedule);
+  motion.addEventListener('change', function(){
+    if (motion.matches){ auto = false; autoBtn.setAttribute('aria-pressed', 'false'); }
+    schedule();
+  });
   if ('IntersectionObserver' in window){
     new IntersectionObserver(function(entries){ visible = entries[0].isIntersecting; schedule(); }, { threshold: .3 }).observe(wall);
   } else visible = true;
@@ -1016,16 +983,12 @@ noscript ul{font-family:var(--font-sans)}
   function start(data){
     var pool = (data.slides || []).filter(function(s){ return s && s.src && !s.hidden; });
     if (!pool.length) return;
-    var size = Math.max(1, Math.min(+data.tray || 24, 80));slots=size;
+    var size = Math.max(1, Math.min(+data.tray || 24, 80));
     slides = data.shuffle === false ? pool.slice(0, size) : trayFor(pool, size, today());
-    wall.hidden = false; $('pjGroup').hidden = false; $('deckSep').hidden = false; $('tray').hidden = false;
+    player.hidden = false; wall.hidden = false; $('photoDeck').hidden = false; $('tray').hidden = false;
     room.classList.add('has-slides');
     dwellEl.style.setProperty('--dwell', DWELL + 'ms');
-    $('slidesNote').textContent = (pool.length > slides.length
-      ? slides.length + ' of ' + pool.length + ' slides'
-      : (slides.length === 1 ? 'One slide' : slides.length + ' slides')) + (data.shuffle === false ? '. Selected from the collection.' : '. A new tray loads each day.');
     autoBtn.setAttribute('aria-pressed', String(auto));
-    drawTray(slides.length);
     drawMounts();
     slides.forEach(function(s, i){ fillMount(i); });
     show(0);
@@ -1036,8 +999,8 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
-<script type="module" src="assets/collection.js?v=20261115.14"></script>
-<script type="module" src="assets/viewfinder.mjs?v=20261115.2"></script>
+<script type="module" src="assets/collection.js?v=20261115.16"></script>
+<script type="module" src="assets/viewfinder.mjs?v=20261115.16"></script>
 <script type="module" src="assets/photo-atlas.mjs?v=20261115.10"></script>
 </body>
 </html>
