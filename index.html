@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
 <script>
-  /* Apply saved choices before first paint. No theme choice = follow the system. */
+  /* Apply saved choices before first paint. No saved choice = the warm evening palette. */
   try {
     var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
     var p = localStorage.getItem('phosphor'); if (p === 'green') document.documentElement.setAttribute('data-phosphor', 'green');
@@ -416,8 +416,10 @@ noscript ul{font-family:var(--font-sans)}
   .frame{transition:none}
 }
 </style>
+<link rel="stylesheet" href="assets/collection.css">
 </head>
 <body>
+<a class="skip-link" href="#projects">Skip to the collection</a>
 <div class="page">
 
   <!-- Introduction -->
@@ -432,7 +434,7 @@ noscript ul{font-family:var(--font-sans)}
         </h1>
       </div>
       <div class="intro-end">
-        <nav class="elsewhere" aria-label="Elsewhere">
+        <nav class="elsewhere" aria-label="Elsewhere" id="elsewhere">
           <a href="https://github.com/inquiredu">GitHub</a>
           <a href="https://www.linkedin.com/in/sean-beaverson-438aa724">LinkedIn</a>
           <a href="https://youtube.com/@SeanBeaverson">YouTube</a>
@@ -445,23 +447,26 @@ noscript ul{font-family:var(--font-sans)}
       </button>
       </div>
     </div>
-    <p class="intro-text">Actively learning since 1974. Professional educator since late in the 20th Century. Learning exploring and sharing - for satisfaction.</p>
-    <p class="roles">Dad - Husband - Brother - Son</p>
-    <p class="meta">Director of Technology, Orono Public Schools · Robbinsdale, Minnesota</p>
-  </header>
+    <div class="introduction">
+      <div>
+        <p class="eyebrow">A personal collection · Est. 1974</p>
+        <h2 class="hello">Learning, exploring<br>&amp; sharing.</h2>
+        <p class="intro-text" id="siteIntro">An educator’s collection of things made, ideas explored, and moments worth keeping.</p>
+        <nav class="collection-nav" aria-label="The collection">
+          <a href="#projects">01 <span>Projects</span></a>
 
-  <div class="horizon" aria-hidden="true"><span></span><span></span></div>
-
-  <main class="room" id="room">
-    <div class="room-head">
-      <h2 class="eyebrow">The project library</h2>
-      <p id="libraryNote">Loading the catalog.</p>
-    </div>
-
-    <!-- Slides, thrown on the wall behind the terminal. Shown once slides.json has at least one slide. -->
-    <section class="wall lit" id="wall" tabindex="0" aria-roledescription="slide show" aria-label="Photographs by Sean Beaverson. Click or press the right arrow for the next slide." hidden>
+          <a href="#writing" id="writingNav" hidden>03 <span>Writing</span></a>
+          <a href="#listening" id="listeningNav" hidden>04 <span>Song lists</span></a>
+        </nav>
+      </div>
+    <section id="photographs" class="photo-collection" aria-labelledby="photoHeading">
+      <div class="viewfinder-head"><h2 id="photoHeading">Through the viewfinder</h2><span>Photographs by Sean</span></div>
+    <!-- Compact viewfinder; the reverse face is a contact sheet. -->
+    <div class="viewfinder-flip" id="viewfinderFlip">
+    <section class="wall lit" id="wall" tabindex="0" role="button" aria-label="Open photo contact sheet" aria-expanded="false" aria-controls="tray" hidden>
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
       <figure class="frame"><img class="spill" alt="" aria-hidden="true"><div class="window"><img class="photo" alt=""></div></figure>
+      <canvas id="kaleidoscopeCanvas" class="kaleidoscope-canvas" aria-hidden="true" hidden></canvas>
       <div class="pj-glow" aria-hidden="true"></div>
       <div class="pj-dust" aria-hidden="true"></div>
       <div class="pj-falloff" aria-hidden="true"></div>
@@ -472,6 +477,70 @@ noscript ul{font-family:var(--font-sans)}
         <span class="wall-no" id="wallNo" aria-hidden="true"></span>
       </div>
     </section>
+    <section class="tray contact-sheet" id="tray" aria-labelledby="trayHead" aria-hidden="true" inert hidden>
+      <div class="tray-head">
+        <h2 class="eyebrow" id="trayHead">Contact sheet</h2>
+        <button id="closeSheet" type="button" aria-label="Return to slideshow">↩ Back</button><p id="slidesNote" hidden>Loading the tray.</p>
+      </div>
+      <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
+    </section>
+    </div>
+
+    <div class="projector-deck">
+          <div class="deck-group" id="pjGroup" role="group" aria-label="Projector" hidden>
+            <div class="pj-tray">
+              <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
+              <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
+            </div>
+            <div class="ctl">
+              <span>Rev · Fwd</span>
+              <div class="pj-keys">
+                <button class="pj-key" id="pjRev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="pj-key" id="pjFwd" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+              </div>
+            </div>
+            <div class="ctl">
+              <span>Advance</span>
+              <button class="pj-switch" id="pjAuto" type="button" aria-pressed="true" aria-label="Advance slides automatically">
+                <span class="opt man">Man</span>
+                <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                <span class="opt auto">Auto</span>
+              </button>
+            </div>
+            <div class="ctl">
+              <span>Bulb</span>
+              <div style="display:flex; align-items:center; gap:10px">
+                <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
+                <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <span id="deckSep" hidden></span>
+          <div class="viewfinder-tools">
+            <button id="frameNotesToggle" type="button" aria-expanded="false" aria-controls="frameNotes">Frame notes <span aria-hidden="true">＋</span></button>
+            <button id="kaleidoscopeToggle" type="button" aria-pressed="false"><span aria-hidden="true">✺</span> Kaleidoscope</button>
+          </div>
+          <div id="frameNotes" class="frame-notes" hidden>
+            <dl id="photoMetadata"></dl>
+            <div class="palette-row"><span>Colors in this frame</span><div id="photoPalette" class="photo-palette" aria-label="Colors sampled from this photograph"></div></div>
+          </div>
+
+</div>
+
+    </section>
+
+    </div>
+  </header>
+
+  <div class="horizon" aria-hidden="true"><span></span><span></span></div>
+
+  <main class="room" id="room">
+    <div class="room-head" id="projects">
+      <h2 class="section-title"><span class="section-number">01 / THE LIBRARY</span>Things I’m making.</h2>
+      <p id="libraryNote">Loading the catalog.</p>
+    </div>
 
     <section class="terminal" aria-label="Project catalog">
       <div class="chassis">
@@ -514,38 +583,6 @@ noscript ul{font-family:var(--font-sans)}
           </div>
           <div class="grille" aria-hidden="true"></div>
 
-          <div class="deck-group" id="pjGroup" role="group" aria-label="Projector" hidden>
-            <div class="pj-tray">
-              <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
-              <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
-            </div>
-            <div class="ctl">
-              <span>Rev · Fwd</span>
-              <div class="pj-keys">
-                <button class="pj-key" id="pjRev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-                <button class="pj-key" id="pjFwd" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-              </div>
-            </div>
-            <div class="ctl">
-              <span>Advance</span>
-              <button class="pj-switch" id="pjAuto" type="button" aria-pressed="true" aria-label="Advance slides automatically">
-                <span class="opt man">Man</span>
-                <span class="track" aria-hidden="true"><span class="knob"></span></span>
-                <span class="opt auto">Auto</span>
-              </button>
-            </div>
-            <div class="ctl">
-              <span>Bulb</span>
-              <div style="display:flex; align-items:center; gap:10px">
-                <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
-                <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          <span class="deck-sep" id="deckSep" aria-hidden="true" hidden></span>
-
           <div class="controls" role="group" aria-label="Terminal">
             <div class="ctl">
               <span>Phosphor</span>
@@ -569,22 +606,17 @@ noscript ul{font-family:var(--font-sans)}
       </div>
     </section>
 
-    <section class="tray" id="tray" aria-labelledby="trayHead" hidden>
-      <div class="tray-head">
-        <h2 class="eyebrow" id="trayHead">Today’s tray</h2>
-        <p id="slidesNote">Loading the tray.</p>
-      </div>
-      <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
-    </section>
-
-    <p class="dewey">Call numbers follow the Dewey Decimal System, more or less. Photographs by Sean Beaverson.</p>
+    <p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p>
+    <section class="editorial-section" id="writing" hidden aria-labelledby="writingHeading"><h2 class="section-title" id="writingHeading"><span class="section-number">03 / FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></section>
+    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">04 / ON REPEAT</span>A soundtrack for the moment.</h2><div id="listeningItems"></div></section>
     <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
   </main>
 
   <footer>
     <img class="logo-light" src="assets/mark.png" alt="" width="32" height="31">
     <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="32" height="31">
-    <span><b>&gt;0</b> · Any effort is better than none.</span>
+    <span><b>&gt;0</b> · Any effort is better than none.<br><span class="footer-location">Sean Beaverson · Robbinsdale, Minnesota</span></span>
+    <a class="editor-link" href="admin/">Editor ↗</a>
   </footer>
 
 </div>
@@ -595,7 +627,7 @@ noscript ul{font-family:var(--font-sans)}
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.documentElement;
   var $ = function(id){ return document.getElementById(id); };
-  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var esc = function(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
   var store = function(k, v){ try { localStorage.setItem(k, v); } catch (e) {} };
 
   /* ---------- catalog ---------- */
@@ -640,8 +672,9 @@ noscript ul{font-family:var(--font-sans)}
   function renderCard(glitch){
     var r = records[selected];
     if (!r){ card.innerHTML = '<p>No records on the shelf.</p>'; return; }
-    var loc = r.url
-      ? '<a href="' + esc(r.url) + '">' + esc(locOf(r.url)) + ' ↗</a>'
+    var safeUrl = /^https?:\/\//i.test(r.url || '') ? r.url : '';
+    var loc = safeUrl
+      ? '<a href="' + esc(safeUrl) + '">' + esc(locOf(safeUrl)) + ' ↗</a>'
       : 'Closed stacks · <a href="' + ASK + '">ask the librarian ↗</a>';
     card.innerHTML =
       '<div class="card-top"><span>' + esc(r.call) + '</span><span>' + (r.featured ? '✦ ' : '') + esc(r.status) + '</span></div>' +
@@ -651,7 +684,7 @@ noscript ul{font-family:var(--font-sans)}
         (String(r.note || '').trim() ? '<div><dt>Note</dt><dd>' + esc(r.note) + '</dd></div>' : '') +
         '<div><dt>Location</dt><dd>' + loc + '</dd></div>' +
       '</dl>' +
-      (r.url ? '<a class="open-key" href="' + esc(r.url) + '">Open record ↗</a>' : '');
+      (safeUrl ? '<a class="open-key" href="' + esc(safeUrl) + '">Open record ↗</a>' : '');
     if (glitch && !reduce){ card.classList.remove('glitch'); void card.offsetWidth; card.classList.add('glitch'); }
   }
   function select(i, glitch){
@@ -711,6 +744,7 @@ noscript ul{font-family:var(--font-sans)}
     power.setAttribute('aria-pressed', on);
     led.classList.toggle('on', on);
     $('screen').setAttribute('aria-hidden', String(!on));
+    $('screen').inert = !on;
     crt.classList.remove('booting');
     if (on){ crt.classList.remove('off'); void crt.offsetWidth; crt.classList.add('booting'); }
     else crt.classList.add('off');
@@ -758,17 +792,18 @@ noscript ul{font-family:var(--font-sans)}
 /* ---------- the slide projector ----------
    Slides come from slides.json, which the light table publishes. Each day loads a tray of up to
    `tray` slides drawn from the whole collection; everyone sees the same tray that day (Minnesota time).
-   Slides are thrown on the wall behind the terminal. Each one's color lights the room (--ambient). */
+   A compact viewfinder flips to a contact sheet; motion pauses while the sheet is open. */
 (function(){
   var $ = function(id){ return document.getElementById(id); };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var room = $('room'), wall = $('wall'), frames = wall.querySelectorAll('.frame');
   var label = $('pjLabel'), num = $('pjNum'), wallNo = $('wallNo'), dwellEl = $('dwell'), trayEl = $('pjTray');
   var autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed'), mountsEl = $('mounts');
-  var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 7000;
+  var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 9000;
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var slides = [], at = -1, angle = 0, spin = null, front = 0, want = 0;
+  var sheetOpen = false;
   var lit = true, auto = !reduce, visible = false, hovering = false, timer = null;
   var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
 
@@ -848,19 +883,19 @@ noscript ul{font-family:var(--font-sans)}
   function drawMounts(){
     mountsEl.innerHTML = slides.map(function(s, i){
       return '<li><button class="mount' + (isPortrait(s) ? ' port' : '') + '" type="button" data-k="' + i + '" aria-label="Slide ' + (i + 1) +
-        (labelText(s) ? ', ' + labelText(s) : '') + '"><span class="win"><img alt="" decoding="async"></span><span class="no" aria-hidden="true">' + pad(i + 1) + '</span></button></li>';
+        (labelText(s) ? ', ' + labelText(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }) : '') + '"><span class="win"><img alt="" decoding="async"></span><span class="no" aria-hidden="true">' + pad(i + 1) + '</span></button></li>';
     }).join('');
   }
   function fillMount(i){
     var m = mountsEl.querySelector('[data-k="' + i + '"] img');
-    if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].src; }
+    if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].thumb || slides[i].src; }
   }
   function markMount(){
     var cur = null;
     Array.prototype.forEach.call(mountsEl.querySelectorAll('.mount'), function(b){
       var on = +b.dataset.k === at; b.setAttribute('aria-current', on ? 'true' : 'false'); if (on) cur = b;
     });
-    if (cur && mountsEl.scrollWidth > mountsEl.clientWidth){
+    if (cur && !sheetOpen && mountsEl.scrollWidth > mountsEl.clientWidth){
       var left = cur.parentNode.offsetLeft - (mountsEl.clientWidth - cur.offsetWidth) / 2;
       mountsEl.scrollTo({ left: Math.max(0, left), behavior: reduce ? 'auto' : 'smooth' });
     }
@@ -881,6 +916,8 @@ noscript ul{font-family:var(--font-sans)}
       var f = frames[front = 1 - front], other = frames[1 - front], photo = f.querySelector('.photo');
       f.querySelector('.spill').src = s.src;
       photo.src = s.src; photo.alt = altText(s);
+      wall.dataset.slide = JSON.stringify(s);
+      window.dispatchEvent(new CustomEvent('viewfinder:photo', { detail:{ slide:s, image:im } }));
       if (s.width && s.height){ photo.width = s.width; photo.height = s.height; }
       var rnd = seeded(s.id || s.src);                     /* each slide drifts toward its own corner */
       photo.style.setProperty('--kx', Math.round(20 + rnd() * 60) + '%');
@@ -912,7 +949,7 @@ noscript ul{font-family:var(--font-sans)}
   }
 
   /* automatic advance: only while the wall is on screen, lit, and not being looked at closely */
-  function running(){ return auto && lit && visible && !hovering && !document.hidden && slides.length > 1; }
+  function running(){ return auto && lit && !sheetOpen && visible && !hovering && !document.hidden && slides.length > 1; }
   function schedule(){
     clearTimeout(timer);
     label.setAttribute('aria-live', auto ? 'off' : 'polite');
@@ -925,15 +962,25 @@ noscript ul{font-family:var(--font-sans)}
   }
   function manual(dir){ step(dir); }
 
-  wall.addEventListener('click', function(){ if (lit) manual(1); });
+  function flipSheet(open){
+    sheetOpen = open;
+    $('viewfinderFlip').classList.toggle('is-flipped', open);
+    wall.inert = open; wall.setAttribute('aria-hidden', String(open)); wall.setAttribute('aria-expanded', String(open));
+    $('tray').inert = !open; $('tray').setAttribute('aria-hidden', String(!open));
+    if (open) $('closeSheet').focus({ preventScroll:true }); else wall.focus({ preventScroll:true });
+    schedule();
+  }
+  wall.addEventListener('click', function(){ flipSheet(true); });
+  $('closeSheet').addEventListener('click', function(){ flipSheet(false); });
+  $('tray').addEventListener('keydown', function(e){ if (e.key === 'Escape'){ e.preventDefault(); flipSheet(false); } });
   $('pjFwd').addEventListener('click', function(){ manual(1); });
   $('pjRev').addEventListener('click', function(){ manual(-1); });
-  mountsEl.addEventListener('click', function(e){ var b = e.target.closest('.mount'); if (b) jump(+b.dataset.k); });
+  mountsEl.addEventListener('click', function(e){ var b = e.target.closest('.mount'); if (b){ jump(+b.dataset.k); flipSheet(false); } });
   [wall, $('pjGroup'), $('tray')].forEach(function(el){
     el.addEventListener('keydown', function(e){
       if (e.key === 'ArrowRight'){ e.preventDefault(); manual(1); }
       if (e.key === 'ArrowLeft'){ e.preventDefault(); manual(-1); }
-      if (el === wall && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); manual(1); }
+      if (el === wall && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); flipSheet(true); }
     });
     el.addEventListener('mouseenter', function(){ hovering = true; schedule(); });
     el.addEventListener('mouseleave', function(){ hovering = false; schedule(); });
@@ -957,16 +1004,17 @@ noscript ul{font-family:var(--font-sans)}
     var pool = (data.slides || []).filter(function(s){ return s && s.src && !s.hidden; });
     if (!pool.length) return;
     var size = Math.max(1, Math.min(+data.tray || 24, 80));
-    slides = trayFor(pool, size, today());
+    slides = data.shuffle === false ? pool.slice(0, size) : trayFor(pool, size, today());
     wall.hidden = false; $('pjGroup').hidden = false; $('deckSep').hidden = false; $('tray').hidden = false;
     room.classList.add('has-slides');
     dwellEl.style.setProperty('--dwell', DWELL + 'ms');
     $('slidesNote').textContent = (pool.length > slides.length
       ? slides.length + ' of ' + pool.length + ' slides'
-      : (slides.length === 1 ? 'One slide' : slides.length + ' slides')) + '. A new tray loads each day.';
+      : (slides.length === 1 ? 'One slide' : slides.length + ' slides')) + (data.shuffle === false ? '. Selected from the collection.' : '. A new tray loads each day.');
     autoBtn.setAttribute('aria-pressed', String(auto));
     drawTray(slides.length);
     drawMounts();
+    slides.forEach(function(s, i){ fillMount(i); });
     show(0);
   }
   fetch('slides.json', { cache: 'no-cache' })
@@ -975,5 +1023,7 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
+<script type="module" src="assets/collection.js"></script>
+<script type="module" src="assets/viewfinder.mjs"></script>
 </body>
 </html>

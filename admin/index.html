@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://api.github.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>The studio · Sean Beaverson</title><link rel="icon" href="../assets/favicon.png"><link rel="stylesheet" href="editor.css">
+</head>
+<body>
+<header><a href="../">← Back to the collection</a><span>The studio</span><button id="signout" hidden>Sign out</button></header>
+<main>
+  <section id="gate" class="gate">
+    <img src="../assets/mark-reversed.png" width="48" height="46" alt="">
+    <p class="eyebrow">A place to put things in order</p><h1>Your collection,<br>at your pace.</h1>
+    <p>Projects, photographs, words, and music.<br>Sign in to make yourself at home.</p>
+    <button id="signin" class="primary" disabled>Sign in with GitHub ↗</button>
+    <p id="setup" class="muted"></p>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <section id="studio" hidden>
+    <div class="studio-head"><div><p class="eyebrow" id="sessionLabel">Private editor</p><h1>The collection.</h1></div><div><button id="reload">Reload</button> <button id="publish" class="primary">Publish changes</button></div></div>
+    <nav aria-label="Edit collection" id="tabs"><button data-tab="projects" aria-pressed="true">Projects</button><button data-tab="photos" aria-pressed="false">Photographs</button><button data-tab="writing" aria-pressed="false">Writing</button><button data-tab="playlists" aria-pressed="false">Song lists</button><button data-tab="about" aria-pressed="false">Introduction</button></nav>
+    <div id="toolbar"></div><div id="items"></div>
+  </section>
+</main>
+<script type="module" src="editor.mjs"></script>
+</body></html>
