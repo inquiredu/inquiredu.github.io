@@ -65,6 +65,60 @@
       "taken": "2026-10",
       "caption": "",
       "alt": ""
+    },
+    {
+      "id": "35509ada123c5dea0e1c",
+      "src": "assets/slides/35509ada123c5dea0e1c.jpg",
+      "thumb": "assets/slides/35509ada123c5dea0e1c-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2026-10",
+      "caption": "Autumn grasses",
+      "alt": "Red, gold, and green meadow grasses glowing in low sunlight.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 9mm f/2.8",
+        "date": "2026-10-12",
+        "aperture": 2.8,
+        "exposure": 0.010101010101010102,
+        "iso": 32,
+        "focalLength": 9
+      },
+      "location": {
+        "lat": 45,
+        "lon": -93.3,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "cf6ec840379a6c870664",
+      "src": "assets/slides/cf6ec840379a6c870664.jpg",
+      "thumb": "assets/slides/cf6ec840379a6c870664-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2026-09",
+      "caption": "Evening on the lake",
+      "alt": "An orange sunset over a still lake, framed by trees, with a deck railing in the foreground.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 6.765mm f/1.78",
+        "date": "2026-09-28",
+        "aperture": 1.7799999713880652,
+        "exposure": 0.02,
+        "iso": 800,
+        "focalLength": 6.764999865652793
+      },
+      "location": {
+        "lat": 46.6,
+        "lon": -94.3,
+        "label": "",
+        "precision": "approximate"
+      }
     }
   ]
 }
