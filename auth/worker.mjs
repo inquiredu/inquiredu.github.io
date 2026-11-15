@@ -1,4 +1,5 @@
-/* A small GitHub App OAuth bridge. No database, refresh tokens, or token logging. */
+import { photoAI } from './photo-ai.mjs';
+/* Owner-only studio backend. No database, refresh tokens, or token logging. */
 const encode = value => btoa(String.fromCharCode(...new Uint8Array(value))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const decode = value => Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
 const text = new TextEncoder();
@@ -25,6 +26,7 @@ function failure(message,status=400) {
 }
 export default {
   async fetch(request,env) {
+    if(new URL(request.url).pathname.startsWith('/ai/'))return photoAI(request,env);
     if(request.method!=='GET')return failure('Method not allowed.',405);
     const url=new URL(request.url);
     if(!env.GITHUB_CLIENT_ID||!env.GITHUB_CLIENT_SECRET||!env.SITE_ORIGIN||!env.OWNER_ID)return failure('Sign-in has not been configured.',503);

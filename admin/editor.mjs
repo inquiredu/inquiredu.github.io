@@ -2,16 +2,19 @@ import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
 import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
+import { aiRequest, imagePreview, fillEmptyDraft } from './photo-ai.mjs?v=20261115.5';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
 let dirty = new Set(), pending = new Map(), objectURLs = [], demo = new URLSearchParams(location.search).get('preview') === '1';
 let expandedProject;
+let aiReady=false, autoDescribe=true, aiMessage='Checking the description service…';
+const aiStates=new Map(), aiViews=new Map();
 const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
-function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; }
+function updateButton() { $('publish').disabled = demo || busy || !dirty.has(group()); $('publish').textContent = busy ? 'Working…' : 'Save & publish this section'; $('reload').disabled=busy; $('signout').disabled=busy; }
 function button(text, action, disabled = false) { const b = make('button', text); b.type = 'button'; b.disabled = disabled; b.onclick = action; return b; }
 function field(parent, label, obj, key, type = 'text', wide = false) {
   const wrap = make('label', label, wide ? 'wide' : '');
@@ -59,7 +62,43 @@ function renderProjects() {
     card.append(fields); reorder(card, catalog.projects, index); $('items').append(card);
   });
 }
+async function checkAI() {
+  aiReady=false;
+  try{aiReady=!demo&&(await aiRequest(config.authOrigin,github.token,'/ai/config')).enabled;aiMessage=aiReady?'A small preview goes to OpenAI. GPS and camera metadata stay out of the request. Review the drafts before publishing.':demo?'AI is available in the signed-in studio once connected.':'AI needs its one-time OpenAI connection. Uploads and manual descriptions still work.';}
+  catch{aiMessage='The description service is unavailable. Uploads and manual descriptions still work.';}
+}
+function photoAIControls(photo,box,caption,alt) {
+  const refresh=()=>{
+    box.replaceChildren();const state=aiStates.get(photo.id);
+    const action=button(state?.loading?'Finding the words…':'Suggest description',()=>suggestPhoto(photo),!aiReady||busy||state?.loading);
+    box.append(action);
+    if(state?.message)box.append(make('p',state.message,'muted'));
+    if(state?.draft){
+      const proposal=make('div','','ai-proposal');proposal.append(make('small','AI draft · review before using'),make('p',state.draft.caption),make('p',state.draft.alt));
+      const apply=keys=>{for(const key of keys)photo[key]=state.draft[key];caption.value=photo.caption;alt.value=photo.alt;dirty.add('photos');updateButton();state.draft=null;state.message='Draft applied. Make it your own before publishing.';refresh();};
+      const actions=make('div','','actions');actions.append(button('Use both',()=>apply(['caption','alt']),busy),button('Use description only',()=>apply(['alt']),busy),button('Dismiss',()=>{state.draft=null;refresh();},busy));proposal.append(actions);box.append(proposal);
+    }
+  };
+  aiViews.set(photo.id,()=>{caption.value=photo.caption||'';alt.value=photo.alt||'';refresh();});refresh();
+}
+async function suggestPhoto(photo,{automatic=false,blob}={}) {
+  if(!aiReady||(!automatic&&busy))return false;
+  if(!automatic){busy=true;updateButton();}
+  const before={caption:photo.caption,alt:photo.alt};
+  const state={loading:true};aiStates.set(photo.id,state);aiViews.get(photo.id)?.();
+  try {
+    if(!blob){const response=await fetch(pending.get(photo.id)?.preview||new URL(`../${photo.src}`,location.href));if(!response.ok)throw new Error('The image preview could not be read.');blob=await response.blob();}
+    const draft=await aiRequest(config.authOrigin,github.token,'/ai/describe',await imagePreview(blob));
+    if(!photos.slides.includes(photo))return false;
+    const filled=fillEmptyDraft(photo,before,draft);if(filled.length)dirty.add('photos');
+    state.message=filled.length===2?'AI draft added. Edit either field before publishing.':'Your words are preserved. Review this suggestion below.';
+    if(filled.length<2)state.draft=draft;
+    return true;
+  }catch(error){state.message=error.name==='TimeoutError'?'This took too long. Try again, or write your own description.':error.message;return false;}
+  finally{state.loading=false;if(!automatic)busy=false;updateButton();for(const refresh of aiViews.values())refresh();}
+}
 function renderPhotos() {
+  aiViews.clear();
   $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
   const drop = make('div', '', 'drop'),input=make('input'),originals=make('input');
   input.type=originals.type='file';input.accept='image/*';originals.accept='.jpg,.jpeg,.png,.webp,.heic,.heif';input.multiple=originals.multiple=true;input.hidden=originals.hidden=true;
@@ -73,6 +112,9 @@ function renderPhotos() {
   help.append(make('p','Exact coordinates stay in your private catalog. Public locations default to approximate areas; review each photograph before publishing.'));drop.append(help);
   drop.ondragover = e => { e.preventDefault(); drop.classList.add('dragover'); }; drop.ondragleave = () => drop.classList.remove('dragover');
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
+  const assistant=make('div','','photo-assistant'),label=make('label','','check'),toggle=make('input');toggle.type='checkbox';toggle.checked=autoDescribe;toggle.disabled=!aiReady||busy;toggle.onchange=()=>{autoDescribe=toggle.checked;};label.append(toggle,document.createTextNode('Draft captions & descriptions when I add photos'));assistant.append(make('p','A little help finding the words.','assistant-title'),label,make('small',aiMessage));
+  if(!aiReady&&!demo)assistant.append(button('Check connection',async()=>{if(busy)return;busy=true;updateButton();await checkAI();busy=false;render();}));
+  $('toolbar').append(assistant);
   const options = make('div', '', 'actions');
   const mode = {mode:photos.shuffle === false ? 'curated' : 'daily'};
   select(options, 'Tray order', mode, 'mode', [['daily','A fresh shuffle each day'],['curated','My chosen order']]);
@@ -81,7 +123,9 @@ function renderPhotos() {
   const grid = make('div','','photos');
   photos.slides.forEach((photo,index) => {
     const card = make('article','','photo'); const img = make('img'); img.src = pending.get(photo.id)?.preview || `../${photo.src}`; img.alt=photo.alt || photo.caption || `Photograph ${index+1}`; card.append(img);
-    field(card,'Caption',photo,'caption'); field(card,'Image description',photo,'alt'); field(card,'Month taken',photo,'taken','month');
+    const caption=field(card,'Caption',photo,'caption'),alt=field(card,'Image description',photo,'alt','textarea');
+    const aiBox=make('div','','photo-ai');aiBox.setAttribute('aria-live','polite');photoAIControls(photo,aiBox,caption,alt);card.append(aiBox);
+    field(card,'Month taken',photo,'taken','month');
     check(card,'Include in the projector',photo,'hidden',true);
     photo.location ||= {lat:'',lon:'',label:'',precision:'hidden'};
     const place=make('details','','place-editor');place.append(make('summary',safeLocation(photo.location)?'Place & map sharing':'Add a place'));
@@ -173,7 +217,8 @@ async function load() {
       privateLocations=places?.data.locations||{};for(const photo of photos.slides)if(safeLocation(privateLocations[photo.id]))photo.location=safeLocation(privateLocations[photo.id]);
       revisions={catalog:cat.sha,content:words?.sha,photos:pictures.sha,pubProjects:pubProjects.sha,pubContent:pubContent?.sha,head,locations:places?.sha};
     }
-    content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();
+    content.writing ||= [];content.playlists ||= [];content.sources ||= {};dirty.clear();pending.clear();aiStates.clear();aiViews.clear();
+    await checkAI();
     objectURLs.forEach(URL.revokeObjectURL);objectURLs=[];
     $('gate').hidden=true;$('studio').hidden=false;$('signout').hidden=demo;
     $('sessionLabel').textContent=demo?'Preview · edits are not saved':'Signed in · inquiredu';
@@ -188,7 +233,7 @@ async function readMetadata(file) {
 async function importPhotos(files) {
   if(busy)return;
   if(files.length>30){status('Add up to 30 photos at a time.');return;}
-  busy=true;updateButton();let added=0,located=0,duplicates=0,failed=[];
+  busy=true;updateButton();let added=0,located=0,duplicates=0,described=0,aiFailed=0,failed=[];
   for(const file of files){
     let bitmap;
     try{
@@ -208,10 +253,12 @@ async function importPhotos(files) {
       const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
       photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true,...(place?{location:{...place,precision:'approximate'}}:{})});
       pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;if(place)located++;
+      dirty.add('photos');
+      if(aiReady&&autoDescribe){render();status(`Drafting words for photograph ${added}…`);if(await suggestPhoto(photos.slides.at(-1),{automatic:true,blob}))described++;else aiFailed++;}
     }catch{failed.push(file.name);}finally{bitmap?.close();}
   }
   if(added)dirty.add('photos');busy=false;render();
-  status(`${added} photo${added===1?'':'s'} ready.${added?` ${located} with a location; ${added-located} without. Review places before publishing.`:''}${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
+  status(`${added} photo${added===1?'':'s'} ready.${added?` ${located} with a location; ${added-located} without. Review places before publishing.`:''}${described?` ${described} AI draft(s) ready to edit.`:''}${aiFailed?` ${aiFailed} description(s) need a retry or your own words; the photos were still added.`:''}${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
 }
 function validate() {
   for(const input of $('studio').querySelectorAll('input[type=url]')) if(input.value && !safeURL(input.value))throw new Error('Use a complete https:// or http:// link.');
