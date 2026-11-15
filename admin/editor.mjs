@@ -1,11 +1,13 @@
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
 import { importLink, musicSource, mediumSource, publicSources } from '../assets/creative-sources.mjs';
+import { repositoryPicker, projectFromRepo } from './repositories.mjs?v=20261115.3';
 import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.2';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, privateLocations={}, revisions = {}, active = 'inbox', busy = false, sharedLinkHandled=false;
 let dirty = new Set(), pending = new Map(), objectURLs = [], demo = new URLSearchParams(location.search).get('preview') === '1';
+let expandedProject;
 const group = () => ['inbox','writing','playlists','about'].includes(active) ? 'content' : active;
 const status = message => { $('status').textContent = message; };
 function changed() { dirty.add(group()); updateButton(); }
@@ -37,11 +39,15 @@ function reorder(parent, items, index) {
   parent.append(actions); return actions;
 }
 function renderProjects() {
-  $('toolbar').append(make('p', 'Choose what goes on the shelf. Hidden projects stay in your private catalog.'), button('Add a project', () => {
-    catalog.projects.push({id: crypto.randomUUID(), title:'Untitled project', visible:false, group:'workshop', status:'In progress', call:'000 NEW', note:''}); changed(); render();
-  }));
+  function openProject(project,message){expandedProject=project.id;render();const card=[...$('items').querySelectorAll('details')].find(n=>n.dataset.projectId===project.id);card?.querySelector('input')?.focus();status(message);}
+  const manual=()=>{const project={id:crypto.randomUUID(),title:'Untitled project',visible:false,group:'workshop',status:'In progress',call:'000 NEW',note:''};catalog.projects.unshift(project);changed();openProject(project,'New hidden draft. Fill in the details, then choose whether to show it.');};
+  $('toolbar').append(make('p', 'Choose what goes on the shelf. Hidden projects stay in your private catalog.'), button('Add a project', () => repositoryPicker({github,projects:catalog.projects,demo,onManual:manual,onChoose:(repo,existing)=>{
+    if(existing){openProject(existing,'This repository is already in your collection. Your existing details are preserved.');return;}
+    const project=projectFromRepo(repo);if(catalog.projects.some(p=>p.id===project.id))project.id=crypto.randomUUID();catalog.projects.unshift(project);changed();
+    openProject(project,'Repository details added as a hidden draft. Review the title, link, and description before publishing.');
+  }})));
   catalog.projects.forEach((project, index) => {
-    const card = make('details', '', 'item'); card.append(make('summary', `${project.visible === false ? 'Hidden · ' : ''}${project.title}`));
+    const card = make('details', '', 'item');card.dataset.projectId=project.id;card.open=project.id===expandedProject; card.append(make('summary', `${project.visible === false ? 'Hidden · ' : ''}${project.title}`));
     const fields = make('div', '', 'fields');
     field(fields, 'Title', project, 'title'); field(fields, 'Link', project, 'url', 'url');
     field(fields, 'Description', project, 'note', 'textarea', true); field(fields, 'Subjects', project, 'subject'); field(fields, 'Call number', project, 'call');
@@ -55,9 +61,16 @@ function renderProjects() {
 }
 function renderPhotos() {
   $('toolbar').append(make('p', 'A light table for your photographs. Add a batch, arrange the tray, and give each image a little context.'));
-  const drop = make('div', '', 'drop'); const label = make('label', 'Choose photos or drop them here'); const input = make('input');
-  input.type='file'; input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif'; input.multiple=true;
-  input.onchange = () => importPhotos(input.files); label.append(input); drop.append(label, make('small','Original photos bring their places with them. Exact coordinates stay in your private catalog; the public map uses approximate areas unless you choose otherwise.'));
+  const drop = make('div', '', 'drop'),input=make('input'),originals=make('input');
+  input.type=originals.type='file';input.accept='image/*';originals.accept='.jpg,.jpeg,.png,.webp,.heic,.heif';input.multiple=originals.multiple=true;input.hidden=originals.hidden=true;
+  input.setAttribute('aria-label','Choose photos from your library');originals.setAttribute('aria-label','Choose original image files');
+  input.onchange=()=>importPhotos(input.files);originals.onchange=()=>importPhotos(originals.files);
+  const choices=make('div','','photo-import-actions');choices.append(button('Choose photos',()=>input.click()),button('Choose original files',()=>originals.click()));
+  drop.append(make('h2','Bring a few favorites.'),make('p','Choose from your device, or drop photographs here.','muted'),choices,input,originals,make('small','On iPhone or iPad, choose Photo Library. On a Mac, look for Photos in the file chooser’s sidebar if your browser offers it.'));
+  const help=make('details','','photo-import-help');help.append(make('summary','Apple Photos & locations'));
+  help.append(make('p','For the heatmap, originals are the most reliable choice. In Photos on your Mac, select your favorites, then File → Export → Export Unmodified Original. Add the exported images with Choose original files.'));
+  help.append(make('p','You can also drag photos from the Photos app when your browser supports it. Library selections may omit location data; the import summary tells you what arrived. If HEIC cannot be read, export a JPEG with location information.'));
+  help.append(make('p','Exact coordinates stay in your private catalog. Public locations default to approximate areas; review each photograph before publishing.'));drop.append(help);
   drop.ondragover = e => { e.preventDefault(); drop.classList.add('dragover'); }; drop.ondragleave = () => drop.classList.remove('dragover');
   drop.ondrop = e => { e.preventDefault(); drop.classList.remove('dragover'); importPhotos(e.dataTransfer.files); }; $('toolbar').append(drop);
   const options = make('div', '', 'actions');
@@ -175,7 +188,7 @@ async function readMetadata(file) {
 async function importPhotos(files) {
   if(busy)return;
   if(files.length>30){status('Add up to 30 photos at a time.');return;}
-  busy=true;updateButton();let added=0,duplicates=0,failed=[];
+  busy=true;updateButton();let added=0,located=0,duplicates=0,failed=[];
   for(const file of files){
     let bitmap;
     try{
@@ -194,11 +207,11 @@ async function importPhotos(files) {
       const thumb=document.createElement('canvas');const scale=Math.min(1,360/Math.max(canvas.width,canvas.height));thumb.width=Math.round(canvas.width*scale);thumb.height=Math.round(canvas.height*scale);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);
       const src=`assets/slides/${id}.jpg`,thumbnail=`assets/slides/${id}-thumb.jpg`, preview=URL.createObjectURL(blob);objectURLs.push(preview);
       photos.slides.push({id,src,thumb:thumbnail,width:canvas.width,height:canvas.height,taken:metadata.date?.slice(0,7)||'',caption:'',alt:'',hidden:false,metadata,shareMetadata:true,...(place?{location:{...place,precision:'approximate'}}:{})});
-      pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;
+      pending.set(id,{preview,files:[{path:src,content:image64,encoding:'base64'},{path:thumbnail,content:thumb.toDataURL('image/jpeg',.8).split(',')[1],encoding:'base64'}]});added++;if(place)located++;
     }catch{failed.push(file.name);}finally{bitmap?.close();}
   }
   if(added)dirty.add('photos');busy=false;render();
-  status(`${added} photo${added===1?'':'s'} ready.${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
+  status(`${added} photo${added===1?'':'s'} ready.${added?` ${located} with a location; ${added-located} without. Review places before publishing.`:''}${duplicates?` ${duplicates} duplicate(s) skipped.`:''}${failed.length?` Could not read: ${failed.join(', ')}. For HEIC, export as JPEG and try again.`:''}`);
 }
 function validate() {
   for(const input of $('studio').querySelectorAll('input[type=url]')) if(input.value && !safeURL(input.value))throw new Error('Use a complete https:// or http:// link.');
