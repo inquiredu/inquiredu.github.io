@@ -94,23 +94,17 @@ This repo is public, so its Action logs are too. The sync logs counts only, neve
 
 The slide projector next to the catalog plays the photographs listed in `slides.json`, with the images in `assets/slides/`. Each day it loads a fresh tray of up to 24 (the `tray` setting) drawn from the whole collection. Everyone sees the same tray that day, Minnesota time. With no slides, the projector stays hidden.
 
-### Add photos
+### Add photos: the light table
 
-1. Put your favorites in **Pictures › Slideshow**. Any mix works: JPEG, HEIC from an iPhone, PNG, or the zip Google Photos gives you from an album's **⋮ › Download all**.
-2. From your copy of this repo, run:
+Open [inquiredu.org/lighttable.html](https://inquiredu.org/lighttable.html), or follow the link at the top of Site settings.
 
-```bash
-node scripts/darkroom.mjs
-```
+1. **Sign in** with your publishing key, the same one Site settings uses. If you ticked Remember there, you're already in.
+2. **Load your film.** Drop photos on the page or press **Choose photos**. On a Mac or iPhone the chooser includes your Photos library. In your browser, each photo is shrunk to 1600 px on the long edge, turned the right way up, and stripped of camera and location data. The month it was taken is read when the photo carries it.
+3. **Lay out the slides.** They sit in mounts on a lit table. Click one to look closer and write a caption (it goes on the projector's label tape), the month taken, and a description for screen readers. Untick **In projector** to set a slide aside, or remove it from the collection.
+4. **Publish.** One commit uploads the new slides and the updated `slides.json`. The projector picks it up in a minute or two.
 
-For each new photo it makes a web-size copy (1600 px on the long edge), turns it the right way up, removes camera and location data, and reads the month it was taken. It offers to caption them (each opens in Preview while you type), commits, and publishes after you say yes. Your originals are never changed; they move into **Slideshow › Added** so the next run only sees new ones. Photos already on the projector are skipped.
+Safari reads iPhone HEIC photos directly. Chrome can't; if a HEIC won't open there, use Safari or export it as JPEG.
 
-The first run makes the Slideshow folder and opens it in Finder if it isn't there yet. To use a different folder or a single zip, name it: `node scripts/darkroom.mjs ~/Downloads/Photos-001.zip`. Add `--no-push` to stop after the local commit.
+### Or from the command line
 
-To change a caption, edit `slides.json`. To take a photo out of rotation without deleting it, add `"hidden": true` to its entry. To remove it entirely, delete its entry and its file.
-
-Optional shortcut, run once from your copy of this repo, so `gh darkroom` works from any folder:
-
-```bash
-gh alias set --shell darkroom "node '$PWD/scripts/darkroom.mjs' \"\$@\""
-```
+`node scripts/darkroom.mjs` does the same from **Pictures › Slideshow** on a Mac: drop photos (or a Google Photos zip) in that folder and run it. It commits and asks before publishing. Both tools name slides the same way, so a photo added by one is recognized by the other.

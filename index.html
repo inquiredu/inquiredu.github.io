@@ -268,7 +268,7 @@ noscript ul{font-family:var(--font-sans)}
 .pj-frame{position:absolute; inset:0; margin:0; animation:pjWeave 4.8s steps(1) infinite}
 .pj-frame img{
   position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain;
-  filter:sepia(.14) saturate(1.06) contrast(1.05) brightness(1.02);
+  filter:saturate(1.16) contrast(1.08) brightness(1.03) sepia(.05);   /* slide film: rich color, deep shadows, a warm lamp */
   transition:opacity 160ms linear;
 }
 .pj-gate:not(.lit) .pj-frame img{opacity:0}
