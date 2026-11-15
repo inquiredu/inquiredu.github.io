@@ -1,6 +1,6 @@
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, metadataFromExif, metadataRows, publicSlides } from '../assets/photo-notes.mjs';
-import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs';
+import { GitHub, SITE, PRIVATE, publicProjects, publicContent, json, safeURL } from './core.mjs?v=20261115.1';
 const $ = id => document.getElementById(id);
 const make = (tag, text, cls) => { const e = document.createElement(tag); if (text) e.textContent = text; if (cls) e.className = cls; return e; };
 let github, config, popup, channel, catalog, content, photos, revisions = {}, active = 'projects', busy = false;
