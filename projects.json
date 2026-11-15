@@ -1,136 +1,136 @@
 {
   "version": 1,
-  "updated": "2026-11-13",
+  "updated": "2026-11-15",
   "projects": [
     {
       "id": "what-we-talk-about",
       "repo": "what-we-talk-about",
-      "visible": true,
       "featured": true,
       "call": "371.33 WHA",
       "title": "What We Talk About",
       "status": "Live",
       "group": "live",
       "subject": "AI · School leadership · Trust",
-      "note": "Trust, tech and learning. A workshop for school leaders, with a mini-kit and five AI leadership kits.",
+      "note": "A workshop for school leaders on trust, technology, and learning, with a mini-kit and five AI leadership kits.",
+      "visible": true,
       "url": "https://inquiredu.org/what-we-talk-about/"
     },
     {
       "id": "ai-edu-kits",
       "repo": "ai-edu-kits",
-      "visible": true,
       "call": "371.2 AIL",
       "title": "AI Leadership Kits",
       "status": "Open source",
       "group": "source",
       "subject": "AI · School administration",
       "note": "Five small AI systems for work school leaders already do, from translating policy to reviewing vendor contracts. A reviewer checks every output, and people make the decisions.",
+      "visible": true,
       "url": "https://github.com/inquiredu/ai-edu-kits"
     },
     {
       "id": "considering-ai-code",
       "repo": "considering-ai-code",
-      "visible": true,
       "call": "371.334 BUI",
       "title": "Building with AI",
       "status": "Draft",
       "group": "live",
       "subject": "AI · Minnesota schools · Student data privacy",
-      "note": "The essential questions a Minnesota school organization should answer before its people build and share their own tools with AI. Written against Minnesota and federal student privacy law. A draft for review.",
+      "note": "Essential questions for a Minnesota school organization before its people build and share AI tools. Written with Minnesota and federal student privacy law in mind. A draft for review.",
+      "visible": true,
       "url": "https://inquiredu.org/considering-ai-code/"
     },
     {
       "id": "a-mn-hackathon",
       "repo": "a-mn-hackathon",
-      "visible": true,
       "call": "006.3 HAN",
       "title": "Hands On",
       "status": "Live",
       "group": "live",
       "subject": "AI · Hackathon · MNGAIA / AI4MN",
       "note": "A Friday hackathon to play, build, and break things with AI, together. October 9, 2026.",
+      "visible": true,
       "url": "https://inquiredu.org/a-mn-hackathon/"
     },
     {
       "id": "git-guide",
       "repo": "git-guide",
-      "visible": true,
       "call": "371.334 YOU",
       "title": "Your own GitHub",
       "status": "Live",
       "group": "live",
       "subject": "Guides · Educators · Web publishing",
       "note": "An evergreen guide that takes K-12 educators from no GitHub account to a live site in an afternoon, knowing which risks are real.",
+      "visible": true,
       "url": "https://inquiredu.org/git-guide/"
     },
     {
       "id": "claude-code-field-guide",
       "repo": "claude-code-field-guide",
-      "visible": true,
       "call": "006.3 CLA",
       "title": "Claude Field Guide",
       "status": "Live",
       "group": "live",
       "subject": "Claude · AI tools · Learning paths",
       "note": "A free, hands-on learning site for using Claude well, built from viral Claude cheat sheets and checked against Anthropic's own documentation.",
+      "visible": true,
       "url": "https://inquiredu.org/claude-code-field-guide/"
     },
     {
       "id": "hype-explorer",
       "repo": "hype-explorer",
-      "visible": true,
       "call": "303.483 HYP",
       "title": "Hype Explorer",
       "status": "Live",
       "group": "live",
       "subject": "Technology change · Data visualization",
       "note": "An interactive 3D field of overlapping technology waves that compares how different roles in education experience them. Uses illustrative sample data.",
+      "visible": true,
       "url": "https://inquiredu.org/hype-explorer/"
     },
     {
       "id": "learninglibrarypal",
       "repo": "LearningLibraryPal",
-      "visible": true,
       "call": "025.04 LEA",
       "title": "LearningLibraryPal",
       "status": "Pilot",
       "group": "source",
       "subject": "Learning libraries · Facilitation",
       "note": "Turns a facilitator's materials into a shareable learning library with resources, an agenda, inquiry questions, and optional AI learning companions.",
+      "visible": true,
       "url": "https://github.com/inquiredu/LearningLibraryPal"
     },
     {
       "id": "public-domain-finder",
       "repo": "public-domain-finder",
-      "visible": true,
       "call": "000 PUB",
       "title": "Public Domain Finder",
       "status": "In progress",
       "group": "workshop",
       "subject": "",
-      "note": ""
+      "note": "",
+      "visible": true
     },
     {
       "id": "present-kit",
       "repo": "present-kit",
-      "visible": true,
       "call": "000 PRE",
       "title": "Present Kit",
       "status": "In progress",
       "group": "workshop",
       "subject": "",
-      "note": "The Present Standard and its starter kit: one deck file, a stage, speaker notes in a second window, and a review that prints as the backup. inquiredu, by Sean Beaverson."
+      "note": "The Present Standard and its starter kit: one deck file, a stage, speaker notes in a second window, and a review that prints as the backup. inquiredu, by Sean Beaverson.",
+      "visible": true
     },
     {
       "id": "publicprivacypal",
       "repo": "PublicPrivacyPal",
-      "visible": true,
       "call": "000 PUB",
       "title": "PublicPrivacyPal",
       "status": "In progress",
       "group": "workshop",
       "subject": "",
-      "note": ""
+      "note": "",
+      "visible": true
     }
   ]
 }
