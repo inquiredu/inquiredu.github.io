@@ -247,6 +247,98 @@ noscript ul{font-family:var(--font-sans)}
   .fields div{grid-template-columns:minmax(0,1fr); gap:2px}
 }
 
+/* ---------- the bench: terminal and projector side by side on wide screens ---------- */
+.bench{display:grid; grid-template-columns:minmax(0,1fr); gap:clamp(48px,7vw,72px)}
+@media (min-width:1320px){
+  .bench.with-slides{
+    --bench:min(1480px, calc(100vw - 64px));
+    width:var(--bench); margin-inline:calc((100% - var(--bench)) / 2);
+    grid-template-columns:minmax(0,1.32fr) minmax(0,1fr); gap:40px; align-items:start;
+  }
+}
+
+/* ---------- the slide projector: same chassis, warm lamp instead of phosphor ---------- */
+.projector{container-type:inline-size; container-name:proj; font-family:var(--font-mono)}
+.projector .chassis{padding-bottom:1.2rem}
+.pj-gate{
+  position:relative; overflow:hidden; aspect-ratio:3/2; border-radius:.9rem; border:9px solid #0a0a0a; cursor:pointer;
+  background:#0b0d10; box-shadow:inset 0 0 40px #000, 0 0 10px rgba(0,0,0,.8);
+}
+.pj-gate.lit{background:radial-gradient(ellipse at 50% 48%, #2a251d, #121110 72%)}
+.pj-frame{position:absolute; inset:0; margin:0; animation:pjWeave 4.8s steps(1) infinite}
+.pj-frame img{
+  position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:contain;
+  filter:sepia(.14) saturate(1.06) contrast(1.05) brightness(1.02);
+  transition:opacity 160ms linear;
+}
+.pj-gate:not(.lit) .pj-frame img{opacity:0}
+/* lamp hotspot, lens falloff, and a little dust on the slide */
+.pj-glow{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 46%, rgba(255,236,204,.16), transparent 58%); mix-blend-mode:screen; animation:pjFlicker 5.5s ease-in-out infinite}
+.pj-falloff{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(0,0,0,.62) 100%)}
+.pj-dust{
+  position:absolute; inset:0; pointer-events:none; opacity:.5; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><g fill='none' stroke='%23000' stroke-linecap='round' opacity='.55'><path d='M92 71c6 3 9 9 8 15' stroke-width='.9'/><path d='M471 302c-4 6-11 8-17 7' stroke-width='.8'/><path d='M318 44c8-1 13 3 15 9' stroke-width='.6'/></g><g fill='%23000' opacity='.45'><circle cx='140' cy='290' r='1.4'/><circle cx='402' cy='118' r='1'/><circle cx='530' cy='64' r='1.6'/><circle cx='61' cy='188' r='.9'/><circle cx='255' cy='355' r='1.2'/><circle cx='488' cy='212' r='.8'/></g></svg>");
+  background-size:100% 100%;
+}
+.pj-gate:not(.lit) .pj-glow,.pj-gate:not(.lit) .pj-dust{display:none}
+.pj-gate.changing .pj-frame img{animation:pjDrop .5s cubic-bezier(.6,0,.3,1)}
+.pj-gate:focus-visible{box-shadow:0 0 0 3px #000, 0 0 0 5px var(--sun)}
+.pj-off-note{position:absolute; inset:0; display:grid; place-items:center; font:600 12px/1 var(--font-sans); letter-spacing:.2em; text-transform:uppercase; color:#4a4f55}
+.pj-gate.lit .pj-off-note{display:none}
+
+/* the caption, on embossed label tape stuck under the gate */
+.pj-label-row{display:flex; justify-content:center; padding-top:1rem; min-height:2.6rem}
+.pj-label{
+  display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  padding:6px 14px 5px; border-radius:2px; transform:rotate(-.6deg);
+  background:linear-gradient(#cf8957, #b06d40); color:#FAF3EA;
+  font:600 13px/1.2 var(--font-mono); letter-spacing:.16em; text-transform:uppercase;
+  text-shadow:0 1px 0 rgba(0,0,0,.35), 0 -1px 0 rgba(255,255,255,.3);
+  box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 2px 3px rgba(0,0,0,.6);
+}
+
+.pj-deck{display:flex; justify-content:space-between; align-items:center; gap:18px; flex-wrap:wrap; padding-top:1rem; font-family:var(--font-sans)}
+.pj-tray{display:flex; align-items:center; gap:12px}
+.pj-tray svg{width:64px; height:64px; display:block; transition:transform 500ms cubic-bezier(.6,0,.3,1)}
+.pj-count{display:flex; flex-direction:column; gap:5px; font:700 10px/1 var(--font-sans); letter-spacing:.2em; text-transform:uppercase; color:#8d9298; text-shadow:0 -1px 0 #000}
+.pj-count b{font:600 18px/1 var(--font-mono); letter-spacing:.04em; color:#F4AE72; text-shadow:0 0 6px rgba(244,174,114,.45); font-variant-numeric:tabular-nums}
+.pj-keys{display:flex; gap:6px}
+.pj-key{
+  width:46px; height:34px; border:0; border-radius:6px; cursor:pointer; display:grid; place-items:center;
+  background:linear-gradient(#4a4f55, #24282c); box-shadow:0 3px 0 #0b0c0d, 0 4px 8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.16);
+  color:#c9cdd1; font:700 10px/1 var(--font-sans); letter-spacing:.14em;
+}
+.pj-key:active{transform:translateY(2px); box-shadow:0 1px 0 #0b0c0d, 0 2px 4px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1)}
+.pj-key svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+.pj-switch{position:relative; display:flex; align-items:center; gap:8px; padding:0; background:none; border:0; cursor:pointer; font:inherit; color:inherit; letter-spacing:inherit; text-shadow:inherit}
+.pj-switch .track{position:relative; width:44px; height:20px; border-radius:10px; background:#0a0b0c; box-shadow:inset 0 2px 4px #000, 0 1px 0 rgba(255,255,255,.08)}
+.pj-switch .knob{position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #e8e8e8, #7b7f84 70%); box-shadow:0 1px 3px #000; transition:transform 180ms var(--ease-out)}
+.pj-switch[aria-pressed="true"] .knob{transform:translateX(24px)}
+.pj-switch .opt{opacity:.55}
+.pj-switch[aria-pressed="false"] .opt.man,.pj-switch[aria-pressed="true"] .opt.auto{opacity:1; color:#F4AE72; text-shadow:0 0 6px rgba(244,174,114,.45)}
+.pj-led{width:8px; height:8px; border-radius:50%; background:#2a2c2e; box-shadow:inset 0 1px 1px #000}
+.pj-led.on{background:#F4AE72; box-shadow:0 0 8px rgba(244,174,114,.7), 0 0 2px #F4AE72}
+.slides-note{margin-top:16px; font:400 13px/1.5 var(--font-mono); color:var(--fg-2)}
+
+@container proj (max-width: 560px){
+  .projector .chassis{padding:1.6rem 1.1rem 1.9rem; border-radius:1.4rem}
+  .projector .screw.s1,.projector .screw.s3{left:9px} .projector .screw.s2,.projector .screw.s4{right:9px}
+  .projector .screw.s1,.projector .screw.s2{top:8px} .projector .screw.s3,.projector .screw.s4{bottom:8px}
+  .pj-gate{border-width:6px; border-radius:.7rem}
+  .pj-plate-text{display:none}
+  .pj-deck{gap:12px}
+  .pj-tray svg{width:52px; height:52px}
+}
+
+@keyframes pjDrop{
+  0%{opacity:1; transform:none}
+  30%{opacity:0; transform:translateY(-1.5%)}
+  58%{opacity:0; transform:translateY(2.5%)}
+  100%{opacity:1; transform:none}
+}
+@keyframes pjWeave{0%{transform:none} 25%{transform:translate(.4px,-.3px)} 50%{transform:translate(-.3px,.4px)} 75%{transform:translate(.2px,.2px)}}
+@keyframes pjFlicker{0%,100%{opacity:1} 40%{opacity:.86} 43%{opacity:.97} 70%{opacity:.92}}
+
 @keyframes crtScanline{0%{transform:translateY(-100%)}100%{transform:translateY(800%)}}
 @keyframes turnOnCRT{
   0%{transform:scale(1,.006); filter:brightness(6); opacity:.9}
@@ -273,6 +365,8 @@ noscript ul{font-family:var(--font-sans)}
   .screen,.crt.booting .screen{animation:none}
   .crt.off .screen{animation:none; opacity:0}
   .glass::after,.cursor,.card.glitch{animation:none}
+  .pj-frame,.pj-glow,.pj-gate.changing .pj-frame img{animation:none}
+  .pj-tray svg{transition:none}
 }
 </style>
 </head>
@@ -309,8 +403,9 @@ noscript ul{font-family:var(--font-sans)}
 
   <div class="horizon" aria-hidden="true"><span></span><span></span></div>
 
+  <main class="bench" id="bench">
   <!-- Library -->
-  <main>
+  <section class="station" aria-label="Project library">
     <div class="library-head">
       <h2 class="eyebrow">The project library</h2>
       <p id="libraryNote">Loading the catalog.</p>
@@ -382,6 +477,71 @@ noscript ul{font-family:var(--font-sans)}
     <p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p>
 
     <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
+  </section>
+
+  <!-- Slides: shown once slides.json has at least one slide -->
+  <section class="station" id="slidesStation" aria-labelledby="slidesHead" hidden>
+    <div class="library-head">
+      <h2 class="eyebrow" id="slidesHead">Slides</h2>
+      <p id="slidesNote">Loading the tray.</p>
+    </div>
+
+    <div class="projector" role="region" aria-roledescription="slide show" aria-label="Photographs">
+      <div class="chassis">
+        <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
+        <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
+
+        <div class="pj-gate lit" id="pjGate" title="Next slide">
+          <figure class="pj-frame"><img id="pjImg" alt=""></figure>
+          <div class="pj-glow" aria-hidden="true"></div>
+          <div class="pj-dust" aria-hidden="true"></div>
+          <div class="pj-falloff" aria-hidden="true"></div>
+          <div class="pj-off-note" aria-hidden="true">Lamp off</div>
+        </div>
+
+        <div class="pj-label-row"><span class="pj-label" id="pjLabel" aria-live="polite"></span></div>
+
+        <div class="pj-deck">
+          <div class="plate">
+            <img src="assets/mark-reversed.png" alt="" width="34" height="32">
+            <div class="engrave pj-plate-text"><span>Slide projector</span><span class="model">Model &gt;0</span></div>
+          </div>
+          <div class="pj-tray">
+            <svg id="pjTray" viewBox="-50 -50 100 100" aria-hidden="true"></svg>
+            <div class="pj-count"><span>Slide</span><b id="pjNum">00</b></div>
+          </div>
+          <div class="controls">
+            <div class="ctl">
+              <span>Rev · Fwd</span>
+              <div class="pj-keys">
+                <button class="pj-key" id="pjRev" type="button" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button class="pj-key" id="pjFwd" type="button" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+              </div>
+            </div>
+            <div class="ctl">
+              <span>Advance</span>
+              <button class="pj-switch" id="pjAuto" type="button" aria-pressed="true" aria-label="Advance slides automatically">
+                <span class="opt man">Man</span>
+                <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                <span class="opt auto">Auto</span>
+              </button>
+            </div>
+            <div class="ctl">
+              <span>Lamp</span>
+              <div style="display:flex; align-items:center; gap:10px">
+                <span class="pj-led on" id="pjLed" aria-hidden="true"></span>
+                <button class="power" id="pjLamp" type="button" aria-pressed="true" aria-label="Projector lamp">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="slides-note">A new tray loads each day. Photographs by Sean Beaverson.</p>
+  </section>
   </main>
 
   <footer>
@@ -556,6 +716,164 @@ noscript ul{font-family:var(--font-sans)}
   if (mq.addEventListener) mq.addEventListener('change', renderLamp);
   new MutationObserver(renderLamp).observe(root, { attributes:true, attributeFilter:['data-theme'] });
   renderLamp();
+})();
+</script>
+<script>
+/* ---------- slide projector ----------
+   Slides come from slides.json, which scripts/darkroom.mjs fills from Google Photos.
+   Each day loads a tray of up to `tray` slides drawn from the whole collection.
+   Everyone sees the same tray on a given day (Minnesota time). */
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var station = $('slidesStation'), bench = $('bench'), gate = $('pjGate'), img = $('pjImg');
+  var label = $('pjLabel'), num = $('pjNum'), trayEl = $('pjTray'), autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed');
+  var SVGNS = 'http://www.w3.org/2000/svg', DWELL = 7000;
+  var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var slides = [], at = 0, angle = 0, spin = null;
+  var lit = true, auto = !reduce, visible = false, hovering = false, timer = null;
+  var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+
+  /* the same shuffle for everyone on the same day */
+  function today(){
+    try { return new Date().toLocaleDateString('en-CA', { timeZone:'America/Chicago' }); }
+    catch (e) { return new Date().toISOString().slice(0, 10); }
+  }
+  function seeded(str){
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return function(){
+      h = (h + 0x6D2B79F5) | 0; var t = h;
+      t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function trayFor(pool, size, day){
+    var a = pool.slice(), rnd = seeded(day);
+    for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a.slice(0, size);
+  }
+
+  /* captions */
+  function taken(s, names){
+    var m = /^(\d{4})(?:-(\d{2}))?/.exec(s.taken || '');
+    if (!m) return '';
+    return (m[2] ? names[+m[2] - 1] + ' ' : '') + m[1];
+  }
+  function labelText(s, i){
+    var parts = [s.caption, taken(s, MON)].filter(Boolean);
+    return parts.length ? parts.join(' · ') : 'Slide ' + pad(i + 1);
+  }
+  function altText(s){
+    if (s.alt) return s.alt;
+    var when = taken(s, MONTH);
+    return (s.caption ? s.caption + '. ' : '') + 'Photograph by Sean Beaverson' + (when ? ', ' + when : '') + '.';
+  }
+
+  /* the round tray, seen from above; the lit slot is the one in the gate */
+  function drawTray(n){
+    trayEl.innerHTML = '';
+    var mk = function(tag, attrs, parent){ var el = document.createElementNS(SVGNS, tag); for (var k in attrs) el.setAttribute(k, attrs[k]); (parent || trayEl).appendChild(el); return el; };
+    mk('circle', { r: 47, fill: '#0a0b0c' });
+    spin = mk('g', {});
+    spin.style.transition = reduce ? 'none' : 'transform 500ms cubic-bezier(.6,0,.3,1)';
+    mk('circle', { r: 45, fill: '#1d2124', stroke: '#2f3439', 'stroke-width': 1 }, spin);
+    for (var k = 0; k < n; k++){
+      var a = (k * 360 / n - 90) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      mk('line', { x1: (c * 21).toFixed(2), y1: (s * 21).toFixed(2), x2: (c * 41).toFixed(2), y2: (s * 41).toFixed(2),
+        stroke: '#0b0c0d', 'stroke-width': n > 40 ? 2 : 3, 'stroke-linecap': 'round', 'data-k': k }, spin);
+    }
+    mk('circle', { r: 15, fill: '#2a2e33', stroke: '#0b0c0d', 'stroke-width': 1.5 }, spin);
+    mk('circle', { r: 4, fill: '#0b0c0d' }, spin);
+    mk('path', { d: 'M-4 -49 L4 -49 L0 -43 Z', fill: '#F4AE72' });   /* fixed pointer at the gate */
+  }
+  function markSlot(){
+    if (!spin) return;
+    Array.prototype.forEach.call(spin.querySelectorAll('line'), function(l){
+      l.setAttribute('stroke', +l.getAttribute('data-k') === at ? '#F4AE72' : '#0b0c0d');
+    });
+  }
+
+  function preload(i){ var s = slides[(i + slides.length) % slides.length]; if (s){ var p = new Image(); p.src = s.src; } }
+  function show(i, animate){
+    at = (i + slides.length) % slides.length;
+    var s = slides[at];
+    var apply = function(){
+      img.src = s.src; img.alt = altText(s);
+      if (s.width && s.height){ img.width = s.width; img.height = s.height; }
+      label.textContent = labelText(s, at);
+      num.textContent = pad(at + 1);
+      markSlot(); preload(at + 1);
+    };
+    if (animate && lit && !reduce){
+      gate.classList.remove('changing'); void gate.offsetWidth; gate.classList.add('changing');
+      setTimeout(apply, 210);
+    } else apply();
+  }
+  function step(dir){
+    if (slides.length < 2) return;
+    angle -= dir * 360 / slides.length;
+    if (spin) spin.style.transform = 'rotate(' + angle + 'deg)';
+    show(at + dir, true);
+  }
+
+  /* automatic advance: only while the projector is on screen, lit, and not being looked at closely */
+  function schedule(){
+    clearTimeout(timer);
+    label.setAttribute('aria-live', auto ? 'off' : 'polite');
+    if (auto && lit && visible && !hovering && !document.hidden && slides.length > 1){
+      timer = setTimeout(function(){ step(1); schedule(); }, DWELL);
+    }
+  }
+  function manual(dir){ step(dir); schedule(); }
+
+  gate.addEventListener('click', function(){ if (lit) manual(1); });
+  $('pjFwd').addEventListener('click', function(){ manual(1); });
+  $('pjRev').addEventListener('click', function(){ manual(-1); });
+  station.addEventListener('keydown', function(e){
+    if (e.target.closest && e.target.closest('input, textarea')) return;
+    if (e.key === 'ArrowRight'){ e.preventDefault(); manual(1); }
+    if (e.key === 'ArrowLeft'){ e.preventDefault(); manual(-1); }
+  });
+  autoBtn.addEventListener('click', function(){
+    auto = !auto; autoBtn.setAttribute('aria-pressed', String(auto)); schedule();
+  });
+  lampBtn.addEventListener('click', function(){
+    lit = !lit;
+    gate.classList.toggle('lit', lit); led.classList.toggle('on', lit);
+    lampBtn.setAttribute('aria-pressed', String(lit));
+    img.setAttribute('aria-hidden', String(!lit));
+    schedule();
+  });
+  station.addEventListener('mouseenter', function(){ hovering = true; schedule(); });
+  station.addEventListener('mouseleave', function(){ hovering = false; schedule(); });
+  station.addEventListener('focusin', function(){ hovering = true; schedule(); });
+  station.addEventListener('focusout', function(e){ if (!station.contains(e.relatedTarget)){ hovering = false; schedule(); } });
+  document.addEventListener('visibilitychange', schedule);
+  if ('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){ visible = entries[0].isIntersecting; schedule(); }, { threshold: .35 }).observe(gate);
+  } else visible = true;
+
+  function start(data){
+    var pool = (data.slides || []).filter(function(s){ return s && s.src && !s.hidden; });
+    if (!pool.length) return;
+    var size = Math.max(1, Math.min(+data.tray || 24, 80));
+    slides = trayFor(pool, size, today());
+    station.hidden = false;
+    bench.classList.add('with-slides');
+    $('slidesNote').textContent = pool.length > slides.length
+      ? 'Today’s tray: ' + slides.length + ' of ' + pool.length + ' slides.'
+      : (slides.length === 1 ? 'One slide.' : slides.length + ' slides.');
+    autoBtn.setAttribute('aria-pressed', String(auto));
+    drawTray(slides.length);
+    show(0, false);
+    schedule();
+  }
+  fetch('slides.json', { cache: 'no-cache' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if (d) start(d); })
+    .catch(function(){ /* no slides yet: the projector stays put away */ });
 })();
 </script>
 </body>
