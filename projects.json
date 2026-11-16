@@ -3,6 +3,19 @@
   "updated": "2026-11-16",
   "projects": [
     {
+      "id": "lirn-literacy-ai",
+      "repo": "lirn-literacy-ai",
+      "featured": true,
+      "call": "000 LIR",
+      "title": "Lirn Literacy AI",
+      "status": "Live",
+      "group": "live",
+      "subject": "",
+      "note": "",
+      "visible": true,
+      "url": "https://inquiredu.org/lirn-literacy-ai/"
+    },
+    {
       "id": "what-we-talk-about",
       "repo": "what-we-talk-about",
       "featured": true,
