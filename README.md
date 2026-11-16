@@ -14,7 +14,7 @@ Both are written together, private first, by either of the two ways below. Don't
 
 ## The studio: sign in and edit
 
-The browser editor at [`/admin/`](https://inquiredu.org/admin/) manages projects, photographs, writing, song lists, and the introduction. It uses **Sign in with GitHub** for the inquiredu owner. Connect it once using [the authentication setup](auth/README.md); until then its sign-in button stays disabled. The public page stays open to visitors.
+The browser editor at [`/admin/`](https://inquiredu.org/admin/) manages projects, photographs, writing, song lists, and the introduction. It uses the site's early-winter palette and follows the same desk lamp: slate night with the lamp off, snow with it on. It uses **Sign in with GitHub** for the inquiredu owner. Connect it once using [the authentication setup](auth/README.md); until then its sign-in button stays disabled. The public page stays open to visitors.
 
 **Add a project** opens a searchable repository picker. It combines live public repositories, repositories available to the current GitHub sign-in, and the private saved repository index. Existing shelf entries reopen for editing without duplicates; a new selection fills a hidden draft with its title, description, link, and topics. Review it before publishing. **Add without a repository** keeps manual project creation available. Private repositories outside the app’s approved access depend on the saved index and its checked date.
 

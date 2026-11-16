@@ -30,7 +30,7 @@ The sign-in button intentionally stays disabled until the Worker URL is configur
 ## Security and publishing behavior
 
 - OAuth uses signed, ten-minute, HttpOnly Secure state cookies and S256 PKCE. The callback checks the numeric GitHub owner ID before returning a token.
-- Tokens travel only to the configured site origin via a checked popup message. The editor additionally checks the popup, per-attempt channel, user ID, and access to both repositories. Tokens stay in tab memory and are cleared on sign-out; there are no analytics or third-party scripts in the editor.
+- Tokens travel only to the configured site origin via a checked popup message. The editor additionally checks the popup, per-attempt channel, user ID, and access to both repositories. Tokens stay in tab memory and are cleared on sign-out; there are no analytics or third-party scripts in the editor. Its only outside requests besides GitHub and the Worker are the site's Google Fonts stylesheet and font files (Montserrat and IBM Plex Mono), sent without a referrer.
 - The `/admin/` page shell is public, like a sign-in page. Private catalog data and write operations require GitHub authorization. The preview URL `?preview=1` loads public data only and disables publishing.
 - Private project data remains in `site-catalog/catalog.json`. Writing and song-list drafts are in `site-catalog/content.json`. Only explicitly published entries are projected to the public `content.json`.
 - Private and public saves are separate GitHub writes. The editor saves private data first. If public publishing fails, it reports the failure and keeps in-memory edits; private drafts remain saved. File SHAs prevent silent overwrites. Reload after an external update before retrying.
