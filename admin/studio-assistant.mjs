@@ -1,4 +1,5 @@
 import {studioRequest} from './ai-client.mjs?v=20261115.12';
+import {readRepoContext} from './repo-context.mjs?v=20261116.1';
 const make=(tag,text,cls)=>{const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;return el;};
 const button=(text,run)=>{const el=make('button',text);el.type='button';el.onclick=run;return el;};
 const names={projects:'Projects',writing:'Writing',playlists:'Listening',videos:'Videos',about:'Introduction'};
@@ -10,27 +11,41 @@ export function applyAssistantEdits(item,before,edits) {
   let applied=0;for(const edit of edits){if(typeof edit.value==='string'&&Object.hasOwn(before,edit.field)&&String(item[edit.field]||'')===before[edit.field]){item[edit.field]=edit.value;applied++;}}return applied;
 }
 function dialog(title){const el=make('dialog','','studio-ai-dialog');el.append(button('Close ×',()=>el.close()),make('p','PRIVATE STUDIO','eyebrow'),make('h2',title));document.body.append(el);el.addEventListener('close',()=>el.remove());el.showModal();return el;}
-export function openAssistant({origin,token,active,data,onApply}) {
+export function defaultInstruction(kind,context) {
+  if(kind==='projects'&&(context.readme||context.repository))return ['title','note','subject'].some(key=>!String(context[key]||'').trim())?'Fill in the empty fields from the repository README and details, and tighten the rest. Keep my voice and only use facts the repository supports.':'Check this card against the repository README and details. Suggest clearer, concise wording where it helps, and note anything the card gets wrong.';
+  return 'Suggest clearer, concise wording while preserving my voice and the supplied facts.';
+}
+export function openAssistant({origin,token,github,active,data,onApply}) {
   const modal=dialog('A second pair of eyes.'),section=make('select'),entry=make('select'),request=make('textarea'),result=make('section','','assistant-result');
   section.setAttribute('aria-label','Section to work on');entry.setAttribute('aria-label','Draft to work on');request.setAttribute('aria-label','What would you like help with?');
   for(const [key,name] of Object.entries(names))section.append(new Option(name,key));section.value=Object.hasOwn(names,active)?active:'about';
   request.placeholder='e.g. Make this introduction clearer, keep my voice, and suggest a short title.';
-  const note=make('p','Only the selected draft and your request go to OpenAI. Every change stays a suggestion until you apply it. Links alone do not let the assistant watch a video or read a full article.','muted');
-  let items=[];
-  function choose(){items=section.value==='about'?[data.content]:section.value==='projects'?data.catalog.projects:data.content[section.value]||[];entry.replaceChildren();for(const [i,item] of items.entries())entry.append(new Option(item.title||'Site introduction',String(i)));entry.disabled=!items.length;result.replaceChildren();}
-  section.onchange=choose;entry.onchange=()=>result.replaceChildren();choose();
+  const note=make('p','','muted'),repoOption=make('label','','check'),readRepo=make('input');
+  readRepo.type='checkbox';readRepo.checked=true;repoOption.append(readRepo,document.createTextNode(' Read the linked repository first (README, description, topics)'));
+  let items=[],service=null;
+  function explain(){const project=section.value==='projects';repoOption.hidden=!project;note.textContent=project&&readRepo.checked?'The selected card, your request, and the linked repository’s README and details go to OpenAI. The README is read with your sign-in, in this tab. Every change stays a suggestion until you apply it.':'Only the selected draft and your request go to OpenAI. Every change stays a suggestion until you apply it. Links alone do not let the assistant watch a video or read a full article.';}
+  function choose(){items=section.value==='about'?[data.content]:section.value==='projects'?data.catalog.projects:data.content[section.value]||[];entry.replaceChildren();for(const [i,item] of items.entries())entry.append(new Option(item.title||'Site introduction',String(i)));entry.disabled=!items.length;result.replaceChildren();explain();}
+  section.onchange=choose;entry.onchange=()=>result.replaceChildren();readRepo.onchange=explain;choose();
   const run=button('Ask the studio',async()=>{
     const kind=section.value,item=items[+entry.value];if(!item){result.textContent='Add a draft in this section first.';return;}
     const context=assistantContext(kind,item);for(const key of fields[kind])if(!Object.hasOwn(context,key))context[key]='';
-    const before={...context};run.disabled=true;section.disabled=entry.disabled=true;result.textContent='Thinking with your draft…';
+    const before={...context};run.disabled=true;section.disabled=entry.disabled=readRepo.disabled=true;let read=null;
     try{
-      const draft=await studioRequest(origin,token,'/ai/assist',{kind,context,instruction:request.value.trim()||'Suggest clearer, concise wording while preserving my voice and the supplied facts.'});
-      result.replaceChildren(make('p',draft.summary));
+      if(kind==='projects'&&readRepo.checked){
+        result.textContent='Reading the repository…';
+        [read,service]=await Promise.all([readRepoContext(github,item.repo),service||studioRequest(origin,token,'/ai/config',{}).catch(()=>({}))]);
+        if(read.readme)context.readme=read.readme;if(read.repository)context.repository=read.repository;
+      }
+      result.textContent='Thinking with your draft…';
+      const draft=await studioRequest(origin,token,'/ai/assist',{kind,context,instruction:request.value.trim()||defaultInstruction(kind,context)});
+      result.replaceChildren();
+      if(read){result.append(make('p',read.message,'muted'));if(read.read&&!service?.repoContext)result.append(make('p','The studio service is an older version and ignored the repository details. Redeploy the Worker in auth/ to turn this on.','failed'));}
+      result.append(make('p',draft.summary));
       for(const edit of draft.suggestions||[]){const card=make('div','','ai-proposal');card.append(make('small',edit.field),make('p',edit.value));const use=button('Use this suggestion',()=>{const count=applyAssistantEdits(item,before,[edit]);if(count){onApply(kind);use.disabled=true;use.textContent='Added to draft';}else{use.disabled=true;use.textContent='Your newer edit was kept';}});card.append(use);result.append(card);}
       if(draft.notes)result.append(make('p',draft.notes,'muted'));result.append(make('small','Review your draft, then Save & publish when ready.'));
-    }catch(error){result.textContent=error.message;}finally{run.disabled=false;section.disabled=false;entry.disabled=!items.length;}
+    }catch(error){result.textContent=error.message;}finally{run.disabled=false;section.disabled=readRepo.disabled=false;entry.disabled=!items.length;}
   });
-  modal.append(note,make('label','Section'),section,make('label','Draft'),entry,make('label','What would you like help with?'),request,run,result);
+  modal.append(note,make('label','Section'),section,make('label','Draft'),entry,repoOption,make('label','What would you like help with?'),request,run,result);
 }
 export async function testAIConnection({origin,token,onResult}) {
   const modal=dialog('Check the AI connection.'),list=make('ol','','connection-checks');modal.append(make('p','Checks sign-in, a photo-sized upload, and a real AI response. No photos or private draft text are sent.','muted'),list);
