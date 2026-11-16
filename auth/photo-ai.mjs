@@ -72,7 +72,7 @@ export async function photoAI(request, env, transport=fetch) {
     const profile=await transport('https://api.github.com/user',{headers:{Authorization:authorization,Accept:'application/vnd.github+json','User-Agent':'inquiredu-studio','X-GitHub-Api-Version':'2022-11-28'},signal:AbortSignal.timeout(10000)});
     if(!profile.ok||(await profile.json()).id!==Number(env.OWNER_ID))return reply({error:'Sign in as the owner of this studio.'},403,origin);
   }catch{return reply({error:'GitHub could not verify your sign-in. Try again.'},502,origin);}
-  if(path==='/ai/config')return reply({enabled:!!env.OPENAI_API_KEY,provider:'OpenAI',places:true,studio:true,connection:'same-origin-bridge'},200,origin);
+  if(path==='/ai/config')return reply({enabled:!!env.OPENAI_API_KEY,provider:'OpenAI',places:true,studio:true,repoContext:true,connection:'same-origin-bridge'},200,origin);
   if(path==='/ai/check'){
     try{const body=await readJSON(request);if(typeof body.probe!=='string'||body.probe.length>250000)throw Error();return reply({ok:true,receivedBytes:body.probe.length},200,origin);}
     catch{return reply({error:'Invalid connection test.'},400,origin);}

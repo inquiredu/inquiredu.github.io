@@ -1,4 +1,4 @@
-import {openAssistant,testAIConnection} from './studio-assistant.mjs?v=20261115.12';
+import {openAssistant,testAIConnection} from './studio-assistant.mjs?v=20261116.1';
 import {openVideoPicker} from './video-picker.mjs?v=20261115.14';
 import { parse as parseExif } from '../assets/vendor/exifr-7.1.3.mjs';
 import { EXIF_TAGS, LOCATION_TAGS, metadataFromExif, metadataRows, publicSlides, locationFromExif, safeLocation } from '../assets/photo-notes.mjs?v=20261115.2';
@@ -378,7 +378,7 @@ async function publish() {
 }
 $('tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b&&!busy){active=b.dataset.tab;render();}};
 $('publish').onclick=publish;
-$('aiHelp').onclick=()=>openAssistant({origin:config.authOrigin,token:github.token,active,data:{catalog,content},onApply:kind=>{dirty.add(kind==='projects'?'projects':'content');render();status('AI suggestion added to your draft. Review before publishing.');}});
+$('aiHelp').onclick=()=>openAssistant({origin:config.authOrigin,token:github.token,github,active,data:{catalog,content},onApply:kind=>{dirty.add(kind==='projects'?'projects':'content');render();status('AI suggestion added to your draft. Review before publishing.');}});
 $('aiTest').onclick=()=>testAIConnection({origin:config.authOrigin,token:github.token,onResult:ok=>{aiReady=ok;render();status(ok?'AI connection passed all checks.':'AI connection test stopped at the failed step.');}});
 $('reload').onclick=()=>{if(!dirty.size||confirm('Discard the edits in this tab and reload the saved collection?'))load();};
 $('signout').onclick=()=>{if(!dirty.size||confirm('Sign out and discard unsaved changes?')){github.token='';github=null;location.reload();}};
