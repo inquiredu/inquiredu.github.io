@@ -116,7 +116,7 @@ The Moving pictures section uses a wooden tube-TV enclosure with working power a
 
 ## Media and focus views
 
-Photographs use a larger, uncropped aperture with an image-derived glow behind the frame and compact controls beneath. The contact sheet, Places, camera notes, and kaleidoscope remain available. The glow follows successfully loaded slides and dims with the projector lamp.
+Photographs use a larger, uncropped aperture with an image-derived glow behind the frame and compact controls beneath. The contact sheet, Places, camera notes, and kaleidoscope remain available. The glow follows successfully loaded slides and dims with the projector lamp. A round slide tray and tactile controls sit below the image. Hide controls folds that panel away while keeping the caption and Show controls button available; the image still opens the contact sheet. The photograph remains the same size when controls are tucked away.
 
 Music and television have focus views that dim the surrounding page. Photographs stay in the inline viewfinder, without a focus mode. The shared focus helper promotes a persistent inline dialog, so provider iframes stay mounted while opening and closing it. Close restores the launcher focus. Escape works from page controls; an embedded provider may handle Escape inside its own frame, so the Close button remains visible. The television keeps its complete YouTube player inside a curved black surround, with no overlays over playback or native controls.
 

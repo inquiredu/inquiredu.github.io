@@ -15,7 +15,7 @@
 
 .photo-collection .viewfinder-head {
   min-height: 32px;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 12px;
   margin: 0 0 9px;
 }
@@ -128,14 +128,103 @@
 }
 
 .photo-collection .photo-player .projector-deck {
-  padding: 5px 11px 4px;
+  padding: 12px 14px 7px;
   background: #2b2a24;
   border-color: #565047;
 }
 
 .photo-collection .photo-player .deck-group {
-  justify-content: flex-start;
-  gap: clamp(5px, 1.2vw, 16px);
+  justify-content: space-between;
+  gap: clamp(8px, 1.2vw, 16px);
+}
+
+.photo-caption-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid #565047;
+  border-top: 0;
+  background: #171714;
+}
+
+.photo-controls-toggle {
+  flex: none;
+  min-height: 36px;
+  padding: 4px 0 4px 8px;
+  border: 0;
+  background: transparent;
+  color: #c7c9c4;
+  font: 400 10px/1.5 var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.photo-controls-toggle:hover,
+.photo-controls-toggle:focus-visible {
+  color: #f4f1eb;
+}
+
+.photo-controls-toggle:focus-visible {
+  outline: 2px solid var(--sun);
+  outline-offset: 2px;
+}
+
+.controls-collapsed .photo-caption-bar {
+  border-radius: 0 0 7px 7px;
+}
+
+.photo-tray-wheel {
+  position: relative;
+  width: clamp(44px, 5vw, 64px);
+  aspect-ratio: 1;
+  flex: none;
+  border: 3px solid #161b1f;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px #0009, inset 0 1px #ffffff20;
+  background: #22272a;
+}
+
+.photo-tray-wheel::before {
+  position: absolute;
+  z-index: 1;
+  top: -5px;
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 6px;
+  background: var(--sun);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  content: "";
+}
+
+.photo-tray-wheel i {
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: repeating-conic-gradient(#c3c8bf 0deg 5deg, #151b1d 5deg 15deg);
+  transition: transform 500ms cubic-bezier(.2,.7,.2,1);
+}
+
+.photo-tray-wheel::after {
+  position: absolute;
+  inset: 25%;
+  border: 1px solid #8a9285;
+  border-radius: 50%;
+  background: #1b2223;
+  box-shadow: 0 0 0 4px #232a27;
+  content: "";
+}
+
+:root:not([data-season="autumn"]) .photo-caption-bar {
+  border-color: #343c44;
+  background: #0b0d10;
+}
+
+:root:not([data-season="autumn"]) .photo-collection .photo-player .pj-label {
+  background: linear-gradient(#86aebd, #5e8597);
+  color: #f4f8fa;
 }
 
 .photo-readout {
@@ -149,14 +238,15 @@
 .photo-collection .photo-player .pj-label {
   flex: 0 1 auto;
   max-width: none;
-  padding: 0;
-  background: none;
-  color: #e0d5c4;
-  font: 11px/1.5 var(--font-mono);
-  transform: none;
-  text-transform: none;
-  text-shadow: none;
-  box-shadow: none;
+  padding: 6px 9px;
+  background: linear-gradient(#cf8957, #b06d40);
+  color: #faf3ea;
+  font: 500 10px/1.4 var(--font-mono);
+  letter-spacing: .055em;
+  transform: rotate(-.4deg);
+  text-transform: uppercase;
+  text-shadow: 0 1px #0003;
+  box-shadow: 0 2px 4px #0003;
 }
 
 .photo-collection .photo-player .wall-no {
@@ -175,8 +265,8 @@
 .photo-collection .photo-player .pj-key,
 .photo-collection .photo-player .projector-deck .power,
 .photo-player .pj-switch {
-  min-width: 30px;
-  min-height: 32px;
+  min-width: 34px;
+  min-height: 36px;
 }
 
 .photo-player .pj-switch {
@@ -184,8 +274,11 @@
 }
 
 .photo-player .dwell {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 0;
   height: 1px;
-  margin-top: 3px;
+  margin: 0;
 }
 
 .photo-player .dwell i {
@@ -197,9 +290,10 @@
   justify-content: flex-start;
   flex-wrap: wrap;
   gap: 0 clamp(10px, 3vw, 24px);
-  margin: 0;
-  padding: 0;
+  margin: 9px 0 0;
+  padding: 5px 0 0;
   border: 0;
+  border-top: 1px solid #ffffff12;
 }
 
 .photo-player .viewfinder-tools button {
@@ -244,9 +338,19 @@
     gap: 4px 10px;
   }
 
+  .photo-caption-bar {
+    flex-wrap: wrap;
+    gap: 0 10px;
+    padding: 8px 10px 4px;
+  }
+
   .photo-readout {
     flex: 1 1 100%;
     gap: 10px;
+  }
+
+  .photo-controls-toggle {
+    margin-inline-start: auto;
   }
 
   .photo-collection .photo-player .wall-no {
@@ -261,7 +365,8 @@
 @media (prefers-reduced-motion: reduce) {
   .photo-ambient,
   .photo-echo,
-  .photo-player .pj-switch .knob {
+  .photo-player .pj-switch .knob,
+  .photo-tray-wheel i {
     transition: none;
   }
 }

@@ -420,7 +420,7 @@ noscript ul{font-family:var(--font-sans)}
 <link rel="stylesheet" href="assets/portfolio.css?v=20261115.2">
 <link rel="stylesheet" href="assets/analog.css?v=20261115.9">
 <link rel="stylesheet" href="assets/focus-view.css?v=20261115.16">
-<link rel="stylesheet" href="assets/photo-player.css?v=20261115.18">
+<link rel="stylesheet" href="assets/photo-player.css?v=20261116.2">
 <link rel="stylesheet" href="assets/listening-room.css?v=20261115.19">
 <link rel="stylesheet" href="assets/tube-tv.css?v=20261115.17">
 <link rel="stylesheet" href="assets/winter.css?v=20261115.4">
@@ -489,11 +489,19 @@ noscript ul{font-family:var(--font-sans)}
             <ol class="mounts" id="mounts" aria-label="Slides in today’s tray"></ol>
           </section>
         </div>
+        <div class="photo-caption-bar">
+          <div class="photo-readout">
+            <span class="pj-label" id="pjLabel" aria-live="polite"></span>
+            <span class="wall-no" id="wallNo" aria-hidden="true"></span>
+          </div>
+          <button class="photo-controls-toggle" id="photoControlsToggle" type="button" aria-expanded="true" aria-controls="photoDeck">Hide controls <span aria-hidden="true">−</span></button>
+          <span class="dwell" id="dwell" aria-hidden="true"><i></i></span>
+        </div>
         <div class="projector-deck" id="photoDeck" hidden>
           <div class="deck-group" id="pjGroup" role="group" aria-label="Projector">
-            <div class="photo-readout">
-              <span class="pj-label" id="pjLabel" aria-live="polite"></span>
-              <span class="wall-no" id="wallNo" aria-hidden="true"></span>
+            <div class="pj-tray" aria-hidden="true">
+              <div class="photo-tray-wheel"><i id="photoTrayRotor"></i></div>
+              <div class="pj-count"><span>Slide</span><b id="photoTrayNumber">00</b></div>
             </div>
             <div class="ctl">
               <span>Rev · Fwd</span>
@@ -520,7 +528,6 @@ noscript ul{font-family:var(--font-sans)}
               </div>
             </div>
           </div>
-          <span class="dwell" id="dwell" aria-hidden="true"><i></i></span>
           <div class="viewfinder-tools">
             <button id="contactSheetToggle" type="button" aria-expanded="false" aria-controls="tray">Contact sheet</button>
             <button id="placesToggle" type="button">Places <span aria-hidden="true">↗</span></button>
@@ -906,6 +913,8 @@ noscript ul{font-family:var(--font-sans)}
       var amb = ambientOf(im); if (amb) room.style.setProperty('--ambient', amb);
       label.textContent = labelText(s);
       wallNo.textContent = pad(k + 1) + ' / ' + pad(slides.length);
+      $('photoTrayNumber').textContent = pad(k + 1);
+      $('photoTrayRotor').style.transform = 'rotate(' + (-k * 360 / Math.max(slides.length, 24)) + 'deg)';
       fillMount(k); markMount();
       if (slides.length > 1) preload(k + 1);
       schedule();
@@ -945,9 +954,17 @@ noscript ul{font-family:var(--font-sans)}
     wall.inert = open; wall.setAttribute('aria-hidden', String(open)); wall.setAttribute('aria-expanded', String(open));
     $('tray').inert = !open; $('tray').setAttribute('aria-hidden', String(!open));
     sheetToggle.setAttribute('aria-expanded', String(open));
-    if (open) $('closeSheet').focus({ preventScroll:true }); else sheetTrigger.focus({ preventScroll:true });
+    if (open) $('closeSheet').focus({ preventScroll:true });
+    else (sheetTrigger.closest('[hidden]') ? $('photoControlsToggle') : sheetTrigger).focus({ preventScroll:true });
     schedule();
   }
+  $('photoControlsToggle').addEventListener('click', function(){
+    var expanded = this.getAttribute('aria-expanded') !== 'true';
+    this.setAttribute('aria-expanded', String(expanded));
+    this.innerHTML = (expanded ? 'Hide controls' : 'Show controls') + ' <span aria-hidden="true">' + (expanded ? '−' : '+') + '</span>';
+    $('photoDeck').hidden = !expanded;
+    player.classList.toggle('controls-collapsed', !expanded);
+  });
   wall.addEventListener('click', function(){ flipSheet(true); });
   sheetToggle.addEventListener('click', function(){ flipSheet(!sheetOpen, sheetToggle); });
   $('closeSheet').addEventListener('click', function(){ flipSheet(false); });
