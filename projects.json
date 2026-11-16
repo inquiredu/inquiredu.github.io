@@ -10,8 +10,8 @@
       "title": "Lirn Literacy AI",
       "status": "Live",
       "group": "live",
-      "subject": "",
-      "note": "",
+      "subject": "Literacy · AI · Professional judgment",
+      "note": "A LiRN working session by Andrew Rummel and Sean Beaverson on literacy, AI, and professional judgment, built as a landing page, presentation, speaker notes, and printable review.",
       "visible": true,
       "url": "https://inquiredu.org/lirn-literacy-ai/"
     },
@@ -24,7 +24,7 @@
       "status": "Live",
       "group": "live",
       "subject": "AI · School leadership · Trust",
-      "note": "A workshop for school leaders on trust, technology, and learning, with a mini-kit and five AI leadership kits.",
+      "note": "A workshop site for school leaders on trust, technology, and learning, with a mini-kit and five AI leadership kits.",
       "visible": true,
       "url": "https://inquiredu.org/what-we-talk-about/"
     },
@@ -71,8 +71,8 @@
       "title": "Your own GitHub",
       "status": "Live",
       "group": "live",
-      "subject": "Guides · Educators · Web publishing",
-      "note": "An evergreen guide that takes K-12 educators from no GitHub account to a live site in an afternoon, knowing which risks are real.",
+      "subject": "Guides · K–12 educators · GitHub Pages",
+      "note": "A guide that takes K–12 educators from no GitHub account to a live GitHub Pages site in an afternoon, with a clear view of the real risks.",
       "visible": true,
       "url": "https://inquiredu.org/git-guide/"
     },
