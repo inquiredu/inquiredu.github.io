@@ -27,6 +27,29 @@ The public website stays on GitHub Pages at **inquiredu.org**. The studio lives 
 
 The sign-in button intentionally stays disabled until the Worker URL is configured. No live OAuth credentials are included in this change.
 
+## Deploy automatically from GitHub
+
+The **Deploy studio Worker** action (`.github/workflows/deploy-worker.yml`) deploys this directory to Cloudflare whenever `auth/` changes on `main`, after the tests pass. You can also run it from the Actions tab. It uses a pinned Wrangler version (4.156.2); change that line to upgrade. A deploy replaces the Worker code and the plain variables in `wrangler.jsonc`. It leaves the Worker's encrypted secrets alone.
+
+Set it up once:
+
+1. In the Cloudflare dashboard, open **My Profile → API Tokens → Create Token**. Start from the **Edit Cloudflare Workers** template and limit it to your account. If the first run fails with an authentication or permission error, the log names what the token is missing.
+2. Copy your **Account ID**. It is listed on the **Workers & Pages** overview page.
+3. Save both as repository secrets, pasting each value when asked:
+
+   ```sh
+   gh secret set CLOUDFLARE_API_TOKEN -R inquiredu/inquiredu.github.io
+   gh secret set CLOUDFLARE_ACCOUNT_ID -R inquiredu/inquiredu.github.io
+   ```
+
+4. Run the first deploy:
+
+   ```sh
+   gh workflow run deploy-worker.yml -R inquiredu/inquiredu.github.io
+   ```
+
+Until both secrets exist, the action skips with a warning instead of failing. The repository is public, so its Action logs are too. Secrets are masked in them, and the Worker's address is already public in `admin/config.json`.
+
 ## Security and publishing behavior
 
 - OAuth uses signed, ten-minute, HttpOnly Secure state cookies and S256 PKCE. The callback checks the numeric GitHub owner ID before returning a token.

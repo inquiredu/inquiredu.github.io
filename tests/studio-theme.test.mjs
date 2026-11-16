@@ -15,3 +15,9 @@ test('the studio follows the public page lamp and loads only the site fonts beyo
   const csp=html.match(/Content-Security-Policy" content="([^"]+)"/)[1];
   assert.match(csp,/script-src 'self';/,'no third-party scripts');assert.match(csp,/style-src 'self' https:\/\/fonts\.googleapis\.com;/);assert.match(csp,/font-src https:\/\/fonts\.gstatic\.com;/);
 });
+test('the Worker deploys only from main or by hand, after tests, with a pinned Wrangler',async()=>{
+  const flow=await read('.github/workflows/deploy-worker.yml');
+  assert.match(flow,/push:\n    branches: \[main\]\n    paths:\n      - "auth\/\*\*"/);assert.match(flow,/workflow_dispatch:/);assert.doesNotMatch(flow,/pull_request/);
+  assert.match(flow,/permissions:\n  contents: read/);assert.match(flow,/npx --yes wrangler@\d+\.\d+\.\d+ deploy/);
+  assert.ok(flow.indexOf('node --test')<flow.indexOf('wrangler@'),'tests run before the deploy');
+});
