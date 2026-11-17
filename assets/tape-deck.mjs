@@ -314,55 +314,57 @@ export function mountTapeDeck(container, items, sources = {}) {
   body.append(well, panel);
   deck.append(header, body);
 
-  /* the shelf */
+  /* The shelf starts spine-out. A selected case can be inspected, then opened. */
   const shelfHead = element('div', 'tape-shelf-head');
-  shelfHead.append(element('span', '', 'SELECT A TAPE'), element('span', '', 'Choose a case to load the deck.'));
+  shelfHead.append(element('span', '', 'SELECT A TAPE'), element('span', '', 'Choose a spine. Open the case for tracks.'));
   const shelf = element('div', 'tape-shelf');
   shelf.setAttribute('role', 'group');
   shelf.setAttribute('aria-label', 'Tapes on the shelf');
   const cases = entries.map(({item, source, appearance}, i) => {
-    const cassetteCase = button('', 'tape-case');
-    cassetteCase.dataset.tapeStyle = appearance;
-    cassetteCase.setAttribute('aria-pressed', 'false');
-    cassetteCase.setAttribute('aria-label', 'Load ' + item.title);
-    const hinge = element('i', 'case-hinge');
-    hinge.setAttribute('aria-hidden', 'true');
-    const insert = element('span', 'case-insert');
-    const heading = element('span', 'case-heading');
-    const type = appearance === 'diy' ? 'Original recordings' : appearance === 'album' ? 'Album' : source ? 'Mixtape' : 'Song list';
-    heading.append(element('span', 'case-number', String(i + 1).padStart(2, '0')), element('span', 'case-type', type));
-    const title = element('strong', 'case-title', item.title);
-    const note = element('span', 'case-note', item.note?.trim());
-    const footer = element('span', 'case-footer');
-    footer.append(element('span', 'case-provider', source?.provider || 'Song list'), element('span', 'case-state'));
-    insert.append(heading, title, note, footer);
-    cassetteCase.append(hinge, insert);
-    cassetteCase.addEventListener('click', () => choose(i));
-    shelf.append(cassetteCase);
-    return cassetteCase;
+    const spine = button('', 'case-spine');
+    spine.dataset.tapeStyle = appearance;
+    spine.setAttribute('aria-pressed', 'false');
+    spine.setAttribute('aria-expanded', 'false');
+    spine.setAttribute('aria-controls', 'selected-tape-case');
+    spine.setAttribute('aria-label', 'Select tape: ' + item.title);
+    const label = element('span', 'case-spine-label');
+    label.append(element('strong', 'case-spine-title', item.title), element('span', 'case-spine-provider', source?.provider || 'Song list'));
+    spine.append(element('span', 'case-spine-number', String(i + 1).padStart(2, '0')), label, element('span', 'case-spine-state'));
+    spine.addEventListener('click', () => choose(i));
+    shelf.append(spine);
+    return spine;
   });
 
   const details = element('div', 'listening-details');
-  const trackDrawer = element('section', 'deck-track-drawer');
-  const trackHeader = element('div', 'deck-track-header');
+  const trackDrawer = element('section', 'case-display');
+  trackDrawer.id = 'selected-tape-case';
+  trackDrawer.setAttribute('aria-hidden', 'true');
+  trackDrawer.inert = true;
+  const trackHeader = element('div', 'case-display-header');
   const trackTitle = element('span', 'deck-track-title');
   trackTitle.id = 'deck-track-title';
-  const trackToggle = button('Show tracks +', 'deck-track-toggle');
+  const stow = button('Back to spines', 'case-stow');
+  trackHeader.append(trackTitle, stow);
+  const caseBook = element('div', 'case-book');
+  const trackToggle = button('', 'tape-case case-cover');
   trackToggle.setAttribute('aria-expanded', 'false');
   trackToggle.setAttribute('aria-controls', 'deck-tracks');
-  trackHeader.append(trackTitle, trackToggle);
-  const trackPanel = element('div', 'deck-track-panel');
+  const trackPanel = element('div', 'deck-track-panel case-inside');
   trackPanel.id = 'deck-tracks';
   trackPanel.setAttribute('role', 'region');
   trackPanel.setAttribute('aria-labelledby', trackTitle.id);
   trackPanel.setAttribute('aria-hidden', 'true');
   trackPanel.inert = true;
+  const insideHeading = element('div', 'case-inside-heading');
+  const closeCase = button('Close case', 'case-close');
+  insideHeading.append(element('span', '', 'TRACKS'), closeCase);
   const trackStatus = element('p', 'deck-track-status');
   trackStatus.setAttribute('role', 'status');
   const writtenTracks = element('ol', 'tracks');
-  trackPanel.append(trackStatus, writtenTracks, player);
-  trackDrawer.append(trackHeader, trackPanel);
-  focus.body.append(deck, trackDrawer, shelfHead, shelf);
+  trackPanel.append(insideHeading, trackStatus, writtenTracks, player);
+  caseBook.append(trackToggle, trackPanel);
+  trackDrawer.append(trackHeader, caseBook);
+  focus.body.append(deck, shelfHead, shelf, trackDrawer);
   const visualizer = mountMusicVisualizer(focus.body);
   focus.body.append(details);
 
@@ -377,6 +379,7 @@ export function mountTapeDeck(container, items, sources = {}) {
   let session = null;
   let playRequested = false;
   let tracksOpen = false;
+  let caseVisible = false;
   let state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
   const lifecycle = new AbortController();
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -477,10 +480,22 @@ export function mountTapeDeck(container, items, sources = {}) {
     writtenTracks.replaceChildren();
     trackStatus.textContent = '';
     const entry = entries[index];
-    trackDrawer.hidden = !entry || !(entry.source || entry.item.tracks?.length);
     if (!entry) return;
     const {item, source} = entry;
-    trackTitle.textContent = item.title + ' · Track list';
+    trackTitle.textContent = item.title + ' · Cassette case';
+    trackToggle.dataset.tapeStyle = entry.appearance;
+    trackToggle.disabled = !(source || item.tracks?.length);
+    const hinge = element('i', 'case-hinge');
+    hinge.setAttribute('aria-hidden', 'true');
+    const insert = element('span', 'case-insert');
+    const heading = element('span', 'case-heading');
+    const type = entry.appearance === 'diy' ? 'Original recordings' : entry.appearance === 'album' ? 'Album' : source ? 'Mixtape' : 'Song list';
+    heading.append(element('span', 'case-number', String(index + 1).padStart(2, '0')), element('span', 'case-type', type));
+    const footer = element('span', 'case-footer');
+    footer.append(element('span', 'case-provider', source?.provider || 'Song list'), element('span', 'case-state'));
+    insert.append(heading, element('strong', 'case-title', item.title), element('span', 'case-note', item.note?.trim()), footer);
+    trackToggle.replaceChildren(hinge, insert);
+    updateCaseLatch();
     if (item.note) details.append(element('p', 'listening-note', item.note));
     if (source) details.append(link('Open in ' + source.provider + ' ↗', source.url));
     if (item.tracks?.length) {
@@ -493,29 +508,58 @@ export function mountTapeDeck(container, items, sources = {}) {
     }
   }
 
+  function updateCaseLatch() {
+    const title = entries[index]?.item.title || 'Tape';
+    trackToggle.setAttribute('aria-label', (tracksOpen ? 'Close case: ' : 'Open case for tracks: ') + title);
+    const latch = trackToggle.querySelector('.case-state');
+    if (latch) latch.textContent = trackToggle.disabled ? 'No tracks added' : tracksOpen ? 'Close case' : 'Open case';
+  }
+
   function setTracksOpen(open) {
     tracksOpen = open;
     if (!open && trackPanel.contains(document.activeElement)) trackToggle.focus({preventScroll: true});
-    trackToggle.textContent = open ? 'Hide tracks −' : 'Show tracks +';
     trackToggle.setAttribute('aria-expanded', String(open));
     trackPanel.setAttribute('aria-hidden', String(!open));
     trackPanel.inert = !open;
-    // Keep the iframe connected and sized while tucked away; playback stays in the deck.
+    caseBook.classList.toggle('is-open', open);
+    updateCaseLatch();
+    // Keep the same iframe connected when closing the lid or returning to the shelf.
     if (open) ensurePlayer();
   }
   trackToggle.addEventListener('click', () => setTracksOpen(!tracksOpen));
+  closeCase.addEventListener('click', () => setTracksOpen(false));
+
+  function revealCase(visible) {
+    caseVisible = visible;
+    trackDrawer.setAttribute('aria-hidden', String(!visible));
+    trackDrawer.inert = !visible;
+    markShelf();
+  }
+  stow.addEventListener('click', () => {
+    setTracksOpen(false);
+    revealCase(false);
+    cases[index]?.focus({preventScroll: true});
+  });
 
   function markShelf() {
-    cases.forEach((cassetteCase, i) => {
+    cases.forEach((spine, i) => {
       const inDeck = i === index;
-      cassetteCase.setAttribute('aria-pressed', String(inDeck));
-      cassetteCase.querySelector('.case-state').textContent = inDeck ? 'In the deck' : 'Load tape';
+      spine.setAttribute('aria-pressed', String(inDeck));
+      spine.setAttribute('aria-expanded', String(inDeck && caseVisible));
+      spine.querySelector('.case-spine-state').textContent = inDeck ? 'In the deck' : 'View case';
     });
   }
 
-  function choose(nextIndex) {
-    if (index === nextIndex) return;
+  function choose(nextIndex, reveal = true) {
+    if (index === nextIndex) {
+      if (reveal) {
+        if (caseVisible) setTracksOpen(false);
+        revealCase(!caseVisible);
+      }
+      return;
+    }
     discardPlayer();
+    setTracksOpen(false);
     const reload = index >= 0 || tape.classList.contains('ejected');
     index = nextIndex;
     state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
@@ -532,15 +576,16 @@ export function mountTapeDeck(container, items, sources = {}) {
     }
     markShelf();
     showDetails();
+    revealCase(reveal);
     announce(entries[index].source ? 'Press Play to start ' + item.title + '.' : 'Choose a tape with a source to play it.');
     paint();
-    if (tracksOpen) ensurePlayer();
   }
 
   function eject() {
     discardPlayer();
     index = -1;
     setTracksOpen(false);
+    revealCase(false);
     state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
     tape.classList.add('ejected');
     empty.hidden = false;
@@ -588,7 +633,7 @@ export function mountTapeDeck(container, items, sources = {}) {
     }
   }, 250);
 
-  choose(0);
+  choose(0, false);
   mounts.set(container, () => {
     lifecycle.abort();
     clearInterval(meterTimer);
