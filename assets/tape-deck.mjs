@@ -2,8 +2,8 @@ import {musicSource} from './creative-sources.mjs';
 import {createFocusView} from './focus-view.mjs?v=20261115.16';
 import {mountMusicVisualizer} from './music-visualizer.mjs?v=20261115.16';
 
-/* The stereo cassette deck. The provider's own player (Spotify or SoundCloud) runs out of sight
-   inside the tape well; the deck's keys drive it, and the tape label shows the track that is playing. */
+/* The deck and expandable track drawer share one persistent provider player.
+   Opening the drawer loads the selection without starting playback. */
 
 const mounts = new WeakMap();
 const scripts = new Map();
@@ -92,10 +92,8 @@ function spotifyName(uri) {
   return spotifyNames.get(uri);
 }
 
-function hideFrame(iframe, title) {
+function titleFrame(iframe, title) {
   iframe.title = title;
-  iframe.tabIndex = -1;
-  iframe.setAttribute('aria-hidden', 'true');
 }
 
 async function connectSpotify(player, source, title, signal, update) {
@@ -138,7 +136,7 @@ async function connectSpotify(player, source, title, signal, update) {
     controller.addListener('ready', () => {
       if (signal.aborted) return;
       const iframe = player.querySelector('iframe');
-      if (iframe) hideFrame(iframe, title + ' — Spotify player');
+      if (iframe) titleFrame(iframe, title + ' — Spotify player');
       resolve({
         play: () => started ? controller.resume() : controller.play(),
         pause: () => controller.pause(),
@@ -154,9 +152,9 @@ async function connectSoundCloud(player, source, title, signal, update) {
   signal.throwIfAborted();
   const iframe = element('iframe');
   iframe.src = source.embed;
-  iframe.height = source.height;
+  iframe.height = Math.max(source.height, 420);
   iframe.allow = 'autoplay';
-  hideFrame(iframe, title + ' — SoundCloud player');
+  titleFrame(iframe, title + ' — SoundCloud player');
   player.replaceChildren(iframe);
 
   const widget = window.SC.Widget(iframe);
@@ -259,7 +257,6 @@ export function mountTapeDeck(container, items, sources = {}) {
   const empty = element('span', 'empty-well', 'No tape');
   empty.setAttribute('aria-hidden', 'true');
   const player = element('div', 'source-player deck-provider');
-  player.setAttribute('aria-hidden', 'true');
   const tape = element('div', 'analog-tape');
   tape.setAttribute('aria-hidden', 'true');
   tape.innerHTML = `
@@ -277,7 +274,7 @@ export function mountTapeDeck(container, items, sources = {}) {
   const tapeTitle = tape.querySelector('.tape-title');
   const tapeSide = tape.querySelector('.tape-side');
   const tapeProvider = tape.querySelector('.tape-provider');
-  well.append(player, empty, tape, element('div', 'tape-door'));
+  well.append(empty, tape, element('div', 'tape-door'));
 
   const panel = element('div', 'tape-panel');
   const meters = element('div', 'vu-pair');
@@ -335,7 +332,26 @@ export function mountTapeDeck(container, items, sources = {}) {
   });
 
   const details = element('div', 'listening-details');
-  focus.body.append(deck, shelfHead, shelf);
+  const trackDrawer = element('section', 'deck-track-drawer');
+  const trackHeader = element('div', 'deck-track-header');
+  const trackTitle = element('span', 'deck-track-title');
+  trackTitle.id = 'deck-track-title';
+  const trackToggle = button('Show tracks +', 'deck-track-toggle');
+  trackToggle.setAttribute('aria-expanded', 'false');
+  trackToggle.setAttribute('aria-controls', 'deck-tracks');
+  trackHeader.append(trackTitle, trackToggle);
+  const trackPanel = element('div', 'deck-track-panel');
+  trackPanel.id = 'deck-tracks';
+  trackPanel.setAttribute('role', 'region');
+  trackPanel.setAttribute('aria-labelledby', trackTitle.id);
+  trackPanel.setAttribute('aria-hidden', 'true');
+  trackPanel.inert = true;
+  const trackStatus = element('p', 'deck-track-status');
+  trackStatus.setAttribute('role', 'status');
+  const writtenTracks = element('ol', 'tracks');
+  trackPanel.append(trackStatus, writtenTracks, player);
+  trackDrawer.append(trackHeader, trackPanel);
+  focus.body.append(deck, trackDrawer, shelfHead, shelf);
   const visualizer = mountMusicVisualizer(focus.body);
   focus.body.append(details);
 
@@ -349,6 +365,7 @@ export function mountTapeDeck(container, items, sources = {}) {
   let index = -1;
   let session = null;
   let playRequested = false;
+  let tracksOpen = false;
   let state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
   const lifecycle = new AbortController();
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -415,6 +432,7 @@ export function mountTapeDeck(container, items, sources = {}) {
     const attempt = {load, controls: null};
     session = attempt;
     announce('Opening ' + source.provider + '…');
+    trackStatus.textContent = 'Loading tracks from ' + source.provider + '…';
     paint();
 
     const connector = source.provider === 'Spotify' ? connectSpotify : connectSoundCloud;
@@ -427,6 +445,7 @@ export function mountTapeDeck(container, items, sources = {}) {
       if (session !== attempt || load.signal.aborted) return;
       attempt.controls = controls;
       announce('');
+      trackStatus.textContent = '';
       if (playRequested) {
         controls.play();
         playRequested = false;
@@ -437,28 +456,43 @@ export function mountTapeDeck(container, items, sources = {}) {
       discardPlayer();
       state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
       announce(error.message + ' Try Play again, or open it at the source.');
+      trackStatus.replaceChildren(document.createTextNode('Tracks could not load. '), link('Open in ' + source.provider + ' ↗', source.url));
       paint();
     }).finally(() => clearTimeout(timeout));
   }
 
   function showDetails() {
     details.replaceChildren();
+    writtenTracks.replaceChildren();
+    trackStatus.textContent = '';
     const entry = entries[index];
+    trackDrawer.hidden = !entry || !(entry.source || entry.item.tracks?.length);
     if (!entry) return;
     const {item, source} = entry;
+    trackTitle.textContent = item.title + ' · Track list';
     if (item.note) details.append(element('p', 'listening-note', item.note));
     if (source) details.append(link('Open in ' + source.provider + ' ↗', source.url));
     if (item.tracks?.length) {
-      const tracks = element('ol', 'tracks');
       for (const track of item.tracks) {
         const trackName = [track.title, track.artist].filter(Boolean).join(' — ');
         const row = element('li', '', trackName);
         if (/^https?:\/\//.test(track.url || '')) row.replaceChildren(link(trackName, track.url));
-        tracks.append(row);
+        writtenTracks.append(row);
       }
-      details.append(tracks);
     }
   }
+
+  function setTracksOpen(open) {
+    tracksOpen = open;
+    if (!open && trackPanel.contains(document.activeElement)) trackToggle.focus({preventScroll: true});
+    trackToggle.textContent = open ? 'Hide tracks −' : 'Show tracks +';
+    trackToggle.setAttribute('aria-expanded', String(open));
+    trackPanel.setAttribute('aria-hidden', String(!open));
+    trackPanel.inert = !open;
+    // Keep the iframe connected and sized while tucked away; playback stays in the deck.
+    if (open) ensurePlayer();
+  }
+  trackToggle.addEventListener('click', () => setTracksOpen(!tracksOpen));
 
   function markShelf() {
     spines.forEach((spine, i) => {
@@ -489,11 +523,13 @@ export function mountTapeDeck(container, items, sources = {}) {
     showDetails();
     announce(entries[index].source ? 'Press Play to start ' + item.title + '.' : 'Choose a tape with a source to play it.');
     paint();
+    if (tracksOpen) ensurePlayer();
   }
 
   function eject() {
     discardPlayer();
     index = -1;
+    setTracksOpen(false);
     state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
     tape.classList.add('ejected');
     empty.hidden = false;

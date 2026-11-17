@@ -556,9 +556,23 @@
 .tape-spine .spine-color, .tape-spine:nth-child(even) .spine-color { background: #EFE6D3; }
 .tape-spine.ivory .spine-color { background: #20384F; }
 .analog-tape .tape-title { transition: opacity 200ms ease-out; }
-/* The provider's own player runs out of sight, behind the tape in the well: the deck's keys drive it. */
-.deck-provider { position: absolute; inset: 0; overflow: hidden; opacity: 0; pointer-events: none; }
-.deck-provider iframe, .deck-provider > div { display: block; width: 100%; height: 100%; border: 0; }
+/* A tape's track list opens below the deck without replacing its live player. */
+.deck-track-drawer { margin-top: 16px; border-block: 1px solid var(--line); }
+.deck-track-drawer[hidden] { display: none; }
+.deck-track-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.deck-track-title { min-width: 0; color: var(--fg-2); font: 11px/1.6 var(--font-mono); overflow-wrap: anywhere; }
+.deck-track-toggle { flex: none; min-height: 44px; padding: 8px 0 8px 12px; border: 0; background: transparent; color: var(--accent-text); font: 500 11px/1.5 var(--font-mono); cursor: pointer; }
+.deck-track-toggle:focus-visible { outline: 2px solid var(--sun); outline-offset: 3px; }
+.deck-track-panel { padding-bottom: 16px; }
+.deck-track-panel[aria-hidden="true"] { height: 0; padding: 0; overflow: hidden; visibility: hidden; }
+.deck-track-status { color: var(--fg-2); font: 12px/1.6 var(--font-mono); }
+.deck-track-status a { color: var(--accent-text); }
+.deck-track-status:empty, .deck-track-panel .tracks:empty { display: none; }
+.deck-track-panel .tracks { margin: 0 0 14px; padding-left: 26px; color: var(--fg-1); }
+.deck-track-panel .tracks li { padding: 5px 0; }
+.deck-track-panel .tracks a { color: var(--accent-text); }
+.deck-provider { position: relative; min-width: 0; margin: 0; }
+.deck-provider iframe { display: block; width: 100%; border: 0; border-radius: 8px; }
 .focus-view[data-focus-kind="music"]:modal .tape-deck { padding: 24px; }
 .focus-view[data-focus-kind="music"]:modal .music-visualizer { margin-top: 16px; }
 @media (prefers-reduced-motion: reduce) { .analog-tape .tape-title { transition: none; } }

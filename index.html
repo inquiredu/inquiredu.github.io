@@ -420,8 +420,8 @@ noscript ul{font-family:var(--font-sans)}
 <link rel="stylesheet" href="assets/portfolio.css?v=20261115.2">
 <link rel="stylesheet" href="assets/analog.css?v=20261115.9">
 <link rel="stylesheet" href="assets/focus-view.css?v=20261115.16">
-<link rel="stylesheet" href="assets/photo-player.css?v=20261116.2">
-<link rel="stylesheet" href="assets/listening-room.css?v=20261115.19">
+<link rel="stylesheet" href="assets/photo-player.css?v=20261116.3">
+<link rel="stylesheet" href="assets/listening-room.css?v=20261116.3">
 <link rel="stylesheet" href="assets/tube-tv.css?v=20261115.17">
 <link rel="stylesheet" href="assets/winter.css?v=20261115.4">
 </head>
@@ -528,6 +528,7 @@ noscript ul{font-family:var(--font-sans)}
               </div>
             </div>
           </div>
+          <ol class="photo-thumbnail-strip" id="photoThumbnails" aria-label="Choose a photograph"></ol>
           <div class="viewfinder-tools">
             <button id="contactSheetToggle" type="button" aria-expanded="false" aria-controls="tray">Contact sheet</button>
             <button id="placesToggle" type="button">Places <span aria-hidden="true">↗</span></button>
@@ -813,7 +814,7 @@ noscript ul{font-family:var(--font-sans)}
   var room = $('room'), wall = $('wall'), player = $('photoPlayer'), frames = wall.querySelectorAll('.frame');
   var echoes = player.querySelectorAll('.photo-echo'), sheetToggle = $('contactSheetToggle');
   var label = $('pjLabel'), wallNo = $('wallNo'), dwellEl = $('dwell');
-  var autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed'), mountsEl = $('mounts');
+  var autoBtn = $('pjAuto'), lampBtn = $('pjLamp'), led = $('pjLed'), mountsEl = $('mounts'), thumbnailsEl = $('photoThumbnails');
   var DWELL = 9000;
   var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var MONTH = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -876,15 +877,27 @@ noscript ul{font-family:var(--font-sans)}
       return '<li><button class="mount' + (isPortrait(s) ? ' port' : '') + '" type="button" data-k="' + i + '" aria-label="Slide ' + (i + 1) +
         (labelText(s) ? ', ' + labelText(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }) : '') + '"><span class="win"><img alt="" decoding="async"></span><span class="no" aria-hidden="true">' + pad(i + 1) + '</span></button></li>';
     }).join('');
+    thumbnailsEl.innerHTML = mountsEl.innerHTML;
+    slides.forEach(function(s, i){ fillMount(i); });
   }
   function fillMount(i){
-    var m = mountsEl.querySelector('[data-k="' + i + '"] img');
-    if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].thumb || slides[i].src; }
+    [mountsEl, thumbnailsEl].forEach(function(list){
+      var m = list.querySelector('[data-k="' + i + '"] img');
+      if (m && !m.getAttribute('src')){ m.onload = function(){ m.classList.add('in'); }; m.src = slides[i].thumb || slides[i].src; }
+    });
   }
   function markMount(){
-    Array.prototype.forEach.call(mountsEl.querySelectorAll('.mount'), function(b){
-      b.setAttribute('aria-current', String(+b.dataset.k === at));
+    [mountsEl, thumbnailsEl].forEach(function(list){
+      Array.prototype.forEach.call(list.querySelectorAll('.mount'), function(b){
+        b.setAttribute('aria-current', String(+b.dataset.k === at));
+      });
     });
+    var current = thumbnailsEl.querySelector('[aria-current="true"]');
+    if (current && thumbnailsEl.clientWidth){
+      var thumb = current.getBoundingClientRect(), strip = thumbnailsEl.getBoundingClientRect();
+      if (thumb.left < strip.left + 4) thumbnailsEl.scrollLeft -= strip.left + 4 - thumb.left;
+      else if (thumb.right > strip.right - 4) thumbnailsEl.scrollLeft += thumb.right - strip.right + 4;
+    }
   }
 
   function preload(i){
@@ -964,6 +977,7 @@ noscript ul{font-family:var(--font-sans)}
     this.innerHTML = (expanded ? 'Hide controls' : 'Show controls') + ' <span aria-hidden="true">' + (expanded ? '−' : '+') + '</span>';
     $('photoDeck').hidden = !expanded;
     player.classList.toggle('controls-collapsed', !expanded);
+    if (expanded) markMount();
   });
   wall.addEventListener('click', function(){ flipSheet(true); });
   sheetToggle.addEventListener('click', function(){ flipSheet(!sheetOpen, sheetToggle); });
@@ -972,7 +986,11 @@ noscript ul{font-family:var(--font-sans)}
   $('pjFwd').addEventListener('click', function(){ manual(1); });
   $('pjRev').addEventListener('click', function(){ manual(-1); });
   mountsEl.addEventListener('click', function(e){ var b = e.target.closest('.mount'); if (b){ jump(+b.dataset.k); flipSheet(false); } });
-  [wall, $('pjGroup'), $('tray')].forEach(function(el){
+  thumbnailsEl.addEventListener('click', function(e){
+    var b = e.target.closest('.mount');
+    if (b){ jump(+b.dataset.k); if (sheetOpen){ flipSheet(false); b.focus({preventScroll:true}); } }
+  });
+  [wall, $('pjGroup'), $('tray'), thumbnailsEl].forEach(function(el){
     el.addEventListener('keydown', function(e){
       if (e.key === 'ArrowRight'){ e.preventDefault(); manual(1); }
       if (e.key === 'ArrowLeft'){ e.preventDefault(); manual(-1); }
@@ -1010,7 +1028,6 @@ noscript ul{font-family:var(--font-sans)}
     dwellEl.style.setProperty('--dwell', DWELL + 'ms');
     autoBtn.setAttribute('aria-pressed', String(auto));
     drawMounts();
-    slides.forEach(function(s, i){ fillMount(i); });
     show(0);
   }
   fetch('slides.json', { cache: 'no-cache' })
@@ -1019,7 +1036,7 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
-<script type="module" src="assets/collection.js?v=20261115.19"></script>
+<script type="module" src="assets/collection.js?v=20261116.3"></script>
 <script type="module" src="assets/viewfinder.mjs?v=20261115.18"></script>
 <script type="module" src="assets/photo-atlas.mjs?v=20261115.10"></script>
 </body>

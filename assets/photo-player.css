@@ -296,6 +296,38 @@
   border-top: 1px solid #ffffff12;
 }
 
+.photo-thumbnail-strip {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 5px 4px 7px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #82908c transparent;
+}
+
+.photo-thumbnail-strip li { flex: none; }
+
+.photo-thumbnail-strip .mount {
+  display: block;
+  width: 48px;
+  height: 44px;
+  padding: 0;
+  border-radius: 2px;
+  opacity: .72;
+}
+
+.photo-thumbnail-strip .mount .win,
+.photo-thumbnail-strip .mount.port .win {
+  inset: 5px;
+}
+
+.photo-thumbnail-strip .mount img { object-fit: contain; }
+.photo-thumbnail-strip .mount .no { display: none; }
+.photo-thumbnail-strip .mount[aria-current="true"] { transform: none; opacity: 1; }
+
 .photo-player .viewfinder-tools button {
   min-height: 33px;
   padding-inline: 0;
