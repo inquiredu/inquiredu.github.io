@@ -63,29 +63,60 @@
 .case-latch[aria-expanded="true"]::after { content: "▴"; }
 .case-latch:hover { border-color: var(--accent-text); background-color: #8ba9b51a; }
 .case-latch:disabled { opacity: .6; cursor: default; }
-.case-cover {
-  position: relative;
-  isolation: isolate;
-  aspect-ratio: 1.58;
-  max-height: 260px;
-  padding: 6px 6px 6px 16px;
-  border: 1px solid #8e9da17a;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #e7f3f45e, #89989e20 38%, #e3e9ed4d 90%), #707d8129;
+/* The upper edge is a real, shared hinge: the clear lid turns through 180°.
+   Its reverse carries the paper J-card; the cassette remains in the lower tray. */
+.case-assembly { position: relative; aspect-ratio: 1.58; perspective: 1200px; transition: aspect-ratio 620ms cubic-bezier(.25,.7,.25,1); }
+.case-book.is-open .case-assembly { aspect-ratio: .79; }
+.case-shell { position: absolute; bottom: 0; left: 0; width: 100%; aspect-ratio: 1.58; transform-style: preserve-3d; }
+.case-base, .case-lid-front, .case-paper {
+  position: absolute; inset: 0; border: 1px solid #8e9da1ac; border-radius: 4px;
   box-shadow: inset 0 1px 1px #ffffffe0, inset -2px -3px 2px #26384255, inset 2px 0 1px #ffffff70;
-  overflow: hidden;
-  transform-origin: center top;
-  transition: max-height 220ms ease, opacity 180ms ease, transform 220ms ease;
 }
-.case-cover::after { position: absolute; z-index: 1; inset: 2px; border: 1px solid #ffffff69; border-radius: inherit; pointer-events: none; background: linear-gradient(119deg, transparent 31%, #ffffff28 31.5%, #ffffff0c 48%, transparent 48.5%); content: ""; }
-.case-hinge { position: absolute; inset: 5px auto 7px 4px; width: 8px; border-inline: 1px solid #dce9ec80; border-radius: 2px; background: repeating-linear-gradient(0deg, #192c3a35 0 1px, #e5eff43b 1px 3px); }
+.case-base { padding: 9px; background: linear-gradient(135deg, #e7f3f43d, #89989e20 38%, #e3e9ed4d 90%), #707d8129; }
+.case-base::before, .case-base::after { position: absolute; top: -3px; width: 14px; height: 7px; border: 1px solid #9cabb0; border-radius: 3px; background: linear-gradient(#e1e9e9, #455d6b 50%, #c5d2d5); content: ''; z-index: 3; }
+.case-base::before { left: 8%; } .case-base::after { right: 8%; }
 .case-insert { display: grid; place-items: center; height: 100%; padding: 5px; background: linear-gradient(150deg, #26384438, #b9c3bc20); }
 .case-insert .case-cassette { width: 94%; max-height: 100%; margin: 0; transform: none; opacity: 1; border-radius: 9px; }
 .case-cassette .tape-title { font-size: 5.6cqw; }
-.case-cover[data-tape-style="diy"] .case-cassette .tape-title { font: 400 5.1cqw/1.2 "Permanent Marker", "Marker Felt", "Segoe Print", cursive; }
-.case-book.is-open .case-cover { max-height: 0; aspect-ratio: auto; padding-block: 0; border-width: 0; opacity: 0; transform: perspective(600px) rotateX(-80deg); }
-.case-inside { min-width: 0; padding: 0; }
-.case-inside .tracks { margin: 0 0 10px; }
-.case-inside .deck-track-status { margin: 8px 4px; }
-.case-inside .deck-provider iframe { border-radius: 3px; }
-@media (prefers-reduced-motion: reduce) { .case-cover { transition: none; } .case-book.is-open .case-cover { transform: none; } }
+.case-base[data-tape-style="diy"] .case-cassette .tape-title { font: 400 5.1cqw/1.2 "Permanent Marker", "Marker Felt", "Segoe Print", cursive; }
+.case-lid { position: absolute; inset: 0; z-index: 2; transform-origin: center top; transform-style: preserve-3d; transition: transform 620ms cubic-bezier(.25,.7,.25,1); }
+.case-book.is-open .case-lid { transform: rotateX(180deg); }
+.case-lid-front, .case-paper { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.case-lid-front { pointer-events: none; background: linear-gradient(119deg, #eef7fc0a 31%, #ffffff3b 31.5%, #ffffff10 48%, transparent 48.5%); box-shadow: inset 0 0 0 4px #c4d2d663, inset 0 0 0 5px #4a65757a, 0 3px 4px #10222c33; }
+.case-lid-front::after { content: ''; position: absolute; bottom: 3px; left: calc(50% - 13px); width: 26px; height: 4px; border: 1px solid #c1d2d5; border-radius: 2px; }
+.case-paper {
+  transform: rotateX(180deg); display: flex; flex-direction: column; gap: 7px; min-height: 0;
+  padding: 11px 13px 9px; border: 5px solid #b6c6c9; outline: 1px solid #6d858f;
+  background: repeating-linear-gradient(0deg, #9c8e7010 0 1px, transparent 1px 3px), #eee8d8;
+  color: #273c50; box-shadow: inset 0 -7px 8px -7px #59493288, inset 0 0 0 1px #fff9;
+}
+.case-paper::after { position: absolute; bottom: 3px; left: 5px; right: 5px; border-bottom: 1px dashed #99876a66; content: ''; pointer-events: none; }
+.insert-heading { flex: none; border-bottom: 1px solid #899398; padding-bottom: 6px; }
+.insert-side { display: block; font: 500 8px/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+.insert-title { display: block; margin-top: 3px; font: 500 18px/1.2 var(--font-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.case-book[data-tape-style="diy"] .insert-title { font: 400 16px/1.3 "Permanent Marker", "Marker Felt", "Segoe Print", cursive; }
+.case-book[data-tape-style="album"] .case-paper { background-color: #e4e9e7; }
+.insert-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #78838a #ded7c6; }
+.insert-scroll:focus-visible { outline: 2px solid #42687d; outline-offset: 2px; }
+.case-paper .insert-tracks { margin: 0; padding: 0 4px 0 29px; color: inherit; font: 11px/1.4 var(--font-mono); }
+.insert-tracks li { padding: 5px 0; border-bottom: 1px solid #8b97842d; }
+.insert-tracks li::marker { font: 10px var(--font-mono); color: #62717a; }
+.insert-credit { display: inline-block; max-width: calc(100% - 36px); vertical-align: top; }
+.insert-credit strong { display: block; font-weight: 500; overflow-wrap: anywhere; }
+.insert-credit > span { display: block; margin-top: 2px; font-size: 9px; color: #5c6b72; }
+.case-paper .insert-tracks a { color: inherit; }
+.insert-duration { float: right; padding-left: 4px; font: 9px/1.5 var(--font-mono); color: #5c6b72; }
+.insert-footer { flex: none; border-top: 1px solid #899398; padding-top: 5px; font: 8px/1.3 var(--font-mono); color: #586972; }
+.case-paper .deck-track-status { color: #586972; font: 11px/1.6 var(--font-mono); }
+.case-paper .deck-track-status:empty { display: none; }
+.case-paper .deck-track-status a { color: inherit; }
+.case-source { margin-top: 8px; }
+.case-source[aria-hidden="true"] { height: 0; margin: 0; overflow: hidden; visibility: hidden; }
+.case-source-toggle { width: 100%; padding: 9px 6px; border: 0; background: transparent; text-align: left; cursor: pointer; font: 10px/1.5 var(--font-mono); color: var(--accent-text); }
+.case-source-toggle::before { content: '▸ '; }
+.case-source-toggle[aria-expanded="true"]::before { content: '▾ '; }
+.case-source-toggle:focus-visible { outline: 2px solid var(--accent-text); }
+.case-source .deck-provider { margin-top: 6px; }
+.case-source:not(.is-revealed) .deck-provider { height: 0; margin: 0; overflow: hidden; visibility: hidden; }
+.case-source iframe { border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .case-assembly, .case-lid { transition: none; } }

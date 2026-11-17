@@ -107,7 +107,6 @@ footer { margin-top: 40px; padding-bottom: 24px; }
   .paper-catalog .card { transform: none; }
   .listening-console { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .tape-shelf { max-width: none; }
-  .case-cover { max-height: 260px; }
   .television-room { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .tube-cabinet { max-width: 540px; width: 100%; margin-inline: auto; }
 }

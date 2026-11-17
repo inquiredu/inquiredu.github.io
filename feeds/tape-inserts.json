@@ -1,0 +1,509 @@
+[
+  {
+    "url": "https://open.spotify.com/playlist/6DB4Qf8vrDgM62TjmymEua",
+    "captured": "2026-11-16",
+    "note": "Track listing captured from the Spotify preview; the source player has the current playlist.",
+    "tracks": [
+      {
+        "title": "Bad - Live",
+        "artist": "U2",
+        "duration": "08:00"
+      },
+      {
+        "title": "Eugene",
+        "artist": "Arlo Parks",
+        "duration": "03:43"
+      },
+      {
+        "title": "Hi Ren",
+        "artist": "Ren",
+        "duration": "08:35"
+      },
+      {
+        "title": "No No No",
+        "artist": "Beirut",
+        "duration": "02:50"
+      },
+      {
+        "title": "New Slang - 2021 Remaster",
+        "artist": "The Shins",
+        "duration": "03:50"
+      },
+      {
+        "title": "Disappear",
+        "artist": "INXS",
+        "duration": "04:09"
+      },
+      {
+        "title": "Coffee",
+        "artist": "Sylvan Esso",
+        "duration": "04:28"
+      },
+      {
+        "title": "For You",
+        "artist": "Tyler Cassidy",
+        "duration": "03:32"
+      },
+      {
+        "title": "Love Comes Tumbling",
+        "artist": "U2",
+        "duration": "04:45"
+      },
+      {
+        "title": "One",
+        "artist": "U2",
+        "duration": "04:36"
+      },
+      {
+        "title": "The Suburbs",
+        "artist": "Arcade Fire",
+        "duration": "05:15"
+      },
+      {
+        "title": "Under The Pressure",
+        "artist": "The War On Drugs",
+        "duration": "08:52"
+      },
+      {
+        "title": "Hold On",
+        "artist": "Alabama Shakes",
+        "duration": "03:46"
+      },
+      {
+        "title": "Chicago",
+        "artist": "Sufjan Stevens",
+        "duration": "06:04"
+      },
+      {
+        "title": "Red Eyes",
+        "artist": "The War On Drugs",
+        "duration": "04:58"
+      },
+      {
+        "title": "Wake Up",
+        "artist": "Arcade Fire",
+        "duration": "05:35"
+      },
+      {
+        "title": "Soul Meets Body",
+        "artist": "Death Cab for Cutie",
+        "duration": "03:49"
+      },
+      {
+        "title": "Don't Wanna Fight",
+        "artist": "Alabama Shakes",
+        "duration": "03:52"
+      },
+      {
+        "title": "Always Alright",
+        "artist": "Alabama Shakes",
+        "duration": "04:09"
+      },
+      {
+        "title": "Santa Fe",
+        "artist": "Beirut",
+        "duration": "04:14"
+      },
+      {
+        "title": "No One's Gonna Love You",
+        "artist": "Band of Horses",
+        "duration": "03:37"
+      },
+      {
+        "title": "Never Going Back Again - 2004 Remaster",
+        "artist": "Fleetwood Mac",
+        "duration": "02:14"
+      },
+      {
+        "title": "I Feel It All",
+        "artist": "Feist",
+        "duration": "03:39"
+      },
+      {
+        "title": "Mushaboom",
+        "artist": "Feist",
+        "duration": "03:44"
+      },
+      {
+        "title": "Something Good",
+        "artist": "alt-J",
+        "duration": "03:37"
+      },
+      {
+        "title": "Pink Moon",
+        "artist": "Nick Drake",
+        "duration": "02:04"
+      },
+      {
+        "title": "My Moon My Man",
+        "artist": "Feist",
+        "duration": "03:48"
+      },
+      {
+        "title": "First Day of My Life",
+        "artist": "Bright Eyes",
+        "duration": "03:08"
+      },
+      {
+        "title": "Always Like This",
+        "artist": "Bombay Bicycle Club",
+        "duration": "04:05"
+      },
+      {
+        "title": "Skinny Love",
+        "artist": "Bon Iver",
+        "duration": "03:58"
+      },
+      {
+        "title": "Sea of Love",
+        "artist": "Cat Power",
+        "duration": "02:19"
+      },
+      {
+        "title": "Novocaine For The Soul",
+        "artist": "Eels",
+        "duration": "03:08"
+      },
+      {
+        "title": "Judge Not",
+        "artist": "Bob Marley, The Beverley's All Stars",
+        "duration": "02:25"
+      },
+      {
+        "title": "One Cup of Coffee",
+        "artist": "Bob Marley",
+        "duration": "02:31"
+      },
+      {
+        "title": "Simmer Down",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:21"
+      },
+      {
+        "title": "I'm Still Waiting",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:05"
+      },
+      {
+        "title": "One Love / People Get Ready",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:52"
+      },
+      {
+        "title": "Put It on",
+        "artist": "Bob Marley",
+        "duration": "03:05"
+      },
+      {
+        "title": "Mellow Mood",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:29"
+      },
+      {
+        "title": "Bend Down Low",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:19"
+      },
+      {
+        "title": "Hypocrites (Dub)",
+        "artist": "Bob Marley",
+        "duration": "02:42"
+      },
+      {
+        "title": "Stir It Up",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:30"
+      },
+      {
+        "title": "Thank You Lord (Dub)",
+        "artist": "Bob Marley",
+        "duration": "03:40"
+      },
+      {
+        "title": "Hammer",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:52"
+      },
+      {
+        "title": "Caution",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:43"
+      },
+      {
+        "title": "Back Out",
+        "artist": "The Wailers",
+        "duration": "02:11"
+      },
+      {
+        "title": "Soul Shake Down Party",
+        "artist": "The Wailers",
+        "duration": "03:10"
+      },
+      {
+        "title": "Do It Twice",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:42"
+      },
+      {
+        "title": "Soul Rebel",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:45"
+      },
+      {
+        "title": "Sun Is Shining",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:09"
+      },
+      {
+        "title": "Don't Rock My Boat",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:30"
+      },
+      {
+        "title": "Small Axe",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:45"
+      },
+      {
+        "title": "Duppy Conqueror",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:45"
+      },
+      {
+        "title": "Mr Brown",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:27"
+      },
+      {
+        "title": "Trenchtown Rock",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:58"
+      },
+      {
+        "title": "High Tide Or Low Tide - Jamaican Version",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:42"
+      },
+      {
+        "title": "Slave Driver",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:53"
+      },
+      {
+        "title": "No More Trouble",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:57"
+      },
+      {
+        "title": "Concrete Jungle",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:13"
+      },
+      {
+        "title": "Get Up, Stand Up",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:41"
+      },
+      {
+        "title": "Rastaman Chant",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:45"
+      },
+      {
+        "title": "Burnin' And Lootin'",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:13"
+      },
+      {
+        "title": "Iron Lion Zion",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:57"
+      },
+      {
+        "title": "Lively Up Yourself",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:10"
+      },
+      {
+        "title": "Natty Dread",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:35"
+      },
+      {
+        "title": "I Shot The Sheriff - Live At The Lyceum, London/1975",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:18"
+      },
+      {
+        "title": "No Woman No Cry - Live At The Roxy, 1976",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:18"
+      },
+      {
+        "title": "Who The Cap Fit",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:43"
+      },
+      {
+        "title": "Jah Live",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:13"
+      },
+      {
+        "title": "Crazy Baldhead",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:11"
+      },
+      {
+        "title": "War",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:36"
+      },
+      {
+        "title": "Johnny Was",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:47"
+      },
+      {
+        "title": "Rat Race",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:50"
+      },
+      {
+        "title": "Jamming - 12” Version / Paul \"Groucho\" Smykle Remix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:33"
+      },
+      {
+        "title": "Waiting In Vain - Advert Mix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:59"
+      },
+      {
+        "title": "Exodus",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "07:39"
+      },
+      {
+        "title": "Natural Mystic",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:27"
+      },
+      {
+        "title": "Three Little Birds - Alternate Mix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:58"
+      },
+      {
+        "title": "Running Away",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:15"
+      },
+      {
+        "title": "Keep On Moving - London Version",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:45"
+      },
+      {
+        "title": "Easy Skanking",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:58"
+      },
+      {
+        "title": "Is This Love - Horns Mix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:59"
+      },
+      {
+        "title": "Smile Jamaica",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:12"
+      },
+      {
+        "title": "Time Will Tell",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:25"
+      },
+      {
+        "title": "Africa Unite",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:55"
+      },
+      {
+        "title": "Survival",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:54"
+      },
+      {
+        "title": "One Drop",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:51"
+      },
+      {
+        "title": "Zimbabwe",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:51"
+      },
+      {
+        "title": "So Much Trouble In The World",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:00"
+      },
+      {
+        "title": "Ride Natty Ride - 12” Mix / Bonus Track",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "06:23"
+      },
+      {
+        "title": "Coming In From The Cold - 12\" Mix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "06:04"
+      },
+      {
+        "title": "Real Situation",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:08"
+      },
+      {
+        "title": "Bad Card",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "02:50"
+      },
+      {
+        "title": "Could You Be Loved - Errol Brown and Alex Sadkin Remix / Bonus Track",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:25"
+      },
+      {
+        "title": "Forever Loving Jah",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:02"
+      },
+      {
+        "title": "Rastaman Live Up",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "05:27"
+      },
+      {
+        "title": "Give Thanks & Praises",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:14"
+      },
+      {
+        "title": "One Love/People Get Ready - 12\" Mix",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "07:08"
+      },
+      {
+        "title": "Why Should I",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "03:30"
+      },
+      {
+        "title": "Redemption Song - Live At The Stanley Theatre, 9/23/1980",
+        "artist": "Bob Marley & The Wailers",
+        "duration": "04:08"
+      }
+    ]
+  }
+]

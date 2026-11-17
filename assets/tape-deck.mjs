@@ -1,6 +1,7 @@
 import {musicSource} from './creative-sources.mjs';
 import {createFocusView} from './focus-view.mjs?v=20261115.16';
 import {mountMusicVisualizer} from './music-visualizer.mjs?v=20261115.16';
+import {soundCloudTracks, savedTapeInsert} from './tape-inserts.mjs?v=20261116.7';
 
 /* The deck and expandable track drawer share one persistent provider player.
    Opening the drawer loads the selection without starting playback. */
@@ -147,7 +148,7 @@ async function connectSpotify(player, source, title, signal, update) {
   }));
 }
 
-async function connectSoundCloud(player, source, title, signal, update) {
+async function connectSoundCloud(player, source, title, signal, update, tracks) {
   await sdk('https://w.soundcloud.com/player/api.js');
   signal.throwIfAborted();
   const iframe = element('iframe');
@@ -170,6 +171,9 @@ async function connectSoundCloud(player, source, title, signal, update) {
     const listeners = [
       [events.READY, () => {
         measure();
+        widget.getSounds(sounds => {
+          if (!signal.aborted) tracks(soundCloudTracks(sounds));
+        });
         resolve({
           play: () => widget.play(),
           pause: () => widget.pause(),
@@ -350,18 +354,42 @@ export function mountTapeDeck(container, items, sources = {}) {
   const trackToggle = button('Open case · Tracks', 'case-latch');
   trackToggle.setAttribute('aria-expanded', 'false');
   trackToggle.setAttribute('aria-controls', 'deck-tracks');
-  const caseCover = element('div', 'tape-case case-cover');
+  const assembly = element('div', 'case-assembly');
+  const shell = element('div', 'case-shell');
+  const caseCover = element('div', 'case-base');
   caseCover.setAttribute('aria-hidden', 'true');
-  const trackPanel = element('div', 'deck-track-panel case-inside');
+  const lid = element('div', 'case-lid');
+  const lidFront = element('div', 'case-lid-front');
+  lidFront.setAttribute('aria-hidden', 'true');
+  const trackPanel = element('div', 'case-paper');
   trackPanel.id = 'deck-tracks';
   trackPanel.setAttribute('role', 'region');
   trackPanel.setAttribute('aria-hidden', 'true');
   trackPanel.inert = true;
   const trackStatus = element('p', 'deck-track-status');
   trackStatus.setAttribute('role', 'status');
-  const writtenTracks = element('ol', 'tracks');
-  trackPanel.append(trackStatus, writtenTracks, player);
-  caseBook.append(trackToggle, caseCover, trackPanel);
+  const paperHeading = element('div', 'insert-heading');
+  const paperTitle = element('strong', 'insert-title');
+  const paperSide = element('span', 'insert-side');
+  paperHeading.append(paperSide, paperTitle);
+  const paperScroll = element('div', 'insert-scroll');
+  paperScroll.tabIndex = 0;
+  paperScroll.setAttribute('role', 'region');
+  paperScroll.setAttribute('aria-label', 'Printed track listing');
+  const writtenTracks = element('ol', 'insert-tracks');
+  const paperFooter = element('p', 'insert-footer');
+  paperScroll.append(trackStatus, writtenTracks);
+  trackPanel.append(paperHeading, paperScroll, paperFooter);
+  lid.append(lidFront, trackPanel);
+  shell.append(caseCover, lid);
+  assembly.append(shell);
+  const sourceDetails = element('div', 'case-source');
+  const sourceSummary = button('', 'case-source-toggle');
+  player.id = 'case-source-player';
+  sourceSummary.setAttribute('aria-controls', player.id);
+  sourceSummary.addEventListener('click', () => revealSource(sourceSummary.getAttribute('aria-expanded') !== 'true'));
+  sourceDetails.append(sourceSummary, player);
+  caseBook.append(trackToggle, assembly, sourceDetails);
   trackDrawer.append(caseBook);
   const library = element('div', 'tape-library');
   library.append(shelfHead, shelf, details);
@@ -448,7 +476,7 @@ export function mountTapeDeck(container, items, sources = {}) {
     const attempt = {load, controls: null};
     session = attempt;
     announce('Opening ' + source.provider + '…');
-    trackStatus.textContent = 'Loading tracks from ' + source.provider + '…';
+    if (!writtenTracks.children.length && source.provider === 'SoundCloud') trackStatus.textContent = 'Reading the tape…';
     paint();
 
     const connector = source.provider === 'Spotify' ? connectSpotify : connectSoundCloud;
@@ -456,12 +484,15 @@ export function mountTapeDeck(container, items, sources = {}) {
     const cancelled = new Promise((resolve, reject) => {
       load.signal.addEventListener('abort', () => reject(load.signal.reason), {once: true});
     });
-    const connected = connector(player, source, item.title, load.signal, update => updatePlayback(attempt, update));
+    const connected = connector(player, source, item.title, load.signal, update => updatePlayback(attempt, update), tracks => {
+      if (session === attempt && !load.signal.aborted && !item.tracks?.length) {
+        printTracks(tracks, 'SoundCloud · Live track list');
+      }
+    });
     Promise.race([connected, cancelled]).then(controls => {
       if (session !== attempt || load.signal.aborted) return;
       attempt.controls = controls;
       announce('');
-      trackStatus.textContent = '';
       if (playRequested) {
         controls.play();
         playRequested = false;
@@ -472,9 +503,35 @@ export function mountTapeDeck(container, items, sources = {}) {
       discardPlayer();
       state = {playing: false, buffering: false, position: 0, duration: 0, track: ''};
       announce(error.message + ' Try Play again, or open it at the source.');
-      trackStatus.replaceChildren(document.createTextNode('Tracks could not load. '), link('Open in ' + source.provider + ' ↗', source.url));
+      if (!writtenTracks.children.length) trackStatus.replaceChildren(document.createTextNode('Tracks could not load. '), link('Open in ' + source.provider + ' ↗', source.url));
       paint();
     }).finally(() => clearTimeout(timeout));
+  }
+
+  function printTracks(tracks, note) {
+    writtenTracks.replaceChildren();
+    paperScroll.scrollTop = 0;
+    trackStatus.textContent = tracks.length ? '' : 'No printed track list yet. Use the source player below.';
+    for (const track of tracks) {
+      const row = element('li');
+      const credit = element('span', 'insert-credit');
+      const title = element('strong', '', track.title);
+      if (/^https?:\/\//.test(track.url || '')) title.replaceChildren(link(track.title, track.url));
+      credit.append(title);
+      if (track.artist) credit.append(element('span', '', track.artist));
+      row.append(credit, element('span', 'insert-duration', track.duration));
+      writtenTracks.append(row);
+    }
+    paperFooter.textContent = tracks.length ? `${tracks.length} tracks · Scroll to read` : 'Track notes';
+    paperFooter.title = note;
+    if (note.includes('Printed')) paperFooter.textContent += ' · ' + note;
+  }
+
+  function revealSource(open) {
+    sourceDetails.classList.toggle('is-revealed', open);
+    sourceSummary.setAttribute('aria-expanded', String(open));
+    player.setAttribute('aria-hidden', String(!open));
+    player.inert = !open;
   }
 
   function showDetails() {
@@ -488,8 +545,14 @@ export function mountTapeDeck(container, items, sources = {}) {
     caseSlots[index].append(trackDrawer);
     trackPanel.setAttribute('aria-label', item.title + ' · Tracks');
     caseCover.dataset.tapeStyle = entry.appearance;
+    caseBook.dataset.tapeStyle = entry.appearance;
+    paperTitle.textContent = item.title;
+    paperSide.textContent = entry.appearance === 'diy' ? 'Original recordings' : entry.appearance === 'album' ? 'Album · Track listing' : 'Mixtape · Track listing';
+    revealSource(false);
+    sourceDetails.hidden = !source;
+    sourceSummary.textContent = source ? source.provider + ' player' : '';
+    sourceSummary.setAttribute('aria-label', sourceSummary.textContent);
     trackToggle.disabled = !(source || item.tracks?.length);
-    const hinge = element('i', 'case-hinge');
     const insert = element('div', 'case-insert');
     const mini = tape.cloneNode(true);
     mini.classList.remove('loading', 'ejected', 'has-track');
@@ -499,17 +562,18 @@ export function mountTapeDeck(container, items, sources = {}) {
     mini.querySelector('.tape-title').textContent = item.title;
     mini.querySelector('.tape-provider').textContent = entry.providerLabel;
     insert.append(mini);
-    caseCover.replaceChildren(hinge, insert);
+    caseCover.replaceChildren(insert);
     updateCaseLatch();
     if (item.note) details.append(element('p', 'listening-note', item.note));
     if (source) details.append(link('Open in ' + source.provider + ' ↗', source.url));
-    if (item.tracks?.length) {
-      for (const track of item.tracks) {
-        const trackName = [track.title, track.artist].filter(Boolean).join(' — ');
-        const row = element('li', '', trackName);
-        if (/^https?:\/\//.test(track.url || '')) row.replaceChildren(link(trackName, track.url));
-        writtenTracks.append(row);
-      }
+    printTracks(item.tracks || [], 'Studio track list');
+    if (!item.tracks?.length && source?.provider === 'SoundCloud') trackStatus.textContent = 'Open the case to read the tape.';
+    if (!item.tracks?.length && source?.provider === 'Spotify') {
+      const selected = index;
+      savedTapeInsert(source.url).then(insert => {
+        if (selected !== index || entries[index] !== entry || !insert) return;
+        printTracks(insert.tracks, 'Printed ' + insert.captured);
+      });
     }
   }
 
@@ -525,6 +589,8 @@ export function mountTapeDeck(container, items, sources = {}) {
     trackToggle.setAttribute('aria-expanded', String(open));
     trackPanel.setAttribute('aria-hidden', String(!open));
     trackPanel.inert = !open;
+    sourceDetails.inert = !open;
+    sourceDetails.setAttribute('aria-hidden', String(!open));
     caseBook.classList.toggle('is-open', open);
     updateCaseLatch();
     // Keep the same iframe connected when closing the lid or returning to the shelf.
