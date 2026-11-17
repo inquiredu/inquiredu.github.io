@@ -1,8 +1,21 @@
 # inquiredu.github.io
 
-The site at [inquiredu.org](https://inquiredu.org): Sean Beaverson's project catalog.
+The public creative portfolio at [inquiredu.org](https://inquiredu.org): Sean Beaverson’s projects, photographs, listening selections, writing, and videos. The private editor is at [inquiredu.org/admin/](https://inquiredu.org/admin/).
 
-Two files hold the catalog:
+## Documentation
+
+Updated 2026-11-16.
+
+| Guide | Purpose |
+| --- | --- |
+| [Studio guide](docs/STUDIO-GUIDE.md) | Add, review, and publish your collection. |
+| [Maintenance guide](docs/MAINTENANCE.md) | Source files, deployments, refreshes, troubleshooting, and recovery. |
+| [GitHub login and AI service](auth/README.md) | Current configuration and instructions for maintaining the Worker. |
+| [November 16 wrap up](docs/2026-11-16-WRAP-UP.md) | Completed design, verified release, and remaining limitations. |
+
+## Project catalog data
+
+Three files coordinate the catalog:
 
 | File | Where | What |
 | --- | --- | --- |
@@ -10,11 +23,11 @@ Two files hold the catalog:
 | `catalog.json` | [`inquiredu/site-catalog`](https://github.com/inquiredu/site-catalog), private | Every card, in shelf order, hidden ones included. |
 | `repos.json` | `inquiredu/site-catalog`, private | Every repository you own, for Settings to list. The sync writes it. |
 
-Both are written together, private first, by either of the two ways below. Don't edit `projects.json` by hand: the next save rebuilds it from the private catalog.
+`catalog.json` and `projects.json` are saved in sequence, private first, through the studio or topic sync; `repos.json` is maintained by the sync. Don't edit `projects.json` by hand: the next save rebuilds it from the private catalog.
 
 ## The studio: sign in and edit
 
-The browser editor at [`/admin/`](https://inquiredu.org/admin/) manages projects, photographs, writing, song lists, and the introduction. It uses the site's early-winter palette and follows the same desk lamp: slate night with the lamp off, snow with it on. It uses **Sign in with GitHub** for the inquiredu owner. Connect it once using [the authentication setup](auth/README.md); until then its sign-in button stays disabled. The public page stays open to visitors.
+The browser editor at [`/admin/`](https://inquiredu.org/admin/) manages projects, photographs, writing, song lists, and the introduction. It uses the site's early-winter palette and follows the same desk lamp: slate night with the lamp off, snow with it on. It uses **Sign in with GitHub** for the inquiredu owner. GitHub login is configured. The [authentication guide](auth/README.md) records the current service and recovery setup. The public page stays open to visitors.
 
 **Add a project** opens a searchable repository picker. It combines live public repositories, repositories available to the current GitHub sign-in, and the private saved repository index. Existing shelf entries reopen for editing without duplicates; a new selection fills a hidden draft with its title, description, link, and topics. Review it before publishing. **Add without a repository** keeps manual project creation available. Private repositories outside the app’s approved access depend on the saved index and its checked date.
 
@@ -71,9 +84,9 @@ The sync and Settings never overwrite each other silently. If one saves while th
 REPO_LIST_KEY=$(gh auth token) PUBLISHING_KEY=$(gh auth token) node scripts/sync-catalog.mjs --dry-run --assume-tagged=some-repo
 ```
 
-## One-time setup: the two keys
+## Optional topic sync setup
 
-Make two fine-grained tokens at <https://github.com/settings/personal-access-tokens/new> with resource owner **inquiredu**.
+These two keys support the optional topic sync and legacy computer-only Settings. They are separate from the studio’s configured GitHub App login. Make fine-grained tokens at <https://github.com/settings/personal-access-tokens/new> with resource owner **inquiredu** when setting up or renewing that workflow.
 
 | Key | Repository access | Permissions | Used by |
 | --- | --- | --- | --- |
@@ -112,7 +125,7 @@ Hiding an existing photo removes it from the tray, but its published image URL a
 
 The Moving pictures section uses a wooden tube-TV enclosure with working power and channel controls. The official YouTube player loads only after a visitor switches it on, supports inline playback, and keeps its native controls clear. Turning power off removes the player and stops playback. The public channel feed is cached in `feeds/youtube.json`; the existing hourly creative-feeds workflow refreshes it without a YouTube API key and keeps the previous feed on failure. The channel feed supplies the private picker only; it never automatically adds public videos. In **Studio → Videos → Choose videos**, select thumbnail checkboxes, then review the numbered table of contents, reorder selections, edit notes, and Save & publish. Add older videos by pasting a YouTube link into Add a video or Quick add. The public TV has a matching clickable table of contents. Private video context is omitted from published content.
 
-**Studio assistant** offers reviewable editorial suggestions across projects, writing, listening, videos, and the introduction. For a project card linked to a repository, it first reads that repository's README and GitHub details (description, topics, homepage, language) with your sign-in, then fills in empty fields or checks the card against them. It says what it read before showing suggestions. Public repositories always work. Private ones work only if the studio GitHub App is installed on them; otherwise it falls back to the description and topics in the private repository index. Untick **Read the linked repository first** to send only the card. **Test AI connection** checks the service, upload path, and AI response. Every suggestion remains a draft until explicitly applied and published.
+**Studio assistant** offers reviewable editorial suggestions across projects, writing, listening, videos, and the introduction. For a project card linked to a repository, it first reads that repository's README and GitHub details (description, topics, homepage, language) with your sign-in, then fills in empty fields or checks the card against them. It says what it read before showing suggestions. Public repositories can be read without installing the app on each one, subject to GitHub availability and rate limits. Private ones work only if the studio GitHub App is installed on them; otherwise it falls back to the description and topics in the private repository index. Untick **Read the linked repository first** to send only the card. **Test AI connection** checks the service, upload path, and AI response. Every suggestion remains a draft until explicitly applied and published.
 
 ## Media and focus views
 
@@ -139,9 +152,9 @@ node --test tests/*.test.mjs
 The EXIF reader is the vendored `exifr` 7.1.3 distribution (MIT license in `assets/vendor/exifr-LICENSE.txt`). It runs locally in the editor; photo originals are not sent to a metadata service.
 
 
-## Places, as a light print
+## Places and Afterimage
 
-**Places → Light print** draws an exportable density artwork from shared photo locations, without a basemap. More photographs make a place glow more brightly. Visitors can filter by year, show place labels, select photographs, or switch to an OpenStreetMap view. No sample coordinates are published; the view stays empty until photographs have shared locations.
+**Places** opens **Afterimage**, an exportable density artwork from shared photo locations, without a basemap. More photographs make a place glow more brightly. Visitors can filter by year, show place labels, select photographs, and save a PNG. Each place detail has a link to view the area on OpenStreetMap in a separate page. No sample coordinates are published; the view stays empty until photographs have shared locations.
 
 The studio stores full coordinates in private `site-catalog/photo-locations.json`. A new geotagged import defaults to approximate sharing: public coordinates are rounded to one decimal degree (roughly 10 km, varying by latitude). Choose **Keep this location private** or **Exact pin** per photo. Hidden photographs never contribute to the public print. Original image files stay on the device; resized uploads have embedded metadata removed. Any location deliberately published remains in Git history even after it is hidden.
 
@@ -151,6 +164,6 @@ Apple Photos originals or JPEG exports with location information are the most us
 
 **Studio → Inbox** accepts Medium, Spotify, and SoundCloud links as drafts. The optional bookmark-bar shortcut brings the current source page into that inbox. Set profile links under **Connected shelves** and save. Individual Spotify selections and public SoundCloud profiles, tracks, or sets open their official players on demand; nothing autoplays. Updating a playlist at its source updates the embedded player.
 
-Medium stories come from the public RSS feed. The hourly **Refresh Medium** workflow refreshes `feeds/medium.json`, keeping only titles, dates, short plain-text excerpts, and source links. It preserves the last good feed on network failure. It uses the temporary repository GITHUB_TOKEN with contents/write and pages/write, needs no saved publishing key, and explicitly requests a Pages build after changes. The older project-topic sync is independent and still needs its two keys. The source profile must match before cached stories are displayed. Local writing and imported stories share one reading shelf, with duplicate links removed. Spotify profile links are navigation links; add a playlist, album, track, or other supported selection to create a player.
+Medium stories come from the public RSS feed. The hourly **Refresh creative feeds** workflow (`.github/workflows/refresh-medium.yml`) refreshes `feeds/medium.json`, keeping only titles, dates, short plain-text excerpts, and source links. It preserves the last good feed on network failure. It uses the temporary repository GITHUB_TOKEN with contents/write and pages/write, needs no saved publishing key, and explicitly requests a Pages build after changes. The older project-topic sync is independent and still needs its two keys. The source profile must match before cached stories are displayed. Local writing and imported stories share one reading shelf, with duplicate links removed. Spotify profile links are navigation links; add a playlist, album, track, or other supported selection to create a player.
 
-Leaflet 1.9.4 and fast-xml-parser 5.12.1 are vendored with their licenses. The map loads only when selected, credits OpenStreetMap, and does not prefetch tiles. The light print needs no map service.
+The feed parser and EXIF reader are vendored with their licenses. An older Leaflet copy remains in the repository but is not imported by the current Afterimage view. Afterimage renders locally and requests no map tiles; OpenStreetMap is an optional external link.

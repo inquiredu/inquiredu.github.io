@@ -1,8 +1,24 @@
-# Connect GitHub sign-in once
+# GitHub login and studio AI service
 
 The public website stays on GitHub Pages at **inquiredu.org**. The studio lives at **/admin/**. GitHub Pages cannot run the OAuth secret exchange, so `worker.mjs` is a small separate Cloudflare Worker. It authenticates only GitHub user ID `192934662` (inquiredu). GitHub enforces the repository permissions on every read and write.
 
-## Setup
+## Current configuration
+
+Updated 2026-11-16. Login and AI are already configured; the setup steps below are for rebuilding or moving the service.
+
+| Setting | Current value |
+| --- | --- |
+| Public site and studio | `https://inquiredu.org` and `/admin/` |
+| Worker | `inquiredu-studio-auth` |
+| Service origin | `https://inquiredu-studio-auth.smbeaverson.workers.dev` |
+| OAuth callback | `https://inquiredu-studio-auth.smbeaverson.workers.dev/callback` |
+| Client configuration | `admin/config.json` |
+| Deployment source | `auth/worker.mjs` and all its local imports, configured by `auth/wrangler.jsonc` |
+| Repository context support | `/ai/config` returns `repoContext: true` after owner authentication |
+
+GitHub Pages and Cloudflare are separate deployments. Pushing this repository does **not** redeploy the Worker. Deploy the complete current `auth/` source when backend behavior changes; an old single-file bundle can silently omit newer capabilities. See [maintenance and release checks](../docs/MAINTENANCE.md).
+
+## Rebuild setup
 
 1. In Cloudflare Workers, create a Worker named `inquiredu-studio-auth`, or deploy this directory using the official Wrangler CLI. Note its HTTPS `workers.dev` address.
 2. [Register a GitHub App](https://github.com/settings/apps/new) owned by **inquiredu**:
@@ -25,7 +41,7 @@ The public website stays on GitHub Pages at **inquiredu.org**. The studio lives 
 5. Set `authOrigin` in `admin/config.json` to the Worker's exact HTTPS origin, without a trailing slash. Commit that change along with this site update.
 6. Open `https://inquiredu.org/admin/`, choose **Sign in with GitHub**, and authorize the app. Verify that only the intended two repositories are listed. Open each editor section before making a small first publication.
 
-The sign-in button intentionally stays disabled until the Worker URL is configured. No live OAuth credentials are included in this change.
+On a fresh installation, the sign-in button stays disabled until the Worker URL is configured. Credentials belong in Cloudflare secrets, not this repository.
 
 ## Security and publishing behavior
 
@@ -47,7 +63,7 @@ Primary documentation: [GitHub App web application flow](https://docs.github.com
 
 The same Worker now serves owner-authenticated `/ai/config` and `/ai/describe` endpoints. Add an encrypted **Secret** named `OPENAI_API_KEY` under Cloudflare → this Worker → Settings → Runtime variables and secrets. Enter it directly in Cloudflare, never in chat or the repository. Use a dedicated OpenAI project with Responses API access and active API billing. API usage is billed separately from a ChatGPT subscription. The default model is `gpt-5.6-terra`, with reasoning disabled, high-detail images and a 1000-token response limit. An optional `OPENAI_MODEL` variable can select a compatible vision/structured-output model.
 
-Deploy `worker.mjs` with its `photo-ai.mjs` import using Wrangler, or bundle them into one ES module for the Cloudflare code editor. Keep the existing GitHub secrets and owner/origin variables. The studio CSP must include the exact backend origin. Once the secret is deployed, use **Check connection** in Photographs; the automatic draft checkbox will become available.
+Deploy the whole `auth/` directory with Wrangler, including `worker.mjs`, `photo-ai.mjs`, `photo-places.mjs`, `studio-assistant.mjs`, and `studio-bridge.mjs`. For the Cloudflare code editor, first bundle all of those current modules into a single ES module; copying only the entry file or an older bundle is insufficient. Keep the existing GitHub secrets and owner/origin variables. The studio CSP must include the exact backend origin. Once the secret is deployed, use **Test AI connection** in the studio; the automatic draft checkbox will become available.
 
 New uploads get editable caption and accessibility drafts while enabled. Existing photographs have **Suggest words & place**. Blank fields may be filled; existing words and text edited during generation are preserved, with suggestions offered for explicit application. AI never publishes anything itself. Errors leave the imported photo ready to publish without a description; words can be added later. New uploads reuse a 1024-pixel preview prepared during import, release full-size image memory before the AI request, and retain the local Blob for retries. Saved-image previews fall back to the image-element decoder when ImageBitmap is unavailable. Turning the checkbox off lasts for the current tab session.
 
@@ -63,7 +79,7 @@ The model can return a high-confidence public landmark or confirmed city, with e
 
 **Refresh location suggestions** revisits included, unlocated photographs, preserving captions and all existing locations (including private ones). Results persist in private `photo-place-suggestions.json`, using file SHA conflict checks. **Review area** gives the evidence, rounded coordinates and a direct OpenStreetMap link; **Preview suggested heatmap** includes proposed points privately. **Use approximate area** changes only the local photo draft. Publication still requires **Save & publish**. Dismissed and unaccepted suggestions never enter `slides.json`. A failed private save is reported without publishing.
 
-The public cassette deck uses official Spotify iFrame and SoundCloud Widget APIs, loaded only after Play. Reels follow actual playback events, while VU movement is decorative. Spotify seeking is enabled only for episodes where its API documents support; SoundCloud supports 15-second seek keys. Original provider players and source links remain available for browser/account playback restrictions.
+The public cassette deck uses official Spotify iFrame and SoundCloud Widget APIs, loaded on Play or when a case is opened to read its tracks; opening a case does not start playback. Reels follow actual playback events, while VU movement is decorative. Spotify seeking is enabled only for episodes where its API documents support; SoundCloud supports 15-second seek keys. Original provider players and source links remain available for browser/account playback restrictions.
 
 The public Afterimage and private heatmap preview render locally without map tiles. Place detail cards link directly to OpenStreetMap for optional geographic review. No map-provider key or embedded tile service is required.
 
