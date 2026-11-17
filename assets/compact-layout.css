@@ -1,0 +1,129 @@
+/* More of the collection in view; controls keep usable touch targets. */
+body { padding-inline: max(clamp(16px, 3vw, 44px), env(safe-area-inset-left, 0px)) max(clamp(16px, 3vw, 44px), env(safe-area-inset-right, 0px)); }
+.page { max-width: 1120px; padding-top: 22px; }
+.intro-top { padding-bottom: 16px; }
+.introduction { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: clamp(24px, 4vw, 44px); padding-block: 28px 8px; }
+.introduction > :first-child { padding-block-start: 0; }
+.introduction .photo-collection { max-width: 470px; justify-self: end; }
+.hello { font-size: clamp(32px, 3.8vw, 46px); margin-block: 16px; }
+.intro-text { font-size: 15px; line-height: 1.65; }
+.collection-nav { margin-top: 24px; gap: 12px 20px; }
+.horizon { margin-block: 24px 28px; }
+.section-title { font-size: clamp(22px, 2.2vw, 26px); }
+.section-number { margin-bottom: 7px; }
+.room-head { margin-bottom: 16px; }
+.editorial-section { margin-top: 40px; padding-top: 24px; }
+.editorial-section > div { margin-top: 16px; }
+footer { margin-top: 40px; padding-bottom: 24px; }
+
+/* The photograph stays uncropped; the apparatus takes less vertical space. */
+.photo-ambient { inset-inline: calc(-1 * min(3vw, 22px)); }
+.photo-collection .viewfinder-head { min-height: 24px; margin-bottom: 6px; }
+.photo-collection .photo-player .projector-deck { padding: 8px 10px 4px; }
+.photo-tray-wheel { width: 44px; }
+.photo-thumbnail-strip { margin-top: 7px; padding-block: 4px 5px; }
+.photo-player .viewfinder-tools { margin-top: 4px; padding-top: 2px; column-gap: 12px; }
+.photo-player .viewfinder-tools button { min-height: 32px; }
+.photo-caption-bar { padding-block: 5px; }
+
+/* Keep the catalog and its readable card alongside one another. */
+.library-objects { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.library-objects .chassis { padding: 20px 18px 14px; }
+.library-objects .screen { height: 350px; padding: 18px; font-size: 12px; }
+.library-objects .rec { padding-block: 8px; }
+.library-objects .deck { padding-top: 12px; }
+.paper-catalog { align-self: center; }
+.paper-catalog .card { min-height: 0; padding: 22px 24px 32px; gap: 15px; }
+.paper-catalog .card-top { padding-bottom: 12px; }
+.paper-catalog .card-top::after { left: -24px; right: -24px; }
+.paper-catalog .fields { gap: 11px; }
+.paper-catalog .dewey { margin-top: 12px; }
+
+/* The player and its tape shelf share a work surface. */
+.listening-console { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(280px, .95fr); gap: 22px; align-items: start; }
+.deck-room .tape-deck { padding: 22px 18px 16px; container: cassette-deck / inline-size; }
+.tape-header { margin: 0 3px 17px; font-size: 8px; letter-spacing: .15em; }
+.tape-body { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+.tape-panel { gap: 14px; }
+.vu-pair { gap: 8px; }
+.counter-row { gap: 10px; }
+.tape-counter span { width: 18px; height: 27px; font-size: 17px; }
+.tape-readout > span { font-size: 11px; }
+.tape-keys { padding: 6px; gap: 5px; }
+.tape-keys button { height: 46px; gap: 5px; }
+.tape-hint { min-height: 1.7em; font-size: 10px; }
+.listening-actions { margin-bottom: 0; }
+#listening, #videos { position: relative; }
+@media (min-width: 761px) {
+  #listening .listening-actions, #videos .tube-toolbar { position: absolute; top: 32px; right: 0; margin: 0; }
+}
+.deck-room .listening-details { margin-top: 12px; }
+#listeningItems > .deck-footer { margin-top: 16px; padding-top: 12px; }
+.focus-view[data-focus-kind="music"]:modal .tape-deck { padding: 22px 18px 16px; }
+
+@container cassette-deck (max-width: 520px) {
+  .tape-body { grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); gap: 12px; }
+  .tape-panel { display: contents; }
+  .tape-well { grid-column: 1; grid-row: 1 / span 2; align-self: center; }
+  .vu-pair { grid-column: 2; grid-row: 1; align-self: end; }
+  .counter-row { grid-column: 2; grid-row: 2; flex-wrap: wrap; align-self: start; gap: 7px; }
+  .tape-keys, .tape-hint { grid-column: 1 / -1; }
+  .tape-counter span { width: 16px; height: 24px; font-size: 15px; }
+  .tape-readout { gap: 4px; }
+  .tape-readout small { font-size: 8px; }
+  .tape-readout > span { font-size: 10px; }
+}
+
+/* A smaller television, with its contents beside it where they fit. */
+.tube-toolbar { margin-block: 10px 12px; }
+.television-room { grid-template-columns: minmax(0, 1.35fr) minmax(250px, 1fr); gap: 24px; max-width: none; }
+.tube-cabinet { padding: 10px; }
+.tube-body { padding: 10px; gap: 10px; grid-template-columns: minmax(0, 1fr) 76px; }
+.tube-bezel { padding: 10px; }
+.tube-brand { margin-bottom: 14px; }
+.tube-brand strong { font-size: 7px; }
+.tube-dial { width: 50px; height: 50px; }
+.tube-screen { min-height: 224px; }
+.tube-programmes { max-height: 250px; }
+.tube-programme { min-height: 40px; padding-block: 10px; }
+.tube-current { margin-top: 14px; }
+.tube-guide-head { padding-bottom: 10px; margin-bottom: 12px; }
+.tube-current h3 { margin-bottom: 8px; }
+.tube-watch, .tube-all { margin-top: 10px; }
+
+@media (max-width: 980px) {
+  .listening-console { grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr); gap: 18px; }
+  .television-room { grid-template-columns: minmax(0, 1.2fr) minmax(240px, 1fr); gap: 20px; }
+  .tube-body { grid-template-columns: minmax(0, 1fr); }
+  .tube-controls { flex-direction: row; justify-content: center; flex-wrap: wrap; gap: 14px; padding: 4px 0; }
+  .tube-brand, .tube-speaker, .tube-model, .tube-tuning > small { display: none; }
+  .tube-tuning { flex-direction: row; gap: 10px; }
+  .tube-channel-buttons { margin: 0; }
+}
+@media (max-width: 760px) {
+  .introduction { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 22px; }
+  .library-objects { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .library-objects .screen { height: 300px; }
+  .paper-catalog .card { transform: none; }
+  .listening-console { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .tape-shelf { max-width: none; }
+  .case-cover { max-height: 260px; }
+  .television-room { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .tube-cabinet { max-width: 540px; width: 100%; margin-inline: auto; }
+}
+@media (max-width: 600px) {
+  .page { padding-top: 16px; }
+  .introduction { grid-template-columns: minmax(0, 1fr); padding-top: 24px; gap: 20px; }
+  .introduction .photo-collection { max-width: none; justify-self: stretch; }
+  .hello { font-size: 34px; }
+  .collection-nav { margin-top: 18px; }
+  .editorial-section { margin-top: 30px; padding-top: 20px; }
+  .room-head { align-items: start; gap: 10px; }
+  .library-objects .chassis { padding: 16px 12px 12px; }
+  .library-objects .screen { padding: 14px; }
+  .paper-catalog .card { padding: 20px 20px 30px; }
+  .paper-catalog .card-top::after { left: -20px; right: -20px; }
+  .tape-header { letter-spacing: .1em; }
+  .tube-programmes { max-height: 260px; }
+  .tube-programme { min-height: 44px; }
+}
