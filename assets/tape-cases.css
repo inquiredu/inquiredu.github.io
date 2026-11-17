@@ -1,0 +1,160 @@
+/* Clear cassette cases: a small collection of physical objects under the deck. */
+.deck-room .tape-shelf {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+  padding: 5px 3px 12px;
+}
+
+.tape-case {
+  --case-paper: #dfdbcd;
+  --case-ink: #263b48;
+  --case-stripe: #597f8b;
+  --case-accent: #ae7857;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1.65;
+  padding: 7px 7px 9px 24px;
+  border: 1px solid #8e9da17a;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #e7f3f45e, #89989e20 38%, #e3e9ed4d 90%), #707d8129;
+  box-shadow: inset 0 1px 1px #ffffffe0, inset -2px -3px 2px #26384255,
+    inset 2px 0 1px #ffffff70, 0 3px 0 #26343c6b, 0 9px 12px -5px #07111959;
+  color: var(--case-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.tape-case::before,
+.tape-case::after {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  content: "";
+}
+
+.tape-case::before {
+  inset: 3px 3px 5px 19px;
+  border: 1px solid #ffffff69;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px #20333c26;
+}
+
+.tape-case::after {
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(119deg, transparent 31%, #ffffff28 31.5%, #ffffff0c 48%, transparent 48.5%);
+}
+
+.case-hinge {
+  position: absolute;
+  inset: 5px auto 7px 4px;
+  width: 13px;
+  border-inline: 1px solid #dce9ec80;
+  border-radius: 2px;
+  background: repeating-linear-gradient(0deg, #192c3a35 0 1px, #e5eff43b 1px 3px);
+  box-shadow: inset 2px 0 3px #ffffff4d, inset -2px 0 3px #0e1c2b45;
+}
+
+.case-hinge::before,
+.case-hinge::after {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 10px;
+  border: 1px solid #4e626c80;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #bbc8cc, #ecf1ef99 40%, #81929a);
+  box-shadow: 0 1px 2px #0005;
+  content: "";
+}
+.case-hinge::before { top: 16px; }
+.case-hinge::after { bottom: 16px; }
+
+.case-insert {
+  display: flex;
+  flex-direction: column;
+  min-height: 150px;
+  padding: 13px 14px 11px;
+  border: 1px solid #273a413d;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #00000010, transparent 6%, transparent 96%, #ffffff30), var(--case-paper);
+  box-shadow: 0 1px 3px #0004;
+}
+
+.case-heading,
+.case-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font: 500 9px/1.4 var(--font-mono);
+}
+.case-heading { text-transform: uppercase; letter-spacing: .06em; }
+.case-number { padding: 2px 4px; border: 1px solid currentColor; }
+.case-type { text-align: right; }
+.case-title {
+  display: block;
+  margin: 16px 0 10px;
+  font: 500 25px/1.12 var(--font-serif);
+  overflow-wrap: anywhere;
+}
+.case-note {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 12px;
+  font: 400 10px/1.6 var(--font-mono);
+}
+.case-note:empty { display: none; }
+.case-footer {
+  margin-top: auto;
+  padding-top: 13px;
+  background: linear-gradient(var(--case-stripe),var(--case-stripe)) left top / 100% 4px no-repeat,
+    linear-gradient(var(--case-accent),var(--case-accent)) left 6px / 100% 2px no-repeat;
+}
+.case-provider { text-transform: uppercase; letter-spacing: .06em; }
+.case-state { white-space: nowrap; font-size: 9px; }
+.case-state::before { content: "↗ "; }
+.tape-case[aria-pressed="true"] .case-state::before { content: "● "; font-size: 8px; }
+.tape-case[aria-pressed="true"] {
+  outline: 1px solid var(--accent-text);
+  outline-offset: 3px;
+  box-shadow: inset 0 1px 1px #ffffffe0, inset -2px -3px 2px #26384255,
+    inset 2px 0 1px #ffffff70, 0 3px 0 #26343c6b, 0 7px 12px -5px #07111959;
+}
+.tape-case:hover { transform: translateY(-3px); }
+.tape-case:active { transform: translateY(1px); }
+.tape-case:focus-visible { outline: 3px solid var(--accent-text); outline-offset: 4px; }
+
+.tape-case[data-tape-style="diy"] {
+  --case-paper: #eee8d8;
+  --case-ink: #273c50;
+  --case-stripe: #344f64;
+  --case-accent: #9d8b68;
+}
+.tape-case[data-tape-style="diy"] .case-title {
+  font: 400 24px/1.35 "Permanent Marker", "Marker Felt", "Segoe Print", cursive;
+  border-bottom: 1px solid #273c5040;
+  padding-bottom: 5px;
+  transform: rotate(-1deg);
+}
+.tape-case[data-tape-style="album"] {
+  --case-paper: #263d4b;
+  --case-ink: #f2e9d6;
+  --case-stripe: #b5b7a5;
+  --case-accent: #728d99;
+}
+.tape-case[data-tape-style="album"] .case-title {
+  font: 600 22px/1.2 var(--font-sans);
+  letter-spacing: -.025em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tape-case { transition: none; }
+  .tape-case:hover, .tape-case:active { transform: none; }
+}

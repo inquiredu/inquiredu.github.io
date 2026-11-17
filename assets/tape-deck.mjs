@@ -316,19 +316,30 @@ export function mountTapeDeck(container, items, sources = {}) {
 
   /* the shelf */
   const shelfHead = element('div', 'tape-shelf-head');
-  shelfHead.append(element('span', '', 'ON THE SHELF'), element('span', '', 'Pick a tape to load it.'));
+  shelfHead.append(element('span', '', 'SELECT A TAPE'), element('span', '', 'Choose a case to load the deck.'));
   const shelf = element('div', 'tape-shelf');
   shelf.setAttribute('role', 'group');
   shelf.setAttribute('aria-label', 'Tapes on the shelf');
-  const spines = entries.map(({item, source, ivory}, i) => {
-    const spine = button('', 'tape-spine' + (ivory ? ' ivory' : ''));
-    spine.setAttribute('aria-pressed', 'false');
-    spine.setAttribute('aria-label', 'Load ' + item.title);
-    spine.append(element('i', 'spine-color'), element('small', '', String(i + 1).padStart(2, '0')), element('span', 'spine-title', item.title),
-      element('small', '', source?.provider || 'Song list'), element('span', 'shelf-state'));
-    spine.addEventListener('click', () => choose(i));
-    shelf.append(spine);
-    return spine;
+  const cases = entries.map(({item, source, appearance}, i) => {
+    const cassetteCase = button('', 'tape-case');
+    cassetteCase.dataset.tapeStyle = appearance;
+    cassetteCase.setAttribute('aria-pressed', 'false');
+    cassetteCase.setAttribute('aria-label', 'Load ' + item.title);
+    const hinge = element('i', 'case-hinge');
+    hinge.setAttribute('aria-hidden', 'true');
+    const insert = element('span', 'case-insert');
+    const heading = element('span', 'case-heading');
+    const type = appearance === 'diy' ? 'Original recordings' : appearance === 'album' ? 'Album' : source ? 'Mixtape' : 'Song list';
+    heading.append(element('span', 'case-number', String(i + 1).padStart(2, '0')), element('span', 'case-type', type));
+    const title = element('strong', 'case-title', item.title);
+    const note = element('span', 'case-note', item.note?.trim());
+    const footer = element('span', 'case-footer');
+    footer.append(element('span', 'case-provider', source?.provider || 'Song list'), element('span', 'case-state'));
+    insert.append(heading, title, note, footer);
+    cassetteCase.append(hinge, insert);
+    cassetteCase.addEventListener('click', () => choose(i));
+    shelf.append(cassetteCase);
+    return cassetteCase;
   });
 
   const details = element('div', 'listening-details');
@@ -495,10 +506,10 @@ export function mountTapeDeck(container, items, sources = {}) {
   trackToggle.addEventListener('click', () => setTracksOpen(!tracksOpen));
 
   function markShelf() {
-    spines.forEach((spine, i) => {
+    cases.forEach((cassetteCase, i) => {
       const inDeck = i === index;
-      spine.setAttribute('aria-pressed', String(inDeck));
-      spine.querySelector('.shelf-state').textContent = inDeck ? 'In the deck' : '';
+      cassetteCase.setAttribute('aria-pressed', String(inDeck));
+      cassetteCase.querySelector('.case-state').textContent = inDeck ? 'In the deck' : 'Load tape';
     });
   }
 
