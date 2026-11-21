@@ -426,135 +426,50 @@ noscript ul{font-family:var(--font-sans)}
 <link rel="stylesheet" href="assets/winter.css?v=20261115.4">
 <link rel="stylesheet" href="assets/tape-cases.css?v=20261116.7">
 <link rel="stylesheet" href="assets/compact-layout.css?v=20261116.7">
-<link rel="stylesheet" href="assets/stage.css?v=20261119.1">
 </head>
 <body>
 <a class="skip-link" href="#projects">Skip to the collection</a>
 <div class="page">
 
-  <header class="stage-bar">
-    <div class="masthead">
-      <img class="mark logo-light" src="assets/mark.png" alt="" width="34" height="32">
-      <img class="mark logo-dark" src="assets/mark-reversed.png" alt="" width="34" height="32">
-      <h1>
-        <img class="wordmark logo-light" src="assets/wordmark.png" alt="Sean Beaverson" width="196" height="25">
-        <img class="wordmark logo-dark" src="assets/wordmark-reversed.png" alt="Sean Beaverson" width="196" height="25">
-      </h1>
-    </div>
-    <nav class="finder" id="finder" aria-label="The collection">
-      <button class="finder-step" type="button" data-step="-1" aria-label="Previous room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <div class="finder-scale" id="finderScale">
-        <a href="#projects"><span>Library</span></a>
-        <a href="#photographs"><span>Photographs</span></a>
-        <a href="#listening" id="listeningNav" hidden><span>Listening</span></a>
-        <a href="#videos" id="videosNav" hidden><span>Moving pictures</span></a>
-        <a href="#writing" id="writingNav" hidden><span>Writing</span></a>
-        <i class="finder-index" aria-hidden="true"></i>
+  <!-- Introduction -->
+  <header class="intro">
+    <div class="intro-top">
+      <div class="masthead">
+        <img class="mark logo-light" src="assets/mark.png" alt="" width="34" height="32">
+        <img class="mark logo-dark" src="assets/mark-reversed.png" alt="" width="34" height="32">
+        <h1>
+          <img class="wordmark logo-light" src="assets/wordmark.png" alt="Sean Beaverson" width="196" height="25">
+          <img class="wordmark logo-dark" src="assets/wordmark-reversed.png" alt="Sean Beaverson" width="196" height="25">
+        </h1>
       </div>
-      <button class="finder-step" type="button" data-step="1" aria-label="Next room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-    </nav>
-    <button class="lamp" id="lamp" type="button" role="switch" aria-checked="true" aria-label="Light mode" title="Desk lamp: light or dark">
-      <span>Lamp</span>
-      <span class="rocker" aria-hidden="true"><span class="lever"></span></span>
-      <span class="pilot" aria-hidden="true"></span>
-      <span class="lamp-state" id="lampState">On</span>
-    </button>
-  </header>
-
-  <!-- One room on stage at a time; assets/stage.mjs turns the viewfinder between them. -->
-  <main class="room stage" id="room">
-    <section class="scene scene-home" id="projects" aria-labelledby="homeHeading"><div class="scene-inner">
-    <div class="room-head home-head">
+      <div class="intro-end">
+        <nav class="elsewhere" aria-label="Elsewhere" id="elsewhere">
+          <a href="https://github.com/inquiredu">GitHub</a>
+          <a href="https://www.linkedin.com/in/sean-beaverson-438aa724">LinkedIn</a>
+          <a href="https://youtube.com/@SeanBeaverson">YouTube</a>
+        </nav>
+      <button class="lamp" id="lamp" type="button" role="switch" aria-checked="true" aria-label="Light mode" title="Desk lamp: light or dark">
+        <span>Lamp</span>
+        <span class="rocker" aria-hidden="true"><span class="lever"></span></span>
+        <span class="pilot" aria-hidden="true"></span>
+        <span class="lamp-state" id="lampState">On</span>
+      </button>
+      </div>
+    </div>
+    <div class="introduction">
       <div>
-        <h2 class="section-title hello" id="homeHeading"><span class="section-number">The library · Est. 1974</span>Learning, exploring &amp; sharing.</h2>
-      </div>
-      <div class="home-lede">
+        <p class="eyebrow">A personal collection · Est. 1974</p>
+        <h2 class="hello">Learning, exploring<br>&amp; sharing.</h2>
         <p class="intro-text" id="siteIntro">An educator’s collection of things made, ideas explored, and moments worth keeping.</p>
-        <p id="libraryNote">Loading the catalog.</p>
+        <nav class="collection-nav" aria-label="The collection">
+          <a href="#projects">01 <span>Projects</span></a>
+
+          <a href="#writing" id="writingNav" hidden>02 <span>Writing</span></a>
+          <a href="#listening" id="listeningNav" hidden>03 <span>Listening</span></a>
+          <a href="#videos" id="videosNav" hidden>04 <span>Moving pictures</span></a>
+        </nav>
       </div>
-    </div>
-
-    <div class="library-objects"><section class="terminal" aria-label="Project catalog">
-      <div class="chassis">
-        <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
-        <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
-
-        <div class="crt" id="crt">
-          <div class="screen" id="screen">
-            <div class="bar">
-              <span>Catalog</span>
-              <span class="rule" aria-hidden="true"></span>
-              <span class="dim" id="recCount">Loading</span>
-              <span class="dim date" id="today"></span>
-            </div>
-
-            <div class="panes">
-              <ul class="records" id="records" aria-label="Project records"></ul>
-
-            </div>
-
-            <div class="bar">
-              <div class="tabs" id="tabs" role="group" aria-label="Filter records">
-                <button class="tab" type="button" data-f="all" aria-pressed="true">All<span class="n"></span></button>
-                <button class="tab" type="button" data-f="live" aria-pressed="false">Live<span class="n"></span></button>
-                <button class="tab" type="button" data-f="source" aria-pressed="false">Open source<span class="n"></span></button>
-                <button class="tab" type="button" data-f="workshop" aria-pressed="false">Workshop<span class="n"></span></button>
-              </div>
-              <span class="rule" aria-hidden="true"></span>
-              <span>Ready <span class="cursor" aria-hidden="true"></span></span>
-            </div>
-          </div>
-          <div class="scanlines" aria-hidden="true"></div>
-          <div class="glass" aria-hidden="true"></div>
-        </div>
-
-        <div class="deck">
-          <div class="plate">
-            <img src="assets/mark-reversed.png" alt="" width="34" height="32">
-            <div class="engrave"><span>Catalog &amp; projector</span><span class="model">Model &gt;0</span></div>
-          </div>
-          <div class="grille" aria-hidden="true"></div>
-
-          <div class="controls" role="group" aria-label="Terminal">
-            <div class="ctl">
-              <span>Phosphor</span>
-              <button class="slide" id="phosphor" type="button" aria-label="Phosphor color: ice. Switch to green.">
-                <span class="opt" id="optAmb">Ice</span>
-                <span class="track" aria-hidden="true"><span class="knob"></span></span>
-                <span class="opt" id="optGrn">Grn</span>
-              </button>
-            </div>
-            <div class="ctl">
-              <span>Power</span>
-              <div style="display:flex; align-items:center; gap:10px">
-                <span class="led on" id="led" aria-hidden="true"></span>
-                <button class="power" id="power" type="button" aria-pressed="true" aria-label="Screen power">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="paper-catalog"><article class="card" id="card" aria-live="polite"></article><p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p></div></div>
-    <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
-    </div>
-    <footer>
-      <img class="logo-light" src="assets/mark.png" alt="" width="32" height="31">
-      <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="32" height="31">
-      <span><b>&gt;0</b> · Any effort is better than none. <span class="footer-location">Sean Beaverson · Robbinsdale, Minnesota</span></span>
-      <nav class="elsewhere" aria-label="Elsewhere" id="elsewhere">
-        <a href="https://github.com/inquiredu">GitHub</a>
-        <a href="https://www.linkedin.com/in/sean-beaverson-438aa724">LinkedIn</a>
-        <a href="https://youtube.com/@SeanBeaverson">YouTube</a>
-        <a class="editor-link" href="admin/">Editor ↗</a>
-      </nav>
-    </footer>
-    </section>
-
-    <section class="scene scene-photographs" id="photographs" aria-labelledby="photoHeading"><div class="scene-inner"><div class="photo-collection">
+    <section id="photographs" class="photo-collection" aria-labelledby="photoHeading">
       <div class="viewfinder-head"><h2 id="photoHeading">Through the viewfinder</h2><span>Photographs by Sean</span></div>
       <div class="photo-player" id="photoPlayer" hidden>
         <div class="photo-ambient" aria-hidden="true">
@@ -628,22 +543,97 @@ noscript ul{font-family:var(--font-sans)}
           </div>
         </div>
       </div>
-    </div></div></section>
+    </section>
 
-    <section class="editorial-section scene" id="listening" hidden aria-labelledby="listeningHeading"><div class="scene-inner"><h2 class="section-title" id="listeningHeading"><span class="section-number">ON REPEAT</span>The listening room.</h2><div id="listeningItems"></div></div></section>
-    <section class="editorial-section scene" id="videos" hidden aria-labelledby="videosHeading"><div class="scene-inner"><h2 class="section-title" id="videosHeading"><span class="section-number">ON THE AIR</span>Moving pictures.</h2><div id="videoItems"></div></div></section>
-    <section class="editorial-section scene" id="writing" hidden aria-labelledby="writingHeading"><div class="scene-inner"><h2 class="section-title" id="writingHeading"><span class="section-number">FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></div></section>
+    </div>
+  </header>
+
+  <div class="horizon" aria-hidden="true"><span></span><span></span></div>
+
+  <main class="room" id="room">
+    <div class="room-head" id="projects">
+      <h2 class="section-title"><span class="section-number">01 / THE LIBRARY</span>Things I’m making.</h2>
+      <p id="libraryNote">Loading the catalog.</p>
+    </div>
+
+    <div class="library-objects"><section class="terminal" aria-label="Project catalog">
+      <div class="chassis">
+        <span class="screw s1" aria-hidden="true"></span><span class="screw s2" aria-hidden="true"></span>
+        <span class="screw s3" aria-hidden="true"></span><span class="screw s4" aria-hidden="true"></span>
+
+        <div class="crt" id="crt">
+          <div class="screen" id="screen">
+            <div class="bar">
+              <span>Catalog</span>
+              <span class="rule" aria-hidden="true"></span>
+              <span class="dim" id="recCount">Loading</span>
+              <span class="dim date" id="today"></span>
+            </div>
+
+            <div class="panes">
+              <ul class="records" id="records" aria-label="Project records"></ul>
+
+            </div>
+
+            <div class="bar">
+              <div class="tabs" id="tabs" role="group" aria-label="Filter records">
+                <button class="tab" type="button" data-f="all" aria-pressed="true">All<span class="n"></span></button>
+                <button class="tab" type="button" data-f="live" aria-pressed="false">Live<span class="n"></span></button>
+                <button class="tab" type="button" data-f="source" aria-pressed="false">Open source<span class="n"></span></button>
+                <button class="tab" type="button" data-f="workshop" aria-pressed="false">Workshop<span class="n"></span></button>
+              </div>
+              <span class="rule" aria-hidden="true"></span>
+              <span>Ready <span class="cursor" aria-hidden="true"></span></span>
+            </div>
+          </div>
+          <div class="scanlines" aria-hidden="true"></div>
+          <div class="glass" aria-hidden="true"></div>
+        </div>
+
+        <div class="deck">
+          <div class="plate">
+            <img src="assets/mark-reversed.png" alt="" width="34" height="32">
+            <div class="engrave"><span>Catalog &amp; projector</span><span class="model">Model &gt;0</span></div>
+          </div>
+          <div class="grille" aria-hidden="true"></div>
+
+          <div class="controls" role="group" aria-label="Terminal">
+            <div class="ctl">
+              <span>Phosphor</span>
+              <button class="slide" id="phosphor" type="button" aria-label="Phosphor color: ice. Switch to green.">
+                <span class="opt" id="optAmb">Ice</span>
+                <span class="track" aria-hidden="true"><span class="knob"></span></span>
+                <span class="opt" id="optGrn">Grn</span>
+              </button>
+            </div>
+            <div class="ctl">
+              <span>Power</span>
+              <div style="display:flex; align-items:center; gap:10px">
+                <span class="led on" id="led" aria-hidden="true"></span>
+                <button class="power" id="power" type="button" aria-pressed="true" aria-label="Screen power">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M7 6.5a7 7 0 1 0 10 0"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="paper-catalog"><article class="card" id="card" aria-live="polite"></article><p class="dewey">Call numbers follow the Dewey Decimal System, more or less.</p></div></div>
+    <section class="editorial-section" id="writing" hidden aria-labelledby="writingHeading"><h2 class="section-title" id="writingHeading"><span class="section-number">02 / FIELD NOTES</span>Thinking out loud.</h2><div id="writingItems"></div></section>
+    <section class="editorial-section" id="listening" hidden aria-labelledby="listeningHeading"><h2 class="section-title" id="listeningHeading"><span class="section-number">03 / ON REPEAT</span>The listening room.</h2><div id="listeningItems"></div></section>
+    <section class="editorial-section" id="videos" hidden aria-labelledby="videosHeading"><h2 class="section-title" id="videosHeading"><span class="section-number">04 / ON THE AIR</span>Moving pictures.</h2><div id="videoItems"></div></section>
+    <noscript><p class="dewey">The catalog needs JavaScript. The full list is in <a href="projects.json">projects.json</a>.</p></noscript>
   </main>
 
-  <div class="finder-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="finder-readout" id="finderReadout"></span></div>
-  <p class="visually-hidden" id="finderStatus" role="status"></p>
-</div>
+  <footer>
+    <img class="logo-light" src="assets/mark.png" alt="" width="32" height="31">
+    <img class="logo-dark" src="assets/mark-reversed.png" alt="" width="32" height="31">
+    <span><b>&gt;0</b> · Any effort is better than none.<br><span class="footer-location">Sean Beaverson · Robbinsdale, Minnesota</span></span>
+    <a class="editor-link" href="admin/">Editor ↗</a>
+  </footer>
 
-<div class="turn-device" id="turnDevice" role="dialog" aria-modal="true" aria-labelledby="turnDeviceTitle" hidden>
-  <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="22" y="8" width="20" height="36" rx="3"/><path d="M12 50a22 22 0 0 0 22 8M34 58l-5-5M34 58l-5 4"/><rect x="38" y="34" width="20" height="14" rx="3" class="turned"/></svg>
-  <h2 id="turnDeviceTitle">Turn your phone sideways.</h2>
-  <p>This collection is framed for landscape, like a viewfinder.</p>
-  <button type="button" id="turnDeviceSkip">Continue upright</button>
 </div>
 <script>
 (function(){
@@ -1048,7 +1038,6 @@ noscript ul{font-family:var(--font-sans)}
     .catch(function(){ /* no slides yet: the wall stays dark and put away */ });
 })();
 </script>
-<script type="module" src="assets/stage.mjs?v=20261119.1"></script>
 <script type="module" src="assets/collection.js?v=20261116.7"></script>
 <script type="module" src="assets/viewfinder.mjs?v=20261115.18"></script>
 <script type="module" src="assets/photo-atlas.mjs?v=20261115.10"></script>

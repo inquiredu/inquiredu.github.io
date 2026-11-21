@@ -25,7 +25,6 @@ Do not hand-edit generated public content as the normal editorial workflow: the 
 | --- | --- |
 | Introduction, projector markup and slideshow | `index.html`, `assets/photo-player.css`, `assets/viewfinder.mjs`, `assets/photo-notes.mjs` |
 | Shared theme and compact layout | `assets/winter.css`, `assets/compact-layout.css` |
-| Viewfinder stage: one room in view, the scale in the top bar, turning between rooms, fit-to-frame scaling, the upright-phone prompt | `index.html` (`.stage-bar`, `main.stage`, `.scene`), `assets/stage.css`, `assets/stage.mjs`, `tests/stage.test.mjs` |
 | Cassette deck and playback | `assets/tape-deck.mjs`, `assets/analog.css`, `assets/listening-room.css` |
 | Hinged cases and printed inserts | `assets/tape-cases.css`, `assets/tape-inserts.mjs`, `feeds/tape-inserts.json` |
 | Music visualization and shared focus behavior | `assets/music-visualizer.mjs`, `assets/focus-view.mjs`, `assets/focus-view.css` |
@@ -34,7 +33,7 @@ Do not hand-edit generated public content as the normal editorial workflow: the 
 | Studio publishing and editorial UI | `admin/editor.mjs`, `admin/core.mjs`, `admin/photo-publish.mjs` |
 | AI connection and repository context | `admin/ai-client.mjs`, `admin/repo-context.mjs`, `admin/studio-assistant.mjs`, `auth/studio-bridge.mjs`, `auth/studio-assistant.mjs` |
 
-The page loads several established style layers. Place case-specific changes in `tape-cases.css` and page-density changes in `compact-layout.css`. `stage.css` loads last and only frames and arranges the rooms. Each room is a `.scene` inside `main.stage` whose single child is `.scene-inner`; a new room also needs a link in `.finder-scale`. Rooms that are off stage stay mounted (so audio keeps playing) and are made inert. Do not give `.stage`, `.scene` or `.scene-inner` a resting `transform`, `perspective` or `will-change`: it would break the fixed-position focus views. Preserve the public player iframes when opening or closing cases and focus views; moving a live iframe between parents can restart playback. The shared case moves only after the previous source has been discarded.
+The page loads several established style layers. Place case-specific changes in `tape-cases.css` and page-density changes in `compact-layout.css`, which loads last. Preserve the public player iframes when opening or closing cases and focus views; moving a live iframe between parents can restart playback. The shared case moves only after the previous source has been discarded.
 
 ## Publish site changes
 
