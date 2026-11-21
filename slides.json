@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-15",
+  "updated": "2026-11-21",
   "tray": 24,
   "slides": [
     {
@@ -148,6 +148,168 @@
       "shareMetadata": true,
       "metadata": {
         "date": "2024-03-31"
+      }
+    },
+    {
+      "id": "5363781faa5e9c173f83",
+      "src": "assets/slides/5363781faa5e9c173f83.jpg",
+      "thumb": "assets/slides/5363781faa5e9c173f83-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2026-04",
+      "caption": "Seaside wall portrait",
+      "alt": "A weathered concrete wall covered in graffiti and a large painted portrait of an elderly person stands beside a grassy shoreline. Palm fronds frame choppy ocean water under a bright, cloud-filled sky, with small cake advertisements posted above and below the mural.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 2.22mm f/2.2",
+        "date": "2026-04-03",
+        "aperture": 2.2,
+        "exposure": 0.0004528985507246377,
+        "iso": 50,
+        "focalLength": 2.220000028611935
+      },
+      "location": {
+        "lat": 18.4,
+        "lon": -65.7,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "c5e95c7e9451b268c6f1",
+      "src": "assets/slides/c5e95c7e9451b268c6f1.jpg",
+      "thumb": "assets/slides/c5e95c7e9451b268c6f1-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2026-04",
+      "caption": "Storm light on the shore",
+      "alt": "Foamy waves roll onto a wide, wet sandy beach beneath heavy gray clouds. A lone distant figure walks near the waterline as a band of pale pink light opens along the horizon.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 2.22mm f/2.2",
+        "date": "2026-04-02",
+        "aperture": 2.2,
+        "exposure": 0.010101010101010102,
+        "iso": 250,
+        "focalLength": 2.220000028611935
+      },
+      "location": {
+        "lat": 18.4,
+        "lon": -65.7,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "6b537ae813a80d6a8468",
+      "src": "assets/slides/6b537ae813a80d6a8468.jpg",
+      "thumb": "assets/slides/6b537ae813a80d6a8468-thumb.jpg",
+      "width": 1200,
+      "height": 1600,
+      "taken": "2025-10",
+      "caption": "Maple leaves in warm light",
+      "alt": "An upward view of a maple tree canopy filled with golden yellow, orange, and pink-red autumn leaves against a clear blue sky. Dark branching limbs show through the dense foliage.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 2.22mm f/2.2",
+        "date": "2025-10-29",
+        "aperture": 2.2,
+        "exposure": 0.005128205128205128,
+        "iso": 40,
+        "focalLength": 2.220000028611935
+      },
+      "location": {
+        "lat": 45,
+        "lon": -93.3,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "678913d28bec474752e0",
+      "src": "assets/slides/678913d28bec474752e0.jpg",
+      "thumb": "assets/slides/678913d28bec474752e0-thumb.jpg",
+      "width": 1143,
+      "height": 1600,
+      "taken": "2025-06",
+      "caption": "Purple and white lupines",
+      "alt": "Tall purple and white lupines rise through green grass, with small orange wildflowers scattered in the foreground. The background foliage and distant blooms are softly blurred in warm daylight.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 6.765mm f/1.78",
+        "date": "2025-06-20",
+        "aperture": 1.7799999713880652,
+        "exposure": 0.0005040322580645161,
+        "iso": 64,
+        "focalLength": 6.764999865652793
+      },
+      "location": {
+        "lat": 47.7,
+        "lon": -90.7,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "953f9904265e834df5c5",
+      "src": "assets/slides/953f9904265e834df5c5.jpg",
+      "thumb": "assets/slides/953f9904265e834df5c5-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2025-06",
+      "caption": "Cyclist into the mist",
+      "alt": "A cyclist in a bright yellow jacket rides away on a paved path bordered by tall green grass. A quiet road, utility poles, and dense trees fade into pale fog ahead.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 6.765mm f/1.78",
+        "date": "2025-06-19",
+        "aperture": 1.7799999713880652,
+        "exposure": 0.0009140767824497258,
+        "iso": 80,
+        "focalLength": 6.764999865652793
+      },
+      "location": {
+        "lat": 47.6,
+        "lon": -90.8,
+        "label": "",
+        "precision": "approximate"
+      }
+    },
+    {
+      "id": "52fb15a28eeb5d8bffc3",
+      "src": "assets/slides/52fb15a28eeb5d8bffc3.jpg",
+      "thumb": "assets/slides/52fb15a28eeb5d8bffc3-thumb.jpg",
+      "width": 1600,
+      "height": 1200,
+      "taken": "2024-10",
+      "caption": "Moonlight on the water",
+      "alt": "A bright moon hangs above calm water, casting a narrow silver reflection toward a dark, rocky shoreline. Evergreen and bare trees form a black silhouette at left beneath clouds and a deep blue night sky.",
+      "hidden": false,
+      "shareMetadata": true,
+      "metadata": {
+        "camera": "Apple iPhone 15 Pro",
+        "lens": "iPhone 15 Pro back triple camera 2.22mm f/2.2",
+        "date": "2024-10-18",
+        "aperture": 2.2,
+        "exposure": 0.5,
+        "iso": 4000,
+        "focalLength": 2.220000028611935
+      },
+      "location": {
+        "lat": 47.6,
+        "lon": -90.9,
+        "label": "",
+        "precision": "approximate"
       }
     }
   ]
